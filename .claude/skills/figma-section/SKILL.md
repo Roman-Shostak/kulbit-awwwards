@@ -19,11 +19,10 @@ Output: one file `src/components/sections/<Name>.astro` per section. Nothing els
    CTAs lead (link or popup) and where the form submits;
    whether animations are wanted (the standard set: Lenis, reveal on scroll, hiding header, hero
    intro). Whatever is missing becomes a `TODO` in the code and a line in the report — never a guess.
-2. **Inventory first.** Run `/sync-tokens` with the three frames before building anything: it walks
-   every element of the design, turns every repeated value into a token + class and every repeated
-   element into a ui component to build, and saves `src/dev/inventory.md`. A hero built on stale or
-   missing tokens had to be redone five times on the test project. Build the ui components from that
-   list before the first section. Fill `src/data/site.ts` with the client data that was provided and
+2. **Base first.** Run `/sync-tokens` with the three frames before building anything: frame widths,
+   side padding and grid, fonts, 2–4 main colours (`Phase: development` in `src/dev/inventory.md`).
+   Everything else is written exactly as in Figma until `/systemize` at the end (`styles.md` → Phases).
+   Build `Button` before the first section. Fill `src/data/site.ts` with the client data that was provided and
    set the languages in `src/i18n/index.ts` + `astro.config.mjs` from the language of the design's
    texts (ask when the file mixes languages) — a wrong `lang` is invisible on screen.
 3. **Hero first, then approval.** Build the first section, show it at 1536/1540, 1920, 768 and 390
@@ -38,22 +37,29 @@ Output: one file `src/components/sections/<Name>.astro` per section. Nothing els
 2. **Read the design.** `get_design_context` for the desktop node, `get_screenshot` to see the intended
    result; `get_metadata` for the tablet and mobile nodes (sizes and positions are enough there —
    `get_design_context` only for instances such as CTA/footer, and for the hero).
-3. **Check the tokens — reuse first.** For every value in the node find what already exists:
-   `tokens.css` / `utilities.css`, the ui components, and `src/dev/inventory.md` (value → token/class).
-   A value the inventory maps to a token uses that token, even when the node shows drawing noise
-   (18.5 vs the 18 token — say so in the reply). A value with no token that appears in 2+ places on
-   the page → add the token + utility (a mini `/sync-tokens` step) instead of two arbitrary classes.
-   A value used once → an arbitrary class in the component. A variable whose value differs from
-   `tokens.css` means the tokens are stale: stop and propose `/sync-tokens` — do not build on old values.
-4. **Map values to tokens — by variable name first.**
+3. **Read the phase** (`Phase:` in `src/dev/inventory.md`).
+   - **development** → every value exactly as in the node, no rounding: sizes `var(--size-N)` /
+     `calc(<px/16>rem * var(--fluid-scale))`, spacing / section padding / widths / text styles as arbitrary
+     classes declared in the component (`spacing-40/40/24`, `padding-120/80/60`, `text-size-64/48/40`),
+     colours, radii, borders, shadows raw in the scoped rule. Tokens only where the value equals a base token
+     (`--theme-text`, `--container-padding`, fonts, `text-weight-*`, motion). Never the template's
+     placeholder utilities (`spacing-md`, `text-size-h2`, `padding-lg`, `border-radius-*`,
+     `text-color-secondary`). Do not add tokens or utilities; a value repeated from another section is fine.
+     Skip step 4.
+   - **systemized** → reuse first: for every value find what exists in `tokens.css` / `utilities.css`, the
+     ui components and `src/dev/inventory.md` (value → token/class). A value the inventory maps to a token uses
+     that token, even with drawing noise (18.5 vs the 18 token — say so in the reply). A value with no token
+     that appears in 2+ places → token + utility now; used once → an arbitrary class. Many new values →
+     propose `/systemize` (incremental) instead.
+4. **Map values to tokens — by variable name first** (systemized phase).
    - A value bound to a Figma variable → the matching utility/token, regardless of the number: `gap/md` → `spacing-md`, `font/h4` → `text-size-h4`, `desktop/body md (sb)` → `text-size-body-md-sb`, `border radius/xs` → `border-radius-xs`, `section padding/lg` → `padding-lg` / `padding-top-lg`.
-   - A Figma text style with no `text-size-<name>` utility yet → stop and say so; the user runs `/sync-tokens`. Do not translate it into another name.
+   - A Figma text style with no `text-size-<name>` utility yet → an arbitrary `text-size-N/N/N` class and a line in the report (`/systemize` names it). Do not translate it into another name.
    - A raw number without a variable → an arbitrary class from `--size-N` (`spacing-40/40/24`, `col-6/3/1`, `text-size-20/20/18`), declared in the component `<style>`.
    - Nothing else: no raw px/hex. List every deviation from the design in the reply.
 5. **Reuse ui components.** A node named `tag`, `card`, `button/*`, `number` (or that looks like one),
-   and any pattern the inventory lists as repeated → the component from `src/components/ui/`
+   and any pattern the design repeats → the component from `src/components/ui/`
    (the template ships none: the project's `Button` comes first, in the shape from
-   `astro-components.md`, then the rest of the inventory list); extend a component when a variant is
+   `astro-components.md`); extend a component when a variant is
    missing (`type--`, `size--`) instead of restyling it in the section; a pattern met for the second
    time becomes a ui component now, not later. Contacts, name and socials come
    from `src/data/site.ts`, never as prop defaults. Contacts the design draws as elements (icon
@@ -64,7 +70,7 @@ Output: one file `src/components/sections/<Name>.astro` per section. Nothing els
    - Root: `<section class="section padding-lg">` or `padding-top-* padding-bottom-*`; the first section of the page is `section section--hero` (its vertical padding on the text column, `data-intro` if animations are on); a dark section adds `theme--dark`. No block class, background or scoped padding on the root. Then `<div class="container">` (alone) → a layout wrapper with utilities. Header and footer start directly with `<div class="container">` (the layout owns `header-fixed > header` and `footer`).
    - **HTML first** (`.claude/rules/markup.md`): repeated items are `<ul>/<ol>` + `<li>`, one `<h1>` on the page and an `<h2>` per section, `<a href>` vs `<button>`, labelled controls, `aria-expanded`/`aria-controls` on toggles, `<details>`/`<dialog>` for accordions/popups, `<address>`, `<time>`, `alt`, `aria-hidden` on decorative SVG. Layout wrappers are `<div>`s; content never is.
    - `Props` interface for text/links/images that are likely to change. Text defaults come from the dictionary: the design copy (plus `alt`, `aria-label`, field labels) goes into the default language's dictionary (`src/i18n/<lang>.ts`, `defaultLocale` in `src/i18n/index.ts`) under the component's key and the section reads `const t = useTranslations(Astro.currentLocale).<component>`; internal links via `localePath()`. Never write other languages' texts yourself (`astro-components.md` → Texts and languages).
-   - Utilities first: `flex-h/v/v`, `align-center`, `justify-space-between spacing-4xl` (always together; a token that changes per breakpoint for rows that stack), `grid-2/2/1col`, `col-6`. Max three classes per element; more → another wrapper. Typography (`text-size-*`, `text-weight-*`, `text-color-*`) on the parent, children inherit. Behaviour in `data-*`, state in `is--*`.
+   - Utilities first: `flex-h/v/v`, `align-center`, `justify-space-between` + a spacing class (always together; systemized: a token that changes per breakpoint for rows that stack; development: the arbitrary `spacing-d/t/m` from the frames), `grid-2/2/1col`, `col-6`. Max three classes per element; more → another wrapper. Typography (`text-size-*`, `text-weight-*`, `text-color-*`) on the parent, children inherit. Behaviour in `data-*`, state in `is--*`.
    - `block_element` class ONLY for an element that needs a unique scoped style utilities cannot express. Typography never gets an element class or a scoped rule. Do not repeat what `utilities.css`, `reset.css`, `base.css` already set.
    - Every `a`/`button`/input: hover and focus-visible present, identical unless the design has separate states, `transition … var(--transition-duration) var(--transition-easing)`; logo link `opacity: 0.7`, social icons `scale(1.1)`. Buttons via the project's `Button.astro` (build it first if missing); no `href="#"` — if the design does not say link vs action, ask. Forms per the Forms rule (`align-start` on the form, inputs in a wrapper with a width, `cta_input` element class, `action` as `TODO`).
    - Images (rules in `.claude/rules/images.md`): real photos → `download_assets` at **2x** into `src/assets/<section>/` (kebab-case), `<Picture formats={['avif','webp']} class="fill-box">` in flow inside the container, `width` = the largest 1x size across breakpoints, `height` only for a constant crop, the box crops (`aspect-ratio` / height + `overflow-hidden` + `border-radius-*`), full-bleed via negative `--container-padding` margins, `alt`, `priority` only for the hero image. If the download fails (cloud sandbox) or the user exports photos themselves: commented `<Picture>` + `TODO` with path, filename, 2x size and Figma layer name; ask for the file in the report.
@@ -90,8 +96,8 @@ instead: it spawns a `section-builder` per section, one after another, with revi
 
 Input: the page frame (+ tablet and mobile frames). Order of work:
 1. `get_metadata` on the page frame → the list of sections in design order. The page's file path follows the site hierarchy from the page map (a child of a hub page lives in the hub's folder); ask for the map when the start kit has none.
-2. `/sync-tokens` with the three frames; `src/data/site.ts`; fonts (`pnpm fonts`), favicon (`pnpm favicon`), OG source — whatever the start kit contains.
-3. Shared ui components first (the inventory's list: button, tag, card, input …, with the variants seen in the metadata), each added to `src/dev/components.astro` with all variants.
+2. `/sync-tokens` (base) with the three frames; `src/data/site.ts`; fonts (`pnpm fonts`), favicon (`pnpm favicon`), OG source — whatever the start kit contains.
+3. Shared ui components first (`Button`, and the elements the page metadata shows repeated: tag, card, input …, with their variants), each added to `src/dev/components.astro` with all variants.
 4. Sections one by one in design order; the hero first with the approval stop (above). `get_design_context` only for instances and complex sections, the rest from metadata.
 5. `src/pages/[...locale]/index.astro` (`export const getStaticPaths = localeStaticPaths`) with `title`, `description` from `t.pages.<page>` in the default dictionary (`src/i18n/<lang>.ts`; per `/seo`: 50–60 and 120–160 chars, subject first, brand last; `lang` comes from the URL), `ogImage`, `schema`, `motion` when animations were requested; header and footer through the layout slots.
 6. Verify per section (step 9) and the whole page (`pnpm shot`, `pnpm seo`); `/dev/components` shows every section and no red notice.
@@ -100,9 +106,9 @@ Input: the page frame (+ tablet and mobile frames). Order of work:
 ## Do not
 - Do not build anything the user did not name in this request — no neighbouring sections, mobile menus, popups, states, tokens or scripts "while at it". Name the gap in one sentence instead. (Tablet and mobile of the named section are part of the request when their frames exist.)
 - Do not add headers, footers, CTAs, animations or content that are not in the referenced node or were not asked for.
-- Do not build on stale tokens; propose `/sync-tokens` instead. Do not write a new class, scoped rule or component for a result an existing utility, variant or component already gives.
+- Do not round a Figma value to a nearby token in the development phase, and do not build on stale tokens in the systemized phase. Do not write a new class, scoped rule or component for a result an existing utility, variant or component already gives.
 - Do not add client-side JS unless the design has interactive behaviour (slider, accordion, menu) or animations were requested.
-- Do not rewrite existing tokens, utilities, the layout or other components while building a section. Adding is a different thing and is required by step 3: a value that repeats for the second time (the same `spacing-24/24/20` already declared in `Hero.astro`) gets its token in `tokens.css` + utility in `utilities.css` now, a colour that takes a new role (a swatch used as a section background) gets its `--theme-*` token, a ui component gets the variant the node needs — a mini `/sync-tokens`, listed in the reply. Leaving the duplicate for a "second pass" costs a review round.
+- Do not rewrite existing tokens, utilities, the layout or other components while building a section. Development phase: add no tokens or utilities at all (`/systemize` does it). Systemized phase: adding is required by step 3 — a value that repeats for the second time (the same `spacing-24/24/20` already declared in `Hero.astro`) gets its token in `tokens.css` + utility in `utilities.css` now, a colour that takes a new role (a swatch used as a section background) gets its `--theme-*` token, a ui component gets the variant the node needs — a mini `/sync-tokens`, listed in the reply. Leaving the duplicate for a "second pass" costs a review round.
 - Do not rewrite the user's existing sections "to match".
 - Do not put classes or scoped styles on `.container`; do not give the section a block class or background; do not create element classes for typography; do not use `gap--*` (it is `spacing-*`); do not use two `/` values; do not name a tag-choosing prop `as`.
 - Do not invent photos, copy, links or client data: `TODO` + a line in the report.

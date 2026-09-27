@@ -1,10 +1,14 @@
 # Design inventory
 
-Written by `/sync-tokens` at the start of the project and updated on every sync. It is the reference
-for "reuse first": before inventing a class or a scoped rule for a value, find the value here and use
-the token / class / component it maps to. Values used once stay arbitrary classes in their component.
+Phase: development
 
-_Not filled yet — run `/sync-tokens` with the desktop, tablet and mobile frames._
+The phase decides how values are written (`.claude/rules/styles.md` → Phases):
+- `development` — only the base from `/sync-tokens` is a token (frames, side padding and grid, fonts, 2–4 main
+  colours); every other value is written exactly as in Figma in the component's scoped styles.
+- `systemized` — `/systemize` has built the system from the finished site: tokens and utilities first, a value
+  used a second time becomes a token + utility (`class-naming.md` → Reuse first).
+
+_Base not synced yet — run `/sync-tokens` with the desktop, tablet and mobile frames._
 
 ## Frames
 
@@ -14,26 +18,19 @@ _Not filled yet — run `/sync-tokens` with the desktop, tablet and mobile frame
 | tablet | | |
 | mobile | | |
 
-## Mapping — value → token / class / component
+## Base tokens (/sync-tokens)
 
-| Kind | Value (desktop / tablet / mobile) | Uses | Where | Token | Class / component |
-| --- | --- | --- | --- | --- | --- |
-
-## Merges (approved by the user)
-
-| Kept | Merged into it | Reason |
+| Token | Value | Figma |
 | --- | --- | --- |
 
-## One-offs (arbitrary classes, used once)
+## Fonts and weights
 
-| Value | Where | Class in the component |
+| Family | Weights | Files |
 | --- | --- | --- |
 
-## UI components to build (repeated elements)
+## Figma names (for /systemize)
 
-| Component | Variants | Where |
+| Kind | Figma name | Value |
 | --- | --- | --- |
 
-## Raw counts
-
-<!-- output of the use_figma inventory script, one block per frame -->
+<!-- /systemize adds here: Proposal (awaiting approval) → then the final mapping, merges, one-offs, removals, ui components -->

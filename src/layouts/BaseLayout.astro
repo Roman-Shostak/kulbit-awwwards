@@ -26,9 +26,10 @@
  *                       intro). Off by default: zero client-side JS.
  *   hidingHeader        loads only src/scripts/header.ts: the header hides on scroll down and returns
  *                       on scroll up, with an offset. Not needed together with `motion` (included there).
- *   steps               loads src/scripts/steps.ts (GSAP): no free scroll, one gesture = one step (the next
- *                       part of a section's timeline or the next section); `data-scenes` on <main>.
- *                       Replaces `motion` (Lenis would fight the lock): with both, only `steps` loads.
+ *   steps               loads src/scripts/kulbit/ (GSAP step scroll): no free scroll, every [data-kulbit-section]
+ *                       stacks over the previous one, one gesture = one step of a section or the next section;
+ *                       `data-scenes` on <main>, `data-steps` on <html> (.wrapper becomes the fixed viewport,
+ *                       utilities.css). Replaces `motion` (Lenis would fight the lock): with both, only `steps` loads.
  *   noindex             adds <meta name="robots" content="noindex, nofollow"> (dev pages, thank-you pages).
  *
  * Languages (src/i18n): og:locale comes from the page's language; an indexable page gets
@@ -39,27 +40,19 @@
  * in a static build `Astro.url` only carries the pathname, absolute URLs are built from `Astro.site`.
  * Favicons: public/favicon.svg (from the client) → `pnpm favicon` writes favicon.ico + apple-touch-icon.png.
  *
- * Client fonts: configure `fonts` in astro.config.mjs (Astro Fonts API), then add in <head>:
- *   import { Font, fontData } from 'astro:assets';
- *   <Font cssVariable="--font-primary-custom" />
- *   <Font cssVariable="--font-secondary-custom" />
- * WITHOUT `preload`: `<Font preload>` preloads every subset file (4 subsets × weights = 12 files
- * competing with the hero image for bandwidth; the local provider leaves `subset` empty, so a
- * `preload={[{ subset }]}` filter removes everything). Build the links from `fontData` instead —
- * the first file of every weight/style is the site language's subset (`primarySubset` in
- * astro.config.mjs puts it first), one file per weight:
- *   const preloadFonts = (cssVariable: keyof typeof fontData) => {
- *     const seen = new Set<string>();
- *     return fontData[cssVariable].filter(({ weight, style }) => !seen.has(`${weight}/${style}`) && seen.add(`${weight}/${style}`)).map((f) => f.src[0]?.url).filter((url): url is string => !!url);
- *   };
- *   {preloadFonts('--font-primary-custom').map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
+ * Client fonts (astro.config.mjs → `fonts`): `<Font cssVariable>` for both families in <head>, WITHOUT `preload` —
+ * `<Font preload>` preloads every subset file (4 subsets × weights, competing with the hero image; the local
+ * provider leaves `subset` empty, so a `preload={[{ subset }]}` filter removes everything). One preload per weight
+ * the first screen uses comes from `preloadFonts()` in ./font-preloads.ts (the first file = the `primarySubset`).
  * Measured on a client site (Lighthouse mobile): 12 preloads → LCP 2.6 s, 4 → 2.2 s, none → FCP +0.3 s.
  */
 import { execSync } from 'node:child_process';
+import { Font } from 'astro:assets';
 import { pageNodes, siteNodes, type Breadcrumb, type PageSchema, type SchemaNode } from '@/data/schema';
 import { site } from '@/data/site';
 import { alternates, defaultLocale, localeMeta, localized, toLocale } from '@/i18n';
 import '@/styles/global.css';
+import { preloadAttributes, preloadFonts } from './font-preloads';
 
 // Publication stamp — the HTML comment on top of every page: the build time (UTC) and the commit it was built from
 // (GITHUB_SHA in Actions, `git rev-parse` locally, `local` without git). Shows which version is live.
@@ -113,6 +106,10 @@ const graph =
         ...(schema?.nodes ?? []),
       ]
     : [];
+// Font preloads: the weights the first screen uses — Decima Mono X Bold (hero statement) and PP Monument Wide Black
+// (title, buttons); Decima Regular loads on demand
+const fontPreloads = [...preloadFonts('--font-primary-custom', [700]), ...preloadFonts('--font-secondary-custom', [800])];
+
 // "<" is escaped so no text in the graph can close the script element
 const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replaceAll('<', '\\u003c');
 ---
@@ -132,6 +129,9 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    {fontPreloads.map((href) => <link href={href} {...preloadAttributes} />)}
+    <Font cssVariable="--font-primary-custom" />
+    <Font cssVariable="--font-secondary-custom" />
     <meta property="og:type" content="website" />
     {siteName && <meta property="og:site_name" content={siteName} />}
     <meta property="og:locale" content={localeMeta[locale].ogLocale} />
@@ -199,7 +199,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     {
       steps && (
         <script>
-          import '@/scripts/steps';
+          import '@/scripts/kulbit';
         </script>
       )
     }

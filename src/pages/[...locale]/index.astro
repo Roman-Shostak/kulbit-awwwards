@@ -1,4 +1,6 @@
 ---
+import SiteHeader from '@/components/sections/SiteHeader.astro';
+import Hero from '@/components/sections/Hero.astro';
 import { localeStaticPaths, useTranslations } from '@/i18n';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
@@ -7,5 +9,7 @@ export const getStaticPaths = localeStaticPaths;
 const t = useTranslations(Astro.currentLocale).pages.home;
 ---
 
-<BaseLayout title={t.title} description={t.description}>
+<BaseLayout title={t.title} description={t.description} steps>
+  <SiteHeader slot="header" />
+  <Hero />
 </BaseLayout>

@@ -1,6 +1,6 @@
 // @ts-check
 import { existsSync } from 'node:fs';
-import { defineConfig, svgoOptimizer } from 'astro/config';
+import { defineConfig, fontProviders, svgoOptimizer } from 'astro/config';
 import { seoFiles } from './scripts/seo-files.mjs';
 
 // Unicode ranges of the font subsets written by `pnpm fonts` (scripts/build-fonts.py) into
@@ -24,7 +24,7 @@ const subsets = {
 // The subset of the site language. `variants()` lists it first, and BaseLayout preloads only the
 // FIRST file of every weight/style (see the preload snippet in BaseLayout.astro), so the browser
 // fetches one file per weight instead of every subset. Latin-script sites: 'latin'.
-const primarySubset = 'cyrillic';
+const primarySubset = 'latin';
 
 /** @typedef {{ weight: number; style: 'normal' | 'italic'; src: [string]; unicodeRange: [string, ...string[]] }} Variant */
 
@@ -101,10 +101,10 @@ export default defineConfig({
 
   // Languages: the default language at /, every other at /<lang>/, chosen by hand (no browser detection).
   // Keep `locales` / `defaultLocale` identical to src/i18n/index.ts; a language gets pages only when its
-  // dictionary is registered there. TODO: the site languages from the start kit.
+  // dictionary is registered there. English only.
   i18n: {
-    locales: ['uk'],
-    defaultLocale: 'uk',
+    locales: ['en'],
+    defaultLocale: 'en',
     routing: { prefixDefaultLocale: false },
   },
 
@@ -151,28 +151,30 @@ export default defineConfig({
   // Only weights/styles with a file here may be used in CSS (text-weight-*, italic): the browser
   // would synthesise the rest. Ask the client for the missing file instead.
   //
-  // import { fontProviders } from 'astro/config';   ← add to the import at the top
-  // fonts: [
-  //   {
-  //     provider: fontProviders.local(),
-  //     name: 'ClientSans',
-  //     cssVariable: '--font-primary-custom',
-  //     fallbacks: ['Arial', 'sans-serif'],
-  //     options: {
-  //       variants: [
-  //         ...variants('client-sans-regular', { weight: 400, style: 'normal' }),
-  //         ...variants('client-sans-semibold', { weight: 600, style: 'normal' }),
-  //       ],
-  //     },
-  //   },
-  //   {
-  //     provider: fontProviders.local(),
-  //     name: 'ClientSerif',
-  //     cssVariable: '--font-secondary-custom',
-  //     fallbacks: ['Georgia', 'serif'],
-  //     options: {
-  //       variants: [...variants('client-serif-italic', { weight: 400, style: 'italic' })],
-  //     },
-  //   },
-  // ],
+  fonts: [
+    {
+      provider: fontProviders.local(),
+      name: 'Decima Mono X',
+      cssVariable: '--font-primary-custom',
+      fallbacks: ['ui-monospace', 'monospace'],
+      options: {
+        variants: [
+          ...variants('decima-mono-x-regular', { weight: 400, style: 'normal' }),
+          ...variants('decima-mono-x-bold', { weight: 700, style: 'normal' }),
+        ],
+      },
+    },
+    {
+      provider: fontProviders.local(),
+      name: 'PP Monument Wide',
+      cssVariable: '--font-secondary-custom',
+      fallbacks: ['Arial Black', 'sans-serif'],
+      options: {
+        variants: [
+          ...variants('pp-monument-wide-regular', { weight: 400, style: 'normal' }),
+          ...variants('pp-monument-wide-extrabold', { weight: 800, style: 'normal' }),
+        ],
+      },
+    },
+  ],
 });

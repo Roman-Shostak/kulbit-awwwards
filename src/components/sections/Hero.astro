@@ -1,0 +1,392 @@
+---
+/**
+ * Hero — built from the Webflow build (kulbit-gsap export, section «hero»); values 1:1 from its CSS
+ * (1rem = 16px on the 1920 / 744 / 390 frames = our fluid scale).
+ *
+ * The showreel fills the screen under a round vignette (mask) and starts scaled to 1.2. The step behaviour lives in
+ * src/scripts/kulbit (data-kulbit-* attributes, the Webflow API): desktop — the mask fades, the video scales to 1,
+ * the heading and the CTA leave down (yPercent 300), the text up (−300), the header up (−600); tablet/mobile — the
+ * whole content leaves down and the sound button moves to the middle of the screen. The video plays only while the
+ * hero is the current section. The sound button is drawn towards the cursor (below).
+ * Files: public/video/hero-1080.mp4 (desktop) / hero-720.mp4 (≤ 991px), poster = the first frame.
+ */
+import { getImage } from 'astro:assets';
+import Button from '@/components/ui/Button.astro';
+import { useTranslations } from '@/i18n';
+import heroPoster from '@/assets/hero/hero-poster.jpg';
+import IconMute from '@/assets/icons/speaker-mute.svg';
+import IconUnmute from '@/assets/icons/speaker-unmute.svg';
+
+const t = useTranslations(Astro.currentLocale).hero;
+const s = t.statement;
+const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, quality: 80 });
+---
+
+<section class="section section--hero hero" data-kulbit-section>
+  <div class="container">
+    <div class="hero_content text-style-uppercase" data-kulbit-y-tablet="300" data-kulbit-fade-tablet="0">
+      <div class="hero_heading text-weight-800" data-kulbit-y="300" data-kulbit-fade="0">
+        <h1 class="hero_title text-size-66/60/40">{t.title.lead} <span class="hero_blue">{t.title.accent}</span></h1>
+        <div class="hero_blur desktop-only" aria-hidden="true"></div>
+      </div>
+      <div class="hero_divider desktop-hide" aria-hidden="true"></div>
+      {/* TODO: where «Start Pilot» leads (the popup with the form?) — ported with that section */}
+      <Button variant="arrow" class="hero_pilot" data-kulbit-y="300" data-kulbit-fade="0">{t.pilot}</Button>
+      <div class="hero_text text-size-16 text-weight-700" data-kulbit-y="-300" data-kulbit-fade="0">
+        <p class="hero_blend"><span class="hero_grey">{s.blend}</span> {s.human}</p>
+        <p class="hero_ai">{s.ai}</p>
+        <p class="hero_deliver"><span class="hero_grey">{s.deliver}</span> {s.quality} <span class="hero_grey">{s.videos}</span></p>
+        <span class="hero_square" aria-hidden="true"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero_media" aria-hidden="true">
+    <div class="hero_mask" data-kulbit-fade="0" data-kulbit-fade-tablet="0"></div>
+    <div class="hero_video" data-hero-video>
+      <div
+        class="hero_video-box"
+        data-kulbit-video
+        data-kulbit-scale="1"
+        data-kulbit-scale-from="1.2"
+        data-kulbit-scale-tablet="1"
+        data-kulbit-scale-from-tablet="1.2"
+      >
+        <video class="hero_video-el" muted loop playsinline preload="auto" poster={poster.src}>
+          <source src="/video/hero-720.mp4" type="video/mp4" media="(max-width: 991px)" />
+          <source src="/video/hero-1080.mp4" type="video/mp4" />
+        </video>
+      </div>
+    </div>
+  </div>
+
+  <button class="hero_sound" type="button" aria-pressed="false" data-kulbit-sound>
+    <span class="hero_sound-shell" data-hero-magnet>
+      <span class="hero_sound-ring">
+        <span class="hero_sound-core">
+          <IconUnmute class="hero_sound-icon" data-sound-icon="on" aria-hidden="true" />
+          <IconMute class="hero_sound-icon" data-sound-icon="off" aria-hidden="true" />
+        </span>
+      </span>
+    </span>
+    <span class="sr-only">{t.sound}</span>
+  </button>
+</section>
+
+<style>
+  /* .section.is-hero: content at the bottom, 4rem below it */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100dvh;
+    padding-bottom: var(--size-64);
+    overflow: hidden;
+  }
+
+  /* ---------- Content (.flex-h-v-v.is-hero) ---------- */
+  .hero_content {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .hero_heading {
+    position: relative;
+    width: calc(36.88rem * var(--fluid-scale)); /* 590 */
+  }
+  /* PP Monument Wide Black 66 / 1.3, tracking 0.03em (tablet 60, mobile 40 / 1.2) */
+  .text-size-66\/60\/40 {
+    font-family: var(--font-secondary);
+    font-size: calc(4.13rem * var(--fluid-scale));
+    line-height: 1.3;
+    letter-spacing: 0.03em;
+  }
+  .hero_title {
+    text-align: justify;
+  }
+  .hero_blue {
+    color: #62b0ff;
+  }
+  .hero_grey {
+    color: #404040;
+  }
+  /* .hero-h1-blur: the left fade over the first letters */
+  .hero_blur {
+    position: absolute;
+    top: calc(-1.19rem * var(--fluid-scale));
+    left: calc(-5.31rem * var(--fluid-scale));
+    width: calc(18.31rem * var(--fluid-scale));
+    height: calc(19.56rem * var(--fluid-scale));
+    background-image: linear-gradient(90deg, #000, rgb(0 0 0 / 0));
+    pointer-events: none;
+  }
+  .hero_divider {
+    height: var(--size-2);
+    margin-inline: calc(var(--container-padding) * -1);
+    background-color: rgb(253 252 252 / 0.15);
+  }
+
+  /* Decima Mono X Bold 16 / 1.37 */
+  .text-size-16 {
+    font-size: var(--size-16);
+    line-height: 1.37;
+  }
+  /* .hero-text-wrapper: 9.25rem below the top of the hero, at the container edge. Its containing block is the
+   * container (bottom of the hero), so the top is counted back from the hero height: 100% = container height. */
+  .hero_text {
+    position: absolute;
+    top: calc(100% - 100dvh + 13.25rem * var(--fluid-scale)); /* 9.25rem + the 4rem bottom padding */
+    left: var(--container-padding);
+    display: flex;
+    flex-direction: column;
+    width: calc(17.38rem * var(--fluid-scale)); /* 278 */
+  }
+  .hero_blend {
+    width: calc(10.19rem * var(--fluid-scale));
+  }
+  .hero_ai {
+    align-self: flex-end;
+    width: calc(7.81rem * var(--fluid-scale));
+    margin-bottom: var(--size-16);
+    color: #62b0ff;
+    text-align: right;
+  }
+  .hero_deliver {
+    width: calc(10.19rem * var(--fluid-scale));
+  }
+  .hero_square {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: calc(1.88rem * var(--fluid-scale)); /* 30 */
+    aspect-ratio: 1;
+    background-color: #62b0ff;
+  }
+
+  /* ---------- Video (.hero-video-wrapper > .hero-video-mask + .hero-video) ---------- */
+  .hero_media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .hero_mask {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background-image: radial-gradient(circle closest-side at 50% 50%, rgb(0 0 0 / 0) 50%, rgb(0 0 0 / 0.651) 80%, #000);
+    pointer-events: none;
+  }
+  .hero_video {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  /* starts at scale 1.2 (data-kulbit-scale-from) — the same here, so the first paint does not jump */
+  .hero_video-box {
+    width: 100%;
+    height: 100%;
+    transform: scale(1.2);
+  }
+  .hero_video-el {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+
+  /* ---------- Sound button (.hero-video-button > .hero-button-circle > .is-second) ---------- */
+  .hero_sound {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    width: calc(16.56rem * var(--fluid-scale)); /* 265 */
+    height: auto;
+    aspect-ratio: 1;
+    margin: auto;
+    border-radius: 50%;
+  }
+  /* the visible part; drawn towards the cursor (the button itself stays free for the step animation) */
+  .hero_sound-shell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border: 2px solid rgb(253 252 252 / 0.05);
+    border-radius: 50%;
+  }
+  .hero_sound-ring {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(10.5rem * var(--fluid-scale));
+    aspect-ratio: 1;
+    border: 2px solid rgb(253 252 252 / 0.07);
+    border-radius: 50%;
+  }
+  .hero_sound-core {
+    display: grid;
+    place-items: center;
+    width: calc(4.5rem * var(--fluid-scale));
+    aspect-ratio: 1;
+    border: 2px solid rgb(253 252 252 / 0.1);
+    border-radius: 50%;
+    backdrop-filter: blur(36px);
+    transition: border-color var(--transition-duration) var(--transition-easing);
+  }
+  .hero_sound:hover .hero_sound-core,
+  .hero_sound:focus-visible .hero_sound-core {
+    border-color: rgb(253 252 252 / 0.3); /* TODO: not in the design */
+  }
+  .hero_sound-icon {
+    grid-area: 1 / 1;
+    width: var(--size-24);
+    height: var(--size-24);
+    color: var(--theme-text);
+  }
+  /* muted at the start: the crossed speaker; src/scripts/kulbit swaps them */
+  .hero_sound-icon[data-sound-icon='on'] {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  @media (max-width: 991px) {
+    .hero_content {
+      position: relative;
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--size-24);
+    }
+    .hero_heading {
+      width: auto;
+    }
+    .text-size-66\/60\/40 {
+      font-size: calc(3.75rem * var(--fluid-scale));
+    }
+    .hero_pilot {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      z-index: 2;
+    }
+    .hero_text {
+      position: relative;
+      top: auto;
+      left: auto;
+      z-index: 1;
+      width: calc(29.88rem * var(--fluid-scale)); /* 478 */
+    }
+    .hero_blend {
+      width: calc(14rem * var(--fluid-scale));
+    }
+    .hero_ai {
+      align-self: auto;
+      margin-bottom: 0;
+      margin-left: calc(8.1rem * var(--fluid-scale));
+    }
+    .hero_deliver {
+      width: calc(13.5rem * var(--fluid-scale));
+      margin-left: auto;
+    }
+    .hero_square {
+      top: auto;
+      right: auto;
+      bottom: 0;
+      left: 0;
+      width: var(--size-24);
+    }
+    .hero_mask {
+      background-image: radial-gradient(circle closest-corner at 50% 30%, rgb(0 0 0 / 0) 25%, rgb(0 0 0 / 0.651) 50%, #000 75%);
+    }
+    .hero_sound {
+      inset: 25vh 0 auto;
+      width: calc(13.75rem * var(--fluid-scale)); /* 220 */
+      margin: 0 auto;
+    }
+    .hero_sound-ring {
+      width: calc(8.5rem * var(--fluid-scale));
+    }
+    .hero_sound-core {
+      width: calc(3.5rem * var(--fluid-scale));
+    }
+  }
+
+  @media (max-width: 479px) {
+    .hero_content {
+      gap: var(--size-16);
+    }
+    .text-size-66\/60\/40 {
+      font-size: calc(2.5rem * var(--fluid-scale));
+      line-height: 1.2;
+    }
+    .hero_text {
+      width: auto;
+    }
+    .hero_blend {
+      width: calc(11rem * var(--fluid-scale));
+    }
+    .hero_ai {
+      align-self: flex-end;
+      width: calc(6.88rem * var(--fluid-scale));
+      margin: calc(1.25rem * var(--fluid-scale)) calc(6.25rem * var(--fluid-scale)) calc(1.25rem * var(--fluid-scale)) 0;
+    }
+    .hero_deliver {
+      margin-left: 0;
+    }
+    .hero_square {
+      top: 0;
+      right: 0;
+      bottom: auto;
+      left: auto;
+    }
+    .hero_sound {
+      top: 25vh;
+      width: calc(7.5rem * var(--fluid-scale)); /* 120 */
+    }
+    .hero_sound-ring {
+      width: calc(4.5rem * var(--fluid-scale));
+    }
+    .hero_sound-core {
+      width: calc(2rem * var(--fluid-scale));
+    }
+    .hero_sound-icon {
+      width: var(--size-16);
+      height: var(--size-16);
+    }
+  }
+</style>
+
+<script>
+  // Magnetic sound button (the client's request; not in the Webflow build): the visible shell is drawn towards the
+  // cursor within 1.5 × its radius. Desktop mouse/trackpad only; the button itself stays free for the step animation.
+  import { gsap } from 'gsap';
+
+  const button = document.querySelector<HTMLElement>('[data-kulbit-sound]');
+  const shell = button?.querySelector<HTMLElement>('[data-hero-magnet]');
+  const hero = button?.closest<HTMLElement>('[data-kulbit-section]');
+  const canPull = () =>
+    window.matchMedia('(min-width: 992px) and (hover: hover) and (pointer: fine)').matches &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (button && shell && hero) {
+    const pull = { duration: 0.6, ease: 'power3.out' };
+    const toX = gsap.quickTo(shell, 'x', pull);
+    const toY = gsap.quickTo(shell, 'y', pull);
+    hero.addEventListener('pointermove', (event) => {
+      if (!canPull()) return;
+      const rect = button.getBoundingClientRect();
+      const dx = event.clientX - (rect.left + rect.width / 2);
+      const dy = event.clientY - (rect.top + rect.height / 2);
+      const near = Math.hypot(dx, dy) < rect.width * 0.75;
+      toX(near ? dx * 0.35 : 0);
+      toY(near ? dy * 0.35 : 0);
+    });
+    hero.addEventListener('pointerleave', () => {
+      toX(0);
+      toY(0);
+    });
+  }
+</script>

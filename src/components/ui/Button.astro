@@ -1,0 +1,127 @@
+---
+/**
+ * Button — two variants (Figma component «Button», layout as in the Webflow build):
+ *   outline  a play icon + label on black in a 2px #171717 frame: the header button; icon only on mobile
+ *   arrow    a red label + the red arrow square in a row: the hero CTA; the square only at ≤ 991px
+ * `href` → <a>, otherwise <button type="button">; every other attribute passes through. A hidden label stays the
+ * accessible name. The variant is `variant`, not `type` (that is the button's own attribute).
+ */
+import type { HTMLAttributes } from 'astro/types';
+import IconArrow from '@/assets/icons/arrow-pilot.svg';
+import IconPlay from '@/assets/icons/play.svg';
+
+type Variant = { variant: 'outline' | 'arrow' };
+type Props = Variant & ((HTMLAttributes<'a'> & { href: string }) | (HTMLAttributes<'button'> & { href?: never }));
+
+const { variant, href, class: className, type, ...rest } = Astro.props;
+const Tag = href ? 'a' : 'button';
+const buttonType = href ? undefined : ((type ?? 'button') as 'button' | 'submit' | 'reset');
+---
+
+<Tag
+  href={href}
+  type={buttonType}
+  class:list={['button', `type--${variant}`, variant === 'outline' ? 'text-size-16/14/14' : 'text-size-32', className]}
+  {...rest}
+>
+  {variant === 'outline' && <IconPlay class="button_icon" aria-hidden="true" />}
+  <span class="button_label"><slot /></span>
+  {variant === 'arrow' && <IconArrow class="button_arrow" aria-hidden="true" />}
+</Tag>
+
+<style>
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--theme-text);
+    font-family: var(--font-secondary);
+    font-weight: var(--font-weight-extra-bold);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  /* PP Monument Wide Black 16 / 1.15 (tablet 14) */
+  .text-size-16\/14\/14 {
+    font-size: var(--size-16);
+    line-height: 1.15;
+  }
+  /* PP Monument Wide Black 32, tracking 0.03em */
+  .text-size-32 {
+    font-size: var(--size-32);
+    line-height: 1.15;
+    letter-spacing: 0.03em;
+  }
+
+  /* ---------- outline: header ---------- */
+  .button.type--outline {
+    gap: var(--size-8);
+    width: calc(18.625rem * var(--fluid-scale)); /* 298 */
+    height: var(--size-64);
+    /* an inner outline, as in Webflow: it takes no space, the hover border (data-kulbit-border) draws on its line */
+    outline: var(--size-2) solid #171717;
+    outline-offset: calc(var(--size-2) * -1);
+    border-radius: calc(0.5625rem * var(--fluid-scale)); /* 9 */
+    background-color: var(--theme-page-bg);
+  }
+  .button_icon {
+    flex: none;
+    width: var(--size-24);
+    height: var(--size-24);
+  }
+
+  /* ---------- arrow: hero CTA ---------- */
+  .button.type--arrow {
+    gap: var(--size-16);
+    color: var(--theme-text-brand);
+    transition: color var(--transition-duration) var(--transition-easing);
+  }
+  /* the square is currentColor: red, blue on hover (kulbit-webflow setupHeroColors) */
+  .button_arrow {
+    flex: none;
+    width: var(--size-56);
+    height: var(--size-56);
+    transition: color var(--transition-duration) var(--transition-easing);
+  }
+  .button.type--arrow:hover,
+  .button.type--arrow:focus-visible {
+    color: var(--theme-text);
+  }
+  .button.type--arrow:hover .button_arrow,
+  .button.type--arrow:focus-visible .button_arrow {
+    color: #62b0ff;
+  }
+
+  @media (max-width: 991px) {
+    .text-size-16\/14\/14 {
+      font-size: var(--size-14);
+    }
+    .button.type--outline {
+      width: calc(12.9375rem * var(--fluid-scale)); /* 207 */
+      height: var(--size-56);
+    }
+    /* the square only; the label stays the accessible name */
+    .type--arrow .button_label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+  @media (max-width: 479px) {
+    .button.type--outline {
+      width: calc(5.625rem * var(--fluid-scale)); /* 90 */
+      height: var(--size-48);
+    }
+    /* the play icon only */
+    .type--outline .button_label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+</style>

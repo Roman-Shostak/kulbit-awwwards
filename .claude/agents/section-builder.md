@@ -18,8 +18,9 @@ A missing item in the brief (no node id, no page path, no position) → `PAUSED`
 1. Load the `figma-section` skill with the Skill tool and follow its **Steps for one section**
    1–9 to the letter (load `figma:figma-design-to-code` before any Figma call). Skip step 10: the
    orchestrator runs `section-reviewer` itself.
-2. Read `src/dev/inventory.md`, `src/styles/tokens.css`, `src/styles/utilities.css` and the
-   `src/components/ui/` components before writing a class: reuse first. Everything listed in the
+2. Read `src/dev/inventory.md` (the `Phase:` line decides how values are written, `styles.md` → Phases),
+   `src/styles/tokens.css`, `src/styles/utilities.css` and the `src/components/ui/` components before
+   writing a class: reuse first for classes and components. Everything listed in the
    brief under "Shared so far" already exists — use it, never re-create it. A pattern the brief
    marks as shared with a later section becomes a ui component now, in this section.
 3. Place the section in the page file at the position from the brief (import + one line in the
@@ -48,8 +49,8 @@ A missing item in the brief (no node id, no page path, no position) → `PAUSED`
 ## Scope
 - Only this section. Do not touch other sections, `SiteHeader`, `SiteFooter`, `SiteMenu`, popups,
   the layout, existing tokens, existing utilities, existing ui component styles, other dictionary
-  keys, other pages. Adding is allowed where `figma-section` step 3/5 requires it (a second use →
-  token + utility, a missing variant, a repeated pattern → ui component); list every addition in the
+  keys, other pages. Adding is allowed where `figma-section` step 3/5 requires it (systemized phase: a second
+  use → token + utility; both phases: a missing variant, a repeated pattern → ui component); list every addition in the
   report under "Shared added".
 - The default language's dictionary only: never write other languages' texts (`astro-components.md` → Texts and languages).
 - No animations unless the brief says motion is on; no client-side JS unless the design is
@@ -60,8 +61,8 @@ Report `PAUSED` and stop working — do not pick an option yourself, do not hide
 `TODO` — when:
 - the design is ambiguous where `figma-section` says "ask" (link vs action, two possible readings,
   an element that may be an instance of an existing section or ui component);
-- a Figma text style has no `text-size-*` utility, or a Figma variable's value differs from
-  `tokens.css` (stale tokens → the user decides on `/sync-tokens`);
+- systemized phase only: a Figma variable's value differs from `tokens.css` (stale tokens → the user
+  decides on `/sync-tokens` or `/systemize`);
 - a Figma MCP call fails after one retry (403, timeout, empty node);
 - `pnpm check` or `pnpm build` still fails after two fix attempts — quote the error;
 - a section height differs from the frame by more than 2 % and you found no cause;

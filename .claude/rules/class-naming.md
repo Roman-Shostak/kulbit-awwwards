@@ -66,6 +66,12 @@ Order is always **desktop / tablet / mobile** (≥992 / 991–480 / ≤479).
 - If the layout already renders a unique wrapper (`header`, `main`, `footer`), styles go onto it (in `utilities.css`), not onto a new root div inside the component. The header and footer components start directly with `<div class="container">`.
 
 ## Reuse first — an existing class always beats a new one
+**Phase** (`styles.md` → Phases): in the `development` phase this section applies to **classes, variants and
+ui components** (never restyle a repeated element, never write a second class for what an existing structural
+utility gives), but not to **values**: they follow Figma exactly as arbitrary classes / raw scoped values, and
+a value repeated across components is left for `/systemize`. Steps 1–2 of the priority order below start to
+apply in the `systemized` phase.
+
 Before writing any class or scoped rule, look for what already produces the result, in this order:
 `utilities.css` → the ui components in `src/components/ui/` (and their `type--`/`size--` variants) →
 element classes already in this component → the design inventory `src/dev/inventory.md` (which
@@ -73,8 +79,8 @@ value maps to which token/class). If one of them fits, use it — even when the 
 by drawing noise (a token of 18 and a text of 18.5 are the same style; say so in the reply).
 Only when nothing fits, go down the list below. A value or pattern that appears in **two or more
 places** in the design is shared by definition: it gets a token + utility (or a ui component), not two
-arbitrary classes — `sync-tokens` creates these up front from the whole file; a new repeat found
-later is promoted the moment it repeats.
+arbitrary classes — `/systemize` creates these from the finished site; in the systemized phase a new
+repeat is promoted the moment it repeats.
 
 ## Utilities vs arbitrary values — priority order
 0. **An existing class or component** that already gives the result (see Reuse first).
@@ -104,7 +110,7 @@ Numbers in the class are px on the reference frame (1540 / 768 / 390). Prefer va
 - **Text size:** the class is `text-size-` + the Figma text style name in kebab-case (`desktop/h2 stix` → `text-size-h2-stix`, `body md (sb)` → `text-size-body-md-sb`, `font/link` → `text-size-link`). It carries size, line-height and letter-spacing (and family/style for the secondary font) from `--font-<name>`, `--line-height-<name>`, `--letter-spacing-<name>`. If the style has no Figma variable, use raw px: `text-size-20/20/18`.
 - **Spacing:** custom spacing is `spacing-<px>` or `spacing-<d>/<t>/<m>`, never `gap--…`.
 - `col-N` always means width in the 12-column system (6 of 12 desktop, of 6 tablet, of 2 mobile) and is 100 % on tablet. When the tablet frame keeps a fixed column width, declare `col-5/5/2` in the component with `--col-5` / `--t-col-5` / `--m-col-2` (`sync-tokens` fills `--t-col-N` from the tablet `container width/Ncol` variables). Grid column COUNT is `grid-3/2/1col`.
-- Promote an arbitrary class to a token + utility the moment it repeats in a second component (see `styles.md`); the inventory usually predicts this before the first section is built.
+- Systemized phase: promote an arbitrary class to a token + utility the moment it repeats in a second component (see `styles.md`). Development phase: leave the repeat, `/systemize` merges it.
 
 ## Every class must have CSS
 After every edit: each class in the markup that is not in `utilities.css` must have a selector in this component's `<style>`, and each selector in `<style>` must match a class in the markup. A class without CSS is an error (grep the component for its class names). Renaming a class means renaming its selector in the same edit.

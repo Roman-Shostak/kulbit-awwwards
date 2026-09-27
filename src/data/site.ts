@@ -14,7 +14,7 @@ import type { Localized } from '@/i18n';
 
 export const site = {
   /** Client or brand name: og:site_name, Schema.org name; a string or one per language. TODO */
-  name: '' as Localized,
+  name: 'Kulbit' as Localized,
   /** Legal entity as written on the site (the footer copyright: "Brand Inc."); Schema.org legalName. Empty = `name` */
   legalName: '',
   /** Contacts exactly as they appear on the site. TODO */

@@ -14,10 +14,20 @@ syntax, arbitrary-value classes) is defined in `class-naming.md`; this file list
 `global.css` loads, in cascade-layer order: `tokens.css` → `reset.css` → Astro's `astro.images` (the responsive-image defaults: `height: auto`, `max-width: 100%`) → `base.css` → `utilities.css`. The Astro layer is named in the `@layer` statement on purpose: unnamed, it would sort last and its `height: auto` would beat `fill-box`.
 Scoped `<style>` blocks in components are unlayered and therefore override utilities — including `display: none` from the visibility utilities (see `class-naming.md`).
 
+## Phases (`Phase:` line in `src/dev/inventory.md`)
+Client files are messy (one gap drawn as 23, 24 and 25 px; `#1a1a1a` next to `#1b1b1b`), so the system is built at the end, from what was really built:
+- **`development`** (from the start until `/systemize`). Tokens are only the base written by `/sync-tokens`: frames and fluid scale, `--container-padding` and the column grid, font families and `text-weight-*`, 2–4 main colours (`--theme-page-bg`, `--theme-text`, `--theme-text-brand`, `--theme-section-bg-dark`), the four motion tokens. **Every other value is written exactly as in Figma, in the component**, no rounding to a nearby token and no new tokens or utilities:
+  - sizes through the fluid scale: `var(--size-N)` when the primitive exists, otherwise `calc(<px / 16>rem * var(--fluid-scale))`; tablet/mobile values in the component's `@media (max-width: 991px)` / `(max-width: 479px)` blocks;
+  - spacing, section padding, widths and text styles as arbitrary classes declared in the component (`spacing-40/40/24`, `padding-120/80/60`, `col-6/3/1`, `text-size-64/48/40` = size + line-height + letter-spacing; `class-naming.md`), typography on the parent as usual;
+  - colours, radii, borders, shadows as raw values (lowercase hex / rgba from Figma) in the scoped rule of the block or element; a state colour Figma does not give → raw value + `/* TODO: not in Figma */`;
+  - the template's semantic utilities with placeholder values (`spacing-md`, `text-size-h2`, `padding-lg`, `border-radius-sm`, `text-color-secondary`) are **not** used: their values are not the design's. Structural utilities are (`section`, `container`, `flex-*`, `grid-*`, `align-*`, `justify-*`, `col-N`, visibility, `fill-box`, `sr-only`, `theme--dark` for the dark background).
+  - the same value in two components is expected, not a finding; repeated **elements** still become `ui/` components on their second use.
+- **`systemized`** (after `/systemize`). The rest of this file applies in full: tokens first, raw px/hex only for approved one-offs, a value used a second time becomes a token + utility (`class-naming.md` → Reuse first). A late change that brings new raw values → `/systemize` again (incremental).
+
 ## Fluid scale (`tokens.css` + inline script in `BaseLayout.astro`)
 - `--fluid-scale = --viewport-width / --reference`. `--viewport-width` is written onto `<html>` by the
   inline script (clientWidth, no scrollbar, capped at `--max`). Without JS it equals `--reference` → scale 1.
-- `--reference` is the design frame width per breakpoint: **1540** desktop, **768** ≤991px, **390** ≤479px. `--max` = 1540. `sync-tokens` sets `--reference`/`--max` to the client's desktop frame width (e.g. 1536).
+- `--reference` is the design frame width per breakpoint: **1540** desktop, **768** ≤991px, **390** ≤479px. `--max` = 1540. `sync-tokens` sets `--reference`/`--max` to the client's desktop frame width (e.g. 1536); `--max: none` when the client wants the site to keep scaling at every width (no cap: the inline script and `/dev/tokens` read a non-number as "no cap").
 - Every `--size-N` = N/16 rem × `--fluid-scale`. The whole layout scales like a zoomed Figma frame and stops at `--max`.
 - Consequence: when a Figma value is 24px on the desktop frame, use `--size-24` — do not convert to a fixed rem/px.
 - `--size-1` and `--size-2` are fixed 1px / 2px (hairlines do not scale).
@@ -38,7 +48,7 @@ Scoped `<style>` blocks in components are unlayered and therefore override utili
 | Colours | `--swatch-*` (raw palette, one per Figma colour variable, Figma name in a comment) → `--theme-page-bg`, `--theme-text`, `--theme-text-secondary`, `--theme-text-brand`, `--theme-text-alw-brand`, `--theme-text-inverse`, `--theme-text-error`, `--theme-icon`, `--theme-icon-secondary`, `--theme-section-bg-light/dark/brand`, `--theme-card-bg`, `--theme-card-bg-alw-white`, `--theme-card-bg-brand`, `--theme-button-primary-bg/text/bg-hover`, `--theme-input-bg/border/text`, `--theme-illustration` |
 
 - Semantic tokens are re-mapped per breakpoint at the bottom of `tokens.css` (e.g. `--font-h1` 64 → 44 on mobile). Change values there, not in components. Every text style, gap, section padding and radius that differs on the mobile frame has a value in the `@media (max-width: 479px)` block; tablet-only differences go to `@media (max-width: 991px)`.
-- Components use **semantic** tokens (`--theme-text`, `--spacing-md`), never swatches or `--size-N` directly, except when a Figma value has no semantic token (then `--size-N` is acceptable).
+- Components use **semantic** tokens (`--theme-text`, `--spacing-md`), never swatches or `--size-N` directly, except when a Figma value has no semantic token (then `--size-N` is acceptable). In the development phase only the base tokens exist; the rest is raw (Phases above).
 - **Dark sections.** Figma shows the same variables with other values on dark backgrounds. `.theme--dark` and `.footer` (in `utilities.css`) re-assign `--theme-text`, `--theme-text-secondary`, `--theme-text-brand`, `--theme-icon`, `--theme-icon-secondary`, `--theme-card-bg` with those values and set the background; components inside keep using `text-color-*`, cards, tags and the logo unchanged. Tokens named `alw` (always: `--theme-text-alw-brand`, `--theme-card-bg-alw-white`) are never re-assigned — a tag stays white on a dark section.
 - Fonts: `--font-primary` / `--font-secondary` fall back to system stacks until the Astro Fonts API defines `--font-primary-custom` / `--font-secondary-custom` (see `astro.config.mjs`).
 - When syncing from Figma, keep token names and change values. Rename a token only after listing every usage.
@@ -80,7 +90,7 @@ Responsive values use `/` in desktop/tablet/mobile order and are escaped in CSS 
 | Visibility | `desktop-hide` (≥992), `tablet-hide` (768–991), `landscape-hide` (480–767), `mobile-hide` (≤479), `mobile-only`, `desktop-only` |
 | Mobile modifiers | `mob-width--100` (≤479: `width: 100%` — a CTA or submit button stretched on mobile); other `mob-*` modifiers live in the component until a second component needs them |
 | Motion (attributes, not classes) | `data-reveal`, `data-reveal="stagger"` (children, nth-child delays up to 8), `data-reveal-delay="1…5"`, `data-intro`; the module adds `is--visible`. Keyframe animation `reveal`, gated by `[data-motion]` on `<html>`; static under `prefers-reduced-motion` |
-| Step scroll (attributes) | `data-scenes` on `<main>` (`<BaseLayout steps>`); an inline script in `<head>` sets `data-steps` on `<html>` before the first paint → `overflow: hidden` (the native scroll is locked, the module scrolls) |
+| Step scroll (attributes) | `data-scenes` on `<main>` (`<BaseLayout steps>`); an inline script in `<head>` sets `data-steps` on `<html>` before the first paint → `overflow: hidden`, `.wrapper` = the fixed viewport (`overflow: clip`), `<main data-scenes>` = the 100vh stacking container under `.header-fixed` (the module `src/scripts/kulbit/` stacks the `[data-kulbit-section]`s) |
 
 Typical section skeleton (`.container` alone; layout on the wrapper inside it):
 ```html
@@ -107,7 +117,7 @@ Typical section skeleton (`.container` alone; layout on the wrapper inside it):
 - New token: add to `tokens.css` in the matching group and, if it changes per breakpoint, to the media blocks too. A new Figma text style `desktop/<name>` = three tokens (+ mobile value) + one `text-size-<name>` utility, added together.
 - New colour variable in Figma: one `--swatch-*` (Figma name in a comment) + one `--theme-*` role; if the variable has another value on a dark section, add that value to `.theme--dark, .footer` in `utilities.css`. Variables prefixed `alw` get their own `--theme-*-alw-*` token and no dark override.
 - New utility: when the same declaration is needed in a second place (reuse first, `class-naming.md`); follow `class-naming.md`; one class = one property group; escape `/` and `%`; add it to the table above.
-- The system is built from the whole Figma file at the start (`/sync-tokens`: every element is walked, repeated values become tokens and classes, repeated elements become ui components; the counts live in `src/dev/inventory.md`). A value that the inventory maps to a token uses that token; a value used once stays an arbitrary class in its component.
+- The base comes from Figma at the start (`/sync-tokens`); the system is built at the end from the code (`/systemize`: every raw value collected, near-duplicates merged with the user's approval, tokens + utilities written, components rewritten, `src/dev/inventory.md` → `Phase: systemized`). After that a value that the inventory maps to a token uses that token; a value used once stays an arbitrary class in its component.
 - Do not introduce Tailwind, SCSS, CSS-in-JS or another utility framework. No `!important`.
 
 ## Breakpoints (desktop-first, Webflow-compatible)

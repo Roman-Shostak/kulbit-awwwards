@@ -15,15 +15,15 @@
 :root {
   /* ---------- Fluid scale ----------
    * Every --size-N equals N/16 rem × --fluid-scale, so the whole layout scales
-   * proportionally with the viewport (like a zoomed Figma frame) and stops at --max.
+   * proportionally with the viewport (like a zoomed Figma frame) and stops at --max (`none` = never).
    *   --reference       design frame width for the current breakpoint (px, unitless)
-   *   --max             viewport width at which scaling stops (px, unitless)
+   *   --max             viewport width at which scaling stops (px, unitless; `none` = no cap)
    *   --viewport-width  set at runtime by the inline script in BaseLayout.astro
    *                     (clientWidth, excludes the scrollbar, capped at --max).
    *                     Without JS it falls back to --reference → scale = 1.
    */
-  --reference: 1540;
-  --max: 1540;
+  --reference: 1920; /* desktop frame 13 (1920 × 1080) */
+  --max: none; /* the client: the site keeps scaling at every width */
   --viewport-width: var(--reference);
   --fluid-scale: calc(var(--viewport-width) / var(--reference));
 
@@ -78,9 +78,9 @@
   --section-padding-sm: var(--size-52);
   --section-padding-md: var(--size-80);
   --section-padding-lg: var(--size-160);
-  --container-padding: var(--size-40);
-  --header-padding: var(--spacing-sm);
-  --header-height: calc(var(--size-40) + var(--header-padding) * 2);
+  --container-padding: calc(5.3125rem * var(--fluid-scale)); /* 85 */
+  --header-padding: var(--size-24);
+  --header-height: calc(var(--size-64) + var(--header-padding) * 2); /* Showreel button 64 */
 
   /* ---------- 12-column grid: --col-N (desktop of 12), --t-col-N (tablet of 6), --m-col-N (mobile of 2) ----------
    * --column-gap comes from the Figma `container width/Ncol` variables:
@@ -125,8 +125,8 @@
    * variables --font-primary-custom / --font-secondary-custom. Until they are configured,
    * the system stacks below are used.
    */
-  --font-primary: var(--font-primary-custom, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif);
-  --font-secondary: var(--font-secondary-custom, Georgia, 'Times New Roman', serif);
+  --font-primary: var(--font-primary-custom, ui-monospace, 'SF Mono', Menlo, Consolas, monospace); /* Decima Mono X */
+  --font-secondary: var(--font-secondary-custom, 'Arial Black', Arial, sans-serif); /* PP Monument Wide */
 
   /* ---------- Typography: text styles (text-size-<name>) ----------
    * One Figma text style desktop/<name> = three tokens: --font-<name>, --line-height-<name>,
@@ -246,12 +246,12 @@
    * sync-tokens writes one --swatch-* per Figma colour variable with the Figma name in a comment.
    */
   --swatch-black: #000000;
-  --swatch-white: #ffffff;
+  --swatch-white: #fdfcfc; /* text, logo */
   --swatch-grey: #858585;
   --swatch-grey-light: #cccccc;
-  --swatch-blue: #1878f7;
+  --swatch-blue: #62b0ff; /* accent: AI Dimension, logo square */
   --swatch-orange: #ffb700;
-  --swatch-red: #ff0000;
+  --swatch-red: #ff4444; /* brand: Start Your Pilot, Contact Us */
   --swatch-deep-moss-green: #005e33;
   --swatch-white-10: rgb(255 255 255 / 0.1);
   --swatch-transparent: transparent;
@@ -262,15 +262,15 @@
    * Dark sections: `.theme--dark` and `.footer` in utilities.css re-assign the same --theme-* names
    * with the values Figma shows on the dark background, so components never switch colours themselves.
    */
-  --theme-page-bg: var(--swatch-white); /* the only page background; sections have none */
-  --theme-text: var(--swatch-black); /* text/default/primary */
+  --theme-page-bg: var(--swatch-black); /* the only page background; sections have none */
+  --theme-text: var(--swatch-white); /* text/default/primary */
   --theme-text-secondary: var(--swatch-grey); /* text/default/secondary */
-  --theme-text-brand: var(--swatch-blue); /* text/default/brand */
+  --theme-text-brand: var(--swatch-red); /* text/default/brand */
   --theme-text-alw-brand: var(--swatch-blue); /* text/default/alw-brand — the same on dark sections */
   --theme-text-inverse: var(--swatch-white); /* text/inverse/primary — text on brand cards/buttons */
   --theme-text-error: var(--swatch-red); /* input/text/error */
-  --theme-icon: var(--swatch-black); /* icon/default/primary — logo, monochrome icons */
-  --theme-icon-secondary: var(--swatch-grey); /* icon/default/secondary — second colour of the logo */
+  --theme-icon: var(--swatch-white); /* icon/default/primary — logo, monochrome icons */
+  --theme-icon-secondary: var(--swatch-blue); /* icon/default/secondary — the square of the logo */
   --theme-section-bg-light: var(--swatch-white);
   --theme-section-bg-dark: var(--swatch-black); /* bg/section of dark sections and the footer */
   --theme-section-bg-brand: var(--swatch-blue);
@@ -286,10 +286,13 @@
   --theme-illustration: var(--swatch-grey-light); /* illustration/default — decorative vectors */
 }
 
-/* ---------- Tablet (≤ 991px): 6 columns, reference frame 768 ---------- */
+/* ---------- Tablet (≤ 991px): 6 columns, reference frame 744 (Hero 744 × 1133) ---------- */
 @media (max-width: 991px) {
   :root {
-    --reference: 768;
+    --reference: 744;
+    --container-padding: var(--size-32);
+    --header-padding: var(--size-16);
+    --header-height: calc(var(--size-56) + var(--header-padding) * 2); /* Showreel button 56 */
     --column-size: calc((100vw - (var(--container-padding) * 2) - (var(--column-gap) * 5)) / 6);
 
     --spacing-xl: var(--size-64);
@@ -311,8 +314,8 @@
     --reference: 390;
     --column-size: calc((100vw - (var(--container-padding) * 2) - var(--column-gap)) / 2);
 
-    --container-padding: var(--size-20);
-    --header-padding: var(--spacing-xs);
+    --container-padding: var(--size-16);
+    --header-height: calc(var(--size-48) + var(--header-padding) * 2); /* Showreel button 48 */
 
     --spacing-tiny: var(--size-6);
     --spacing-xs: var(--size-8);

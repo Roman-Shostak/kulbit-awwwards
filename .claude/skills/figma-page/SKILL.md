@@ -31,8 +31,9 @@ orchestrates and reviews; it does not build sections itself (see Do not).
    `stage...origin/stage` without `ahead`/`behind`. Uncommitted changes → stop and ask the user what
    to do with them (commit, stash, or wait). Never commit, stash or discard them yourself. No `stage`
    yet → create and push it (`core.md` §6).
-2. **Design system exists.** `src/dev/inventory.md`, tokens and the ui components from the
-   inventory are in place. Otherwise say that `/sync-tokens` (and the start kit) come first and stop.
+2. **Base exists.** `src/dev/inventory.md` has the base from `/sync-tokens` (frames, fonts, main colours) and
+   `ui/Button.astro` exists. Otherwise say that `/sync-tokens` (and the start kit) come first and stop.
+   Tell every builder the phase (`Phase:` line) in the brief.
 3. **Page file.** If it does not exist, create it with `/new-page` (parent folder per the URL
    hierarchy, `title` + `description` from the user — ask for them in the plan message, step 2) and
    commit it alone before the chain: `Add page <Name>`, `git push origin stage`. The first builder
@@ -74,6 +75,7 @@ For each confirmed section in order (never two builders at once; `run_in_backgro
    Figma: desktop <node id or url> (frame height <h>), tablet <id> (<h>), mobile <id> (<h>)
    Position: first section (section--hero, data-intro if motion) | after <PrevName>
    Motion: on | off
+   Phase: development (values exactly as in Figma, no new tokens) | systemized (tokens first)
    Shared so far (reuse, never re-create): <accumulated list from earlier DONE reports, or "nothing new beyond inventory.md">
    Shared patterns: <"the card here also appears in section 5 → build ui/Card.astro now" | "use ui/Tag" | none>
    Do not commit until told. Report in the section-builder format.

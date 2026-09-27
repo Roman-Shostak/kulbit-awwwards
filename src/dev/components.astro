@@ -27,6 +27,7 @@ import Hero from '@/components/sections/Hero.astro';
 import OurClients from '@/components/sections/OurClients.astro';
 import Projects from '@/components/sections/Projects.astro';
 import OurServices from '@/components/sections/OurServices.astro';
+import WorkingProcessIntro from '@/components/sections/WorkingProcessIntro.astro';
 import SiteHeader from '@/components/sections/SiteHeader.astro';
 import { useTranslations } from '@/i18n';
 import DevShell from './DevShell.astro';
@@ -39,7 +40,7 @@ const sectionFiles = Object.keys(import.meta.glob('../components/sections/*.astr
 
 // Registry of what this page renders — keep in sync with the blocks below
 const showcasedUi: string[] = ['Button', 'Square', 'ProjectVideo'];
-const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients', 'Projects', 'OurServices'];
+const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients', 'Projects', 'OurServices', 'WorkingProcessIntro'];
 
 const missingUi = uiFiles.filter((name) => !showcasedUi.includes(name));
 const missingSections = sectionFiles.filter((name) => !showcasedSections.includes(name));
@@ -80,7 +81,7 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
 
   <section class="dev_component" id="ui-button">
     <h3>Button</h3>
-    <p class="dev_component-meta"><code>src/components/ui/Button.astro</code> — variant: outline | arrow; href → a, otherwise button[type=button]. The labels hide on mobile (outline) and ≤ 991px (arrow) and stay the accessible name.</p>
+    <p class="dev_component-meta"><code>src/components/ui/Button.astro</code> — variant: outline | arrow | second; href → a, otherwise button[type=button]. The labels hide on mobile (outline) and ≤ 991px (arrow) and stay the accessible name; second: the square turns red on hover.</p>
     <div class="dev_variants dev_variants--wide">
       <figure class="dev_variant">
         <div class="dev_stage theme--dark"><Button variant="outline">Showreel</Button></div>
@@ -97,6 +98,14 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
       <figure class="dev_variant">
         <div class="dev_stage theme--dark"><Button variant="arrow" href="/">Start Your Pilot</Button></div>
         <figcaption><code>&lt;Button variant="arrow" href="/"&gt;</code> → a</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage theme--dark"><Button variant="second">Start Your Pilot</Button></div>
+        <figcaption><code>&lt;Button variant="second"&gt;</code> → button</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage theme--dark"><Button variant="second" href="/">Start Your Pilot</Button></div>
+        <figcaption><code>&lt;Button variant="second" href="/"&gt;</code> → a</figcaption>
       </figure>
     </div>
   </section>
@@ -189,4 +198,5 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
   <div class="dev_section-frame"><div class="dev_section-label">OurClients.astro (set 1; the steps and the scramble run on the home page)</div><OurClients /></div>
   <div class="dev_section-frame"><div class="dev_section-label">Projects.astro (the first card; the swap steps and the scramble run on the home page)</div><Projects /></div>
   <div class="dev_section-frame"><div class="dev_section-label">OurServices.astro (the first card; the swap steps, the card videos and the scramble run on the home page)</div><OurServices /></div>
+  <div class="dev_section-frame"><div class="dev_section-label">WorkingProcessIntro.astro (the scramble and the typewriter run on the home page)</div><WorkingProcessIntro /></div>
 </DevShell>

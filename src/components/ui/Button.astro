@@ -1,8 +1,10 @@
 ---
 /**
- * Button — two variants (Figma component «Button», layout as in the Webflow build):
+ * Button — three variants (Figma component «Button», layout as in the Webflow build):
  *   outline  a play icon + label on black in a 2px #171717 frame: the header button; icon only on mobile
  *   arrow    a red label + the red arrow square in a row: the hero CTA; the square only at ≤ 991px
+ *   second   a white label in two lines + the blue arrow square in a 2px #171717 frame (.button.is-second): the
+ *            pilot button of the working process; the square turns red on hover
  * `href` → <a>, otherwise <button type="button">; every other attribute passes through. A hidden label stays the
  * accessible name. The variant is `variant`, not `type` (that is the button's own attribute).
  */
@@ -10,23 +12,24 @@ import type { HTMLAttributes } from 'astro/types';
 import IconArrow from '@/assets/icons/arrow-pilot.svg';
 import IconPlay from '@/assets/icons/play.svg';
 
-type Variant = { variant: 'outline' | 'arrow' };
+type Variant = { variant: 'outline' | 'arrow' | 'second' };
 type Props = Variant & ((HTMLAttributes<'a'> & { href: string }) | (HTMLAttributes<'button'> & { href?: never }));
 
 const { variant, href, class: className, type, ...rest } = Astro.props;
 const Tag = href ? 'a' : 'button';
 const buttonType = href ? undefined : ((type ?? 'button') as 'button' | 'submit' | 'reset');
+const textSize = { outline: 'text-size-16/14/14', arrow: 'text-size-32', second: 'text-size-18/18/16' }[variant];
 ---
 
 <Tag
   href={href}
   type={buttonType}
-  class:list={['button', `type--${variant}`, variant === 'outline' ? 'text-size-16/14/14' : 'text-size-32', className]}
+  class:list={['button', `type--${variant}`, textSize, className]}
   {...rest}
 >
   {variant === 'outline' && <IconPlay class="button_icon" aria-hidden="true" />}
   <span class="button_label"><slot /></span>
-  {variant === 'arrow' && <IconArrow class="button_arrow" aria-hidden="true" />}
+  {variant !== 'outline' && <IconArrow class="button_arrow" aria-hidden="true" />}
 </Tag>
 
 <style>
@@ -50,6 +53,11 @@ const buttonType = href ? undefined : ((type ?? 'button') as 'button' | 'submit'
     font-size: var(--size-32);
     line-height: 1.15;
     letter-spacing: 0.03em;
+  }
+  /* PP Monument Wide Black 18 / 1.15 (mobile 16): .text-size-button.is-second */
+  .text-size-18\/18\/16 {
+    font-size: calc(1.13rem * var(--fluid-scale));
+    line-height: 1.15;
   }
 
   /* ---------- outline: header ---------- */
@@ -91,6 +99,36 @@ const buttonType = href ? undefined : ((type ?? 'button') as 'button' | 'submit'
     color: #62b0ff;
   }
 
+  /* ---------- second: the pilot button of the working process (.button.is-second) ---------- */
+  .button.type--second {
+    gap: var(--size-24);
+    align-self: flex-start;
+    padding: var(--size-24) var(--size-32);
+    outline: var(--size-2) solid #171717;
+    outline-offset: calc(var(--size-2) * -1);
+    border-radius: calc(0.5625rem * var(--fluid-scale)); /* 9 */
+    background-color: var(--theme-page-bg);
+    color: #62b0ff;
+    transition: color var(--transition-duration) var(--transition-easing);
+  }
+  /* .width-140.is-second-button: the label wraps in 140 and keeps its white */
+  .type--second .button_label {
+    width: calc(8.75rem * var(--fluid-scale)); /* 140 */
+    color: var(--theme-text);
+    text-align: left;
+    white-space: normal;
+  }
+  /* .icon-40-40-32 */
+  .type--second .button_arrow {
+    width: var(--size-40);
+    height: var(--size-40);
+  }
+  /* the Webflow interaction «Second Button [Hover]»: the square blue → red */
+  .button.type--second:hover,
+  .button.type--second:focus-visible {
+    color: var(--theme-text-brand);
+  }
+
   @media (max-width: 991px) {
     .text-size-16\/14\/14 {
       font-size: var(--size-14);
@@ -110,6 +148,17 @@ const buttonType = href ? undefined : ((type ?? 'button') as 'button' | 'submit'
     }
   }
   @media (max-width: 479px) {
+    .text-size-18\/18\/16 {
+      font-size: var(--size-16);
+    }
+    .button.type--second {
+      gap: var(--size-16);
+      padding: var(--size-20) var(--size-28);
+    }
+    .type--second .button_arrow {
+      width: var(--size-32);
+      height: var(--size-32);
+    }
     .button.type--outline {
       width: calc(5.625rem * var(--fluid-scale)); /* 90 */
       height: var(--size-48);

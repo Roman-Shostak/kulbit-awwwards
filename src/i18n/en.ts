@@ -159,6 +159,19 @@ export default {
       },
     ],
   },
+  /** The screen between Our Services and the working process: the label, the statement and the pilot button */
+  workingProcessIntro: {
+    title: 'Working process',
+    /** One sentence; the grey parts as on the site */
+    statement: [
+      { text: 'Simple. Transparent. Proven. A streamlined', grey: false },
+      { text: 'workflow designed for the', grey: true },
+      { text: 'speed', grey: false },
+      { text: 'of', grey: true },
+      { text: 'modern marketing.', grey: false },
+    ],
+    pilot: 'Start Your Pilot',
+  },
   /** Accessible names of the video player controls (the Webflow build has none: its controls are divs) */
   projectVideo: {
     start: 'Play video',

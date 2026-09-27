@@ -12,6 +12,7 @@
  */
 import { getImage } from 'astro:assets';
 import Button from '@/components/ui/Button.astro';
+import Square from '@/components/ui/Square.astro';
 import { useTranslations } from '@/i18n';
 import heroPoster from '@/assets/hero/hero-poster.jpg';
 import IconMute from '@/assets/icons/speaker-mute.svg';
@@ -36,7 +37,7 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
         <p class="hero_blend"><span class="hero_grey">{s.blend}</span> {s.human}</p>
         <p class="hero_ai">{s.ai}</p>
         <p class="hero_deliver"><span class="hero_grey">{s.deliver}</span> {s.quality} <span class="hero_grey">{s.videos}</span></p>
-        <span class="hero_square" aria-hidden="true"></span>
+        <Square class="hero_square" />
       </div>
     </div>
   </div>
@@ -158,9 +159,6 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
     position: absolute;
     top: 0;
     right: 0;
-    width: calc(1.88rem * var(--fluid-scale)); /* 30 */
-    aspect-ratio: 1;
-    background-color: #62b0ff;
   }
 
   /* ---------- Video (.hero-video-wrapper > .hero-video-mask + .hero-video) ---------- */
@@ -296,7 +294,6 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
       right: auto;
       bottom: 0;
       left: 0;
-      width: var(--size-24);
     }
     .hero_mask {
       background-image: radial-gradient(circle closest-corner at 50% 30%, rgb(0 0 0 / 0) 25%, rgb(0 0 0 / 0.651) 50%, #000 75%);

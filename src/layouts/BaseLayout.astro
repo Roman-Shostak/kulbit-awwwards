@@ -38,7 +38,9 @@
  *
  * `site` in astro.config.mjs is required for canonical, og:url, og:image and the schema graph:
  * in a static build `Astro.url` only carries the pathname, absolute URLs are built from `Astro.site`.
- * Favicons: public/favicon.svg (from the client) → `pnpm favicon` writes favicon.ico + apple-touch-icon.png.
+ * Favicons: a pair for the browser themes (as on the Webflow build) — public/favicon-dark.svg (dark tile) on light tabs,
+ * public/favicon-light.svg (light tile) on dark tabs; `pnpm favicon` writes favicon.ico (the dark one, for browsers
+ * without SVG icons) + apple-touch-icon.png (the light one, as the Webflow webclip).
  *
  * Client fonts (astro.config.mjs → `fonts`): `<Font cssVariable>` for both families in <head>, WITHOUT `preload` —
  * `<Font preload>` preloads every subset file (4 subsets × weights, competing with the hero image; the local
@@ -127,7 +129,8 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     {canonical && <link rel="canonical" href={canonical.href} />}
     {hreflang.map((link) => <link rel="alternate" {...link} />)}
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: light)" />
+    <link rel="icon" href="/favicon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     {fontPreloads.map((href) => <link href={href} {...preloadAttributes} />)}
     <Font cssVariable="--font-primary-custom" />

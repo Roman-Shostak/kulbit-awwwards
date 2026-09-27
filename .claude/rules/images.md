@@ -20,7 +20,7 @@ paths:
   src/assets/fonts/       subset woff2 files written by `pnpm fonts` (+ fonts/source/ for the client's TTF/OTF)
   ```
 - Prefer JPG for photos, PNG only when transparency is required. Astro converts them at build time; the source format only affects the fallback.
-- `public/` is NOT for content images. Only `favicon.svg` (+ the generated `favicon.ico`, `apple-touch-icon.png`), `robots.txt`, and generated `public/og/`.
+- `public/` is NOT for content images. Only `favicon.svg` or the `favicon-light.svg` / `favicon-dark.svg` pair (+ the generated `favicon.ico`, `apple-touch-icon.png`), `robots.txt`, and generated `public/og/`.
 
 ## Rendering rasters
 - Always `astro:assets`. Photos and illustrations → `<Picture>`, tiny rasters that never need AVIF → `<Image>`. Never a raw `<img>` for a `src/assets` file.
@@ -83,6 +83,7 @@ import aboutPhoto from '@/assets/about/about-portrait.jpg';
 
 ## Favicon
 - The client delivers `favicon.svg` → `public/favicon.svg` (not `src/assets`). `pnpm favicon` writes `public/favicon.ico` (16 + 32 px) and `public/apple-touch-icon.png` (180 px; `--bg #hex` to flatten). `BaseLayout` always links all three, so run it before the first deploy — otherwise every load logs a 404.
+- A pair for the browser themes instead of one file: `public/favicon-dark.svg` (the dark tile, linked with `media="(prefers-color-scheme: light)"`) and `public/favicon-light.svg` (the light tile, `media="(prefers-color-scheme: dark)"`); `pnpm favicon` then takes the dark one for `favicon.ico` and the light one for `apple-touch-icon.png`.
 
 ## Open Graph images
 - Put the source in `src/assets/og/<page>.jpg|png` (kebab-case, ≥ 1200×630, no transparency needed). The home page's OG image is mandatory; name it after the page (`og-home.jpg` → `/og/og-home.jpg`).

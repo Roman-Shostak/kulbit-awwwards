@@ -12,11 +12,10 @@
  *   navigation.ts     [data-target-section] / [data-target-step] buttons
  *   hero-height.ts    the hero's height = visualViewport height
  *   button-border.ts  [data-kulbit-border] hover border
+ *   scramble.ts       [data-kulbit-scramble] / [data-kulbit-typewriter] texts written on entering the screen (ADR-017)
  *
  * LEFT TO PORT — each with its section, as a `registerSectionBuilder((mode) => …)` that sets `section.controller`
  * (source file → functions):
- *   our clients        03-sections.js buildOurClients (l. 315–505: shiftN stages, progress fill, morphTexts /
- *                      TXT); 01-init.js registers ScrambleTextPlugin for it
  *   projects           03-sections.js buildProjects (l. 507–644: window swap WIN, slotHeight, resetItem, progress);
  *                      10-project-video.js initProjectVideo (custom controls, registry / pauseOthers, fullscreen →
  *                      app.videoFullscreen + reapplyResponsive from ./responsive; its records → registerVideo in ./video)
@@ -25,10 +24,9 @@
  *   traditional prod.  03-sections.js buildTraditional (l. 1178–1495: radar, data-kulbit-progress)
  *   footer             03-sections.js buildFooterScroll + FT_STEP_RATIO (l. 1087–1177, tablet / mobile only: its
  *                      controller's prepare() = reset()); 13-misc.js copyright year (#copyright-year)
- *   headings           11-scramble.js build / makeReveal / parseSegments / buildSegDOM ([data-kulbit-scramble],
- *                      [data-kulbit-typewriter]; IntersectionObserver 0.6) — with the first section that uses it
  *   popup form         07-popup-form.js — empty in the source (placeholder)
  *   landscape popup    only its markup: `[data-kulbit-landscape-popup] hidden` (the logic is in ./responsive)
+ * Ported with their sections: our clients (buildOurClients → src/components/sections/OurClients.astro).
  * 05-header.js is empty in the source: the header moves only through its data-kulbit-* attributes (hero timeline).
  */
 import { gsap } from 'gsap';
@@ -39,6 +37,7 @@ import { setupHeroHeight } from './hero-height';
 import { setupNavigation } from './navigation';
 import { setupKeyboard, setupObserver } from './observer';
 import { registerAnimations, setupLandscape } from './responsive';
+import { setupScramble } from './scramble';
 import { handleResize, registerSections, registerSteps, setupStacking } from './sections';
 import { setupVideos } from './video';
 
@@ -73,6 +72,7 @@ const init = () => {
   setupLandscape();
   setupHeroHeight();
   setupButtonBorders();
+  setupScramble();
 };
 
 // Module scripts run before DOMContentLoaded: waiting for it lets every section script register its builder first

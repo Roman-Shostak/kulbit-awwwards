@@ -599,6 +599,10 @@ html[data-steps] [data-scenes] {
   z-index: 0;
   height: 100vh;
 }
+/* A section slides in over the previous one: it covers it with the page background (Webflow: .section black) */
+html[data-steps] [data-kulbit-section] {
+  background-color: var(--theme-page-bg);
+}
 
 /* ---------- Motion: reveal on scroll (src/scripts/motion.ts, enabled with <BaseLayout motion>) ----------
  * The module sets data-motion on <html> (no JS or no module → everything is simply visible) and adds

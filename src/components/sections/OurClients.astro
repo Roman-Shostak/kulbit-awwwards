@@ -1,0 +1,674 @@
+---
+/**
+ * OurClients — built from the Webflow build (kulbit-gsap export, section «is-our-clients»); values 1:1 from its CSS
+ * (1rem = 16px on the 1920 / 744 / 390 frames = our fluid scale).
+ *
+ * Three sets of cards in one frame — two sets of client logos and the festival awards — under a progress line; the
+ * label and the statement are written by scramble when the section enters the screen (data-kulbit-scramble,
+ * src/scripts/kulbit/scramble.ts). The steps (the script below, a port of kulbit-webflow buildOurClients, ADR-013):
+ * desktop — set 1 → 2 → 3, one gesture each; tablet / mobile — the sets are columns and a set that does not fit
+ * first moves its cards up (tablet by 1 / 0 / 1 cards, mobile by 2 / 1 / 2). The line fills per set; the two facts
+ * are rewritten when the last set appears. Hovering a client card crossfades its logo to the colour version.
+ * The markup is the natural state: set 1 in the frame, the others below it, the line at a third.
+ * Files: src/assets/our-clients/ — logos as SVG files (107 KB together: too heavy to inline), awards 4x PNG.
+ */
+import { Image, Picture } from 'astro:assets';
+import Square from '@/components/ui/Square.astro';
+import { useTranslations } from '@/i18n';
+import logoEurovision from '@/assets/our-clients/logo-eurovision.svg';
+import logoEurovisionColor from '@/assets/our-clients/logo-eurovision-color.svg';
+import logoRaiffeisen from '@/assets/our-clients/logo-raiffeisen-bank.svg';
+import logoRaiffeisenColor from '@/assets/our-clients/logo-raiffeisen-bank-color.svg';
+import logoWpt from '@/assets/our-clients/logo-wpt.svg';
+import logoWptColor from '@/assets/our-clients/logo-wpt-color.svg';
+import logoIqos from '@/assets/our-clients/logo-iqos.svg';
+import logoIqosColor from '@/assets/our-clients/logo-iqos-color.svg';
+import logoWptGlobal from '@/assets/our-clients/logo-wpt-global.svg';
+import logoWptGlobalColor from '@/assets/our-clients/logo-wpt-global-color.svg';
+import logoParimatch from '@/assets/our-clients/logo-parimatch.svg';
+import logoParimatchColor from '@/assets/our-clients/logo-parimatch-color.svg';
+import logoKyivstar from '@/assets/our-clients/logo-kyivstar.svg';
+import logoKyivstarColor from '@/assets/our-clients/logo-kyivstar-color.svg';
+import logoLifecell from '@/assets/our-clients/logo-lifecell.svg';
+import logoLifecellColor from '@/assets/our-clients/logo-lifecell-color.svg';
+import logoPokerFace from '@/assets/our-clients/logo-poker-face.svg';
+import logoPokerFaceColor from '@/assets/our-clients/logo-poker-face-color.svg';
+import logoClubWptGold from '@/assets/our-clients/logo-club-wpt-gold.svg';
+import logoClubWptGoldColor from '@/assets/our-clients/logo-club-wpt-gold-color.svg';
+import awardCreation from '@/assets/our-clients/award-creation-2016.png';
+import awardUnderground from '@/assets/our-clients/award-music-video-underground-2018.png';
+import awardKyiv from '@/assets/our-clients/award-kyiv-film-festival-2017.png';
+import awardVisioniCorte from '@/assets/our-clients/award-visioni-corte-2017.png';
+import awardCalifornia from '@/assets/our-clients/award-california-shorts-2017.png';
+import awardSalento from '@/assets/our-clients/award-salento-2017.png';
+
+const t = useTranslations(Astro.currentLocale).ourClients;
+const s = t.statement;
+
+// Brand names (alt of the white logo; the colour copy is decorative) — as on the Webflow build
+const clientSets = [
+  {
+    center: false,
+    logos: [
+      { name: 'EuroVision', white: logoEurovision, color: logoEurovisionColor },
+      { name: 'Raiffeisen Bank', white: logoRaiffeisen, color: logoRaiffeisenColor },
+      { name: 'WPT', white: logoWpt, color: logoWptColor },
+      { name: 'IQOS', white: logoIqos, color: logoIqosColor },
+      { name: 'WPT Global', white: logoWptGlobal, color: logoWptGlobalColor },
+      { name: 'Pari Match', white: logoParimatch, color: logoParimatchColor },
+    ],
+  },
+  {
+    center: true,
+    logos: [
+      { name: 'Kyivstar', white: logoKyivstar, color: logoKyivstarColor },
+      { name: 'Lifecell', white: logoLifecell, color: logoLifecellColor },
+      { name: 'Poker Face', white: logoPokerFace, color: logoPokerFaceColor },
+      { name: 'Club WPT Gold', white: logoClubWptGold, color: logoClubWptGoldColor },
+    ],
+  },
+];
+const awards = [awardCreation, awardUnderground, awardKyiv, awardVisioniCorte, awardCalifornia, awardSalento].map(
+  (src, i) => ({ src, alt: t.awards[i] }),
+);
+/** The first and the last card of a set span the row on mobile */
+const isBig = (index: number, total: number) => index === 0 || index === total - 1;
+---
+
+<section class="section padding-64/48/24" data-kulbit-section data-clients>
+  <div class="container">
+    <div class="flex-v spacing-48/48/24 text-style-uppercase">
+      <div class="our-clients_progress" aria-hidden="true"><div class="our-clients_fill" data-clients-fill></div></div>
+      <div class="flex-v/h/v spacing-64/48/24">
+        <div class="our-clients_head flex-h/v/v spacing-0/64/24">
+          <h2 class="text-size-16/16/13" data-kulbit-scramble>
+            {t.title.lead} <span class="text-color-brand">{t.title.accent}</span>
+          </h2>
+          <div class="our-clients_body flex-v">
+            <div class="our-clients_lead">
+              <p class="our-clients_statement text-size-32/28/23" data-kulbit-scramble>
+                {s.lead} <span class="our-clients_grey">{s.grey}</span> {s.industries} <span class="our-clients_amp">{s.amp}</span> {s.last}
+              </p>
+            </div>
+            <div class="our-clients_texts text-size-16 text-weight-700">
+              <div class="our-clients_facts spacing-36/36/20">
+                {
+                  t.facts.map((fact) => (
+                    <div class="our-clients_fact">
+                      <p data-clients-text>
+                        <span class="our-clients_grey">{fact.grey}</span> {fact.text}
+                      </p>
+                      <template data-clients-next>
+                        <span class="our-clients_grey">{fact.next.grey}</span> {fact.next.text}
+                      </template>
+                    </div>
+                  ))
+                }
+                <Square class="our-clients_square" />
+              </div>
+              <div class="our-clients_scroll text-align-right mobile-hide">
+                <p>{t.scroll[0]}<br />{t.scroll[1]}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="our-clients_cards">
+          {
+            clientSets.map((set, i) => (
+              <ul class:list={['our-clients_set', { 'set--overlay': i > 0, 'set--center': set.center }]} data-clients-set>
+                {set.logos.map((logo, j) => (
+                  <li class:list={['our-clients_card', { 'size--big': isBig(j, set.logos.length) }]}>
+                    <div class="our-clients_logo">
+                      <Image src={logo.white} alt={logo.name} class="fill-box" />
+                    </div>
+                    <div class="our-clients_logo logo--color">
+                      <Image src={logo.color} alt="" class="fill-box" />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ))
+          }
+          <ul class="our-clients_set set--overlay" data-clients-set>
+            {
+              awards.map((award, j) => (
+                <li class:list={['our-clients_card', { 'size--big': isBig(j, awards.length) }]}>
+                  <div class="our-clients_logo">
+                    <Picture src={award.src} formats={['avif', 'webp']} width={159} alt={award.alt} class="fill-box" />
+                  </div>
+                </li>
+              ))
+            }
+          </ul>
+          <div class="our-clients_fade" aria-hidden="true"></div>
+          <div class="our-clients_fade fade--bottom" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* .section: 4rem top and bottom (tablet 3, mobile 1.5) */
+  .padding-64\/48\/24 {
+    padding-block: var(--size-64);
+  }
+  /* .gap-48-32-24: the Webflow CSS keeps 48 on tablet */
+  .spacing-48\/48\/24 {
+    gap: var(--size-48);
+  }
+  .spacing-64\/48\/24 {
+    gap: var(--size-64);
+  }
+  .spacing-0\/64\/24 {
+    gap: 0;
+  }
+  .spacing-36\/36\/20 {
+    gap: var(--size-36);
+  }
+
+  /* Decima Mono 16 / 1.1, tracking 0.03em (mobile 13): .text-size-section-label */
+  .text-size-16\/16\/13 {
+    font-size: var(--size-16);
+    line-height: 1.1;
+    letter-spacing: 0.03em;
+  }
+  /* PP Monument Wide 32 / 1.3, tracking 0.03em (tablet 28, mobile 23): .text-size-section-h2 */
+  .text-size-32\/28\/23 {
+    font-family: var(--font-secondary);
+    font-size: var(--size-32);
+    line-height: 1.3;
+    letter-spacing: 0.03em;
+  }
+  /* Decima Mono Bold 16 / 1.37: .text-size-hero */
+  .text-size-16 {
+    font-size: var(--size-16);
+    line-height: 1.37;
+  }
+
+  /* ---------- Progress line (.section-progresbar + the fill kulbit-webflow adds): the track at 15 % ---------- */
+  .our-clients_progress {
+    position: relative;
+    flex: none;
+    height: var(--size-2);
+    background-color: rgb(253 252 252 / 0.15);
+  }
+  .our-clients_fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(100% / 3); /* set 1 of 3; the script drives it */
+    height: 100%;
+    background-color: var(--theme-text);
+  }
+
+  /* ---------- Label + statement + facts (.flex-h-v-v.is-our-clients) ---------- */
+  .our-clients_head {
+    position: relative;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .our-clients_lead {
+    width: calc(43.44rem * var(--fluid-scale)); /* 695 */
+  }
+  .our-clients_statement {
+    text-align: justify;
+  }
+  .our-clients_grey {
+    color: #404040;
+  }
+  .our-clients_amp {
+    color: #404040;
+  }
+  /* .our-clients-text-wrapper: 14.3rem below the top of the row, at its right edge */
+  .our-clients_texts {
+    position: absolute;
+    inset: calc(14.3rem * var(--fluid-scale)) 0 auto;
+    display: flex;
+    flex-direction: column;
+    width: calc(43.5rem * var(--fluid-scale)); /* 696 */
+    height: calc(32.25rem * var(--fluid-scale)); /* 516 */
+    margin-left: auto;
+  }
+  .our-clients_facts {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .our-clients_fact {
+    width: calc(12.06rem * var(--fluid-scale)); /* 193 */
+  }
+  /* the square at the bottom right of the facts */
+  .our-clients_square {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+  }
+  .our-clients_scroll {
+    width: calc(12.06rem * var(--fluid-scale));
+    margin-top: auto;
+  }
+
+  /* ---------- Cards (.client-card-wrapper > .our-client-card-wrapper × 3) ---------- */
+  .our-clients_cards {
+    position: relative;
+    align-self: flex-start;
+    overflow: hidden;
+  }
+  .our-clients_set {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    row-gap: calc(2.5rem * var(--fluid-scale));
+    width: calc(54.63rem * var(--fluid-scale)); /* 874 */
+  }
+  /* the sets 2… lie over set 1; they wait below the frame until the script brings them in */
+  .our-clients_set.set--overlay {
+    position: absolute;
+    inset: 0 0 auto;
+    transform: translateY(100%);
+  }
+  .our-clients_card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(14.88rem * var(--fluid-scale)); /* 238 */
+    aspect-ratio: 1;
+    outline: var(--size-2) solid #171717;
+    outline-offset: -1px;
+    border-radius: calc(0.56rem * var(--fluid-scale)); /* 9 */
+  }
+  .our-clients_logo {
+    position: relative;
+    z-index: 5;
+    width: calc(9.94rem * var(--fluid-scale)); /* 159 */
+    transition: opacity 0.6s ease;
+  }
+  .our-clients_logo.logo--color {
+    position: absolute;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  /* Webflow custom code; only a card with a colour copy fades (Webflow emptied the award cards on hover) */
+  .our-clients_card:hover .our-clients_logo:has(+ .logo--color) {
+    opacity: 0;
+  }
+  .our-clients_card:hover .our-clients_logo.logo--color {
+    opacity: 1;
+  }
+  /* .our-clients-card-blur: the cards fade out at the top and the bottom of the frame */
+  .our-clients_fade {
+    position: absolute;
+    inset: 0 0 auto;
+    height: var(--size-80);
+    background-image: linear-gradient(180deg, #000, rgb(0 0 0 / 0));
+    pointer-events: none;
+  }
+  .our-clients_fade.fade--bottom {
+    inset: auto 0 0;
+    background-image: linear-gradient(0deg, #000, rgb(0 0 0 / 0));
+  }
+
+  @media (max-width: 991px) {
+    .padding-64\/48\/24 {
+      padding-block: var(--size-48);
+    }
+    .spacing-64\/48\/24 {
+      gap: var(--size-48);
+    }
+    .spacing-0\/64\/24 {
+      gap: var(--size-64);
+    }
+    .text-size-32\/28\/23 {
+      font-size: var(--size-28);
+    }
+    .our-clients_head {
+      justify-content: flex-start;
+    }
+    .our-clients_body {
+      flex: 1;
+    }
+    .our-clients_lead {
+      flex: 1;
+      width: calc(24.5rem * var(--fluid-scale)); /* 392 */
+    }
+    .our-clients_amp {
+      display: inline-block;
+      margin-inline: calc(0.9rem * var(--fluid-scale));
+    }
+    .our-clients_texts {
+      position: static;
+      flex: 1;
+      width: auto;
+      height: auto;
+      margin-left: 0;
+    }
+    .our-clients_scroll {
+      align-self: flex-end;
+    }
+    .our-clients_cards {
+      flex: 1;
+      margin-top: var(--size-80);
+    }
+    /* one column of 16:9 cards, 49rem high */
+    .our-clients_set {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: var(--size-24);
+      width: auto;
+      height: calc(49rem * var(--fluid-scale)); /* 784 */
+      overflow: hidden;
+    }
+    .our-clients_set.set--overlay {
+      justify-content: flex-start;
+    }
+    .our-clients_set.set--center {
+      align-items: center;
+      justify-content: center;
+    }
+    .our-clients_card {
+      width: calc(15rem * var(--fluid-scale)); /* 240 */
+      aspect-ratio: 16 / 9;
+    }
+    .our-clients_logo {
+      width: calc(7.19rem * var(--fluid-scale)); /* 115 */
+    }
+    .our-clients_fade {
+      height: var(--size-56);
+    }
+  }
+
+  @media (max-width: 479px) {
+    .padding-64\/48\/24 {
+      padding-block: var(--size-24);
+    }
+    .spacing-48\/48\/24 {
+      gap: var(--size-24);
+    }
+    .spacing-64\/48\/24 {
+      gap: var(--size-24);
+    }
+    .spacing-0\/64\/24 {
+      gap: var(--size-24);
+    }
+    .spacing-36\/36\/20 {
+      gap: var(--size-20);
+    }
+    .text-size-16\/16\/13 {
+      font-size: calc(0.81rem * var(--fluid-scale));
+    }
+    .text-size-32\/28\/23 {
+      font-size: calc(1.44rem * var(--fluid-scale));
+    }
+    /* the full row: the width no longer follows the statement while scramble writes it (the square jumped) */
+    .our-clients_body {
+      align-self: stretch;
+    }
+    .our-clients_lead {
+      width: auto;
+    }
+    .our-clients_amp {
+      margin-inline: calc(1.8rem * var(--fluid-scale));
+    }
+    .our-clients_texts {
+      margin-top: var(--size-32);
+    }
+    .our-clients_cards {
+      align-self: stretch;
+      margin-top: 0;
+    }
+    /* two cards per row, the wide ones alone; two rows in the frame */
+    .our-clients_set {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: var(--size-12);
+      height: calc(16rem * var(--fluid-scale)); /* 256 */
+    }
+    .our-clients_card {
+      width: calc(10.81rem * var(--fluid-scale)); /* 173 */
+      height: calc(7.5rem * var(--fluid-scale)); /* 120 */
+    }
+    .our-clients_card.size--big {
+      width: 100%;
+    }
+    .our-clients_logo {
+      width: calc(5.69rem * var(--fluid-scale)); /* 91 */
+    }
+    .our-clients_fade {
+      height: calc(4.25rem * var(--fluid-scale)); /* 68 */
+    }
+  }
+</style>
+
+<script>
+  // Steps of the section — port of kulbit-webflow buildOurClients (03-sections.js, ADR-013), the same numbers.
+  //   desktop         3 states = 3 sets: the current one in the frame, the previous above it, the next below
+  //   tablet / mobile the stages come from the shifts per set (tablet [1, 0, 1], mobile [2, 1, 2]): appear → shift
+  //                   the cards of set i (if any) → the next set → … ; a shift = the distance between two cards
+  // Both: the progress line (1/3 → 2/3 → 3/3 by the set), the facts rewritten by scramble when the last set
+  // appears (back → the original). The engine calls prepare (slide-in start: the line empty), enter (covered: the
+  // line fills to the first third), collapse (slides away: the line empties), reset(toEnd) (instant state).
+  import { gsap } from 'gsap';
+  import { app, config, registerSectionBuilder, type SectionController } from '@/scripts/kulbit/app';
+  import { buildSegments, parseSegments, reducedMotion, SCRAMBLE, type Segment } from '@/scripts/kulbit/scramble';
+
+  const root = document.querySelector<HTMLElement>('[data-clients]');
+  // The facts as rendered and their rewrite (<template>), read once before anything changes them
+  const facts = [...(root?.querySelectorAll<HTMLElement>('[data-clients-text]') ?? [])].map((text) => ({
+    text,
+    orig: parseSegments(text),
+    next: parseSegments(text.parentElement?.querySelector<HTMLTemplateElement>('[data-clients-next]')?.content ?? text),
+  }));
+
+  // Erase the whole paragraph, then write every segment (the grey span keeps its colour)
+  const morphText = (text: HTMLElement, segments: Segment[]) => {
+    gsap.killTweensOf(text);
+    if (reducedMotion()) {
+      buildSegments(text, segments, true);
+      return;
+    }
+    gsap.to(text, {
+      duration: 0.35,
+      scrambleText: { text: '', ...SCRAMBLE, speed: 3 },
+      onComplete: () =>
+        buildSegments(text, segments, false).forEach(([span, value]) =>
+          gsap.to(span, { duration: 0.6, scrambleText: { text: value, ...SCRAMBLE } }),
+        ),
+    });
+  };
+  const morphTexts = (toNext: boolean) => facts.forEach((f) => morphText(f.text, toNext ? f.next : f.orig));
+  const setTexts = (toNext: boolean) =>
+    facts.forEach((f) => {
+      gsap.killTweensOf(f.text);
+      buildSegments(f.text, toNext ? f.next : f.orig, true);
+    });
+
+  registerSectionBuilder((mode) => {
+    const section = app.sections.find((s) => s.el === root);
+    if (!section || !root) return;
+    const sets = [...root.querySelectorAll<HTMLElement>('[data-clients-set]')];
+    if (sets.length < 2) return;
+    const fill = root.querySelector<HTMLElement>('[data-clients-fill]');
+    const boxes = facts.map((f) => f.text.parentElement!);
+    const cardsOf = (set: HTMLElement) => [...set.children] as HTMLElement[];
+    const cards = sets.flatMap(cardsOf);
+    const STEP = config.scrollDuration;
+    const EASE = config.ease;
+    const total = sets.length;
+    const clamp = (value: number, max: number) => Math.max(0, Math.min(max, value));
+
+    // The fact boxes keep their height while the texts are erased (the square is aligned to their bottom)
+    setTexts(false);
+    boxes.forEach((box) => {
+      box.style.height = '';
+      box.style.height = `${box.offsetHeight}px`;
+    });
+    // The sets 2… wait below the frame in CSS (translateY 100 %): GSAP takes the transform over from zero
+    gsap.set(sets, { y: 0 });
+
+    // Progress line by the index of the set in the frame
+    const setFill = (index: number, animate: boolean) => {
+      if (!fill) return;
+      const width = `${((index + 1) / total) * 100}%`;
+      if (animate) gsap.to(fill, { width, duration: STEP, ease: EASE });
+      else gsap.set(fill, { width });
+    };
+    // Empty at once while sliding in (no backward run), 0 → 1/3 once covered, empties while sliding away
+    const prepareLine = () => {
+      if (!fill) return;
+      gsap.killTweensOf(fill);
+      gsap.set(fill, { width: '0%' });
+    };
+    const enterLine = () => {
+      prepareLine();
+      setFill(0, true);
+    };
+    const collapseLine = () => {
+      if (!fill) return;
+      gsap.killTweensOf(fill);
+      gsap.to(fill, { width: '0%', duration: STEP, ease: EASE });
+    };
+    // The breakpoint changes: tweens of the steps live outside the matchMedia context
+    const dispose = () => {
+      gsap.killTweensOf([...sets, ...cards]);
+      if (fill) gsap.killTweensOf(fill);
+      gsap.set([...sets, ...cards], { clearProps: 'transform' });
+      if (fill) gsap.set(fill, { clearProps: 'width' });
+      setTexts(false);
+      boxes.forEach((box) => {
+        box.style.height = '';
+      });
+    };
+    const finishStep = () => {
+      app.isAnimating = true;
+      gsap.delayedCall(STEP, () => {
+        app.isAnimating = false;
+      });
+    };
+
+    let controller: SectionController;
+    if (mode === 'desktop') {
+      const setSets = (index: number, animate: boolean) =>
+        sets.forEach((set, i) => {
+          const yPercent = i < index ? -100 : i > index ? 100 : 0;
+          if (animate) gsap.to(set, { yPercent, duration: STEP, ease: EASE });
+          else gsap.set(set, { yPercent });
+        });
+      let state = 0;
+      setSets(0, false);
+      prepareLine(); // hidden start until the section appears
+      controller = {
+        get state() {
+          return state;
+        },
+        prepare() {
+          state = 0;
+          setSets(0, false);
+          setTexts(false);
+          prepareLine();
+        },
+        reset(toEnd) {
+          state = toEnd ? total - 1 : 0;
+          setSets(state, false);
+          setFill(state, false);
+          setTexts(state === total - 1);
+        },
+        enter() {
+          state = 0;
+          setSets(0, false);
+          enterLine();
+        },
+        collapse: collapseLine,
+        dispose,
+        step(dir) {
+          const next = clamp(state + dir, total - 1);
+          if (next === state) return false;
+          const prev = state;
+          state = next;
+          finishStep();
+          setSets(state, true);
+          setFill(state, true);
+          if (state === total - 1) morphTexts(true);
+          if (prev === total - 1) morphTexts(false);
+          return true;
+        },
+      };
+    } else {
+      const shifts = mode === 'mobile' ? [2, 1, 2] : [1, 0, 1];
+      const cardStep = sets.map((set) => {
+        const [first, second] = cardsOf(set);
+        return second ? second.getBoundingClientRect().top - first.getBoundingClientRect().top : 0;
+      });
+      // appear → (shift set i) → set i + 1 → …
+      const stages: { current: number; shifted: number[] }[] = [];
+      const shifted = sets.map(() => 0);
+      stages.push({ current: 0, shifted: [...shifted] });
+      sets.forEach((_, i) => {
+        if ((shifts[i] ?? 0) > 0) {
+          shifted[i] = shifts[i];
+          stages.push({ current: i, shifted: [...shifted] });
+        }
+        if (i < total - 1) stages.push({ current: i + 1, shifted: [...shifted] });
+      });
+      const last = stages.length - 1;
+      const rewriteAt = stages.findIndex((stage) => stage.current === total - 1);
+      const applyStage = (index: number, animate: boolean) => {
+        const stage = stages[index];
+        sets.forEach((set, i) => {
+          const yPercent = i < stage.current ? -100 : i > stage.current ? 100 : 0;
+          const y = -stage.shifted[i] * cardStep[i];
+          if (animate) {
+            gsap.to(set, { yPercent, duration: STEP, ease: EASE });
+            gsap.to(cardsOf(set), { y, duration: STEP, ease: EASE });
+          } else {
+            gsap.set(set, { yPercent });
+            gsap.set(cardsOf(set), { y });
+          }
+        });
+        setFill(stage.current, animate);
+      };
+      let stage = 0;
+      applyStage(0, false);
+      prepareLine();
+      controller = {
+        get state() {
+          return stage;
+        },
+        prepare() {
+          stage = 0;
+          applyStage(0, false);
+          setTexts(false);
+          prepareLine();
+        },
+        reset(toEnd) {
+          stage = toEnd ? last : 0;
+          applyStage(stage, false);
+          setTexts(stage >= rewriteAt);
+        },
+        enter() {
+          stage = 0;
+          applyStage(0, false);
+          enterLine();
+        },
+        collapse: collapseLine,
+        dispose,
+        step(dir) {
+          const next = clamp(stage + dir, last);
+          if (next === stage) return false;
+          const prev = stage;
+          stage = next;
+          finishStep();
+          applyStage(stage, true);
+          if (prev < rewriteAt && stage >= rewriteAt) morphTexts(true);
+          if (prev >= rewriteAt && stage < rewriteAt) morphTexts(false);
+          return true;
+        },
+      };
+    }
+    section.controller = controller;
+  });
+</script>

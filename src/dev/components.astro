@@ -21,7 +21,9 @@
  *                   <div class="header">, footer inside <footer class="footer">).
  */
 import Button from '@/components/ui/Button.astro';
+import Square from '@/components/ui/Square.astro';
 import Hero from '@/components/sections/Hero.astro';
+import OurClients from '@/components/sections/OurClients.astro';
 import SiteHeader from '@/components/sections/SiteHeader.astro';
 import DevShell from './DevShell.astro';
 
@@ -30,8 +32,8 @@ const uiFiles = Object.keys(import.meta.glob('../components/ui/*.astro')).map(fi
 const sectionFiles = Object.keys(import.meta.glob('../components/sections/*.astro')).map(fileName);
 
 // Registry of what this page renders — keep in sync with the blocks below
-const showcasedUi: string[] = ['Button'];
-const showcasedSections: string[] = ['SiteHeader', 'Hero'];
+const showcasedUi: string[] = ['Button', 'Square'];
+const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients'];
 
 const missingUi = uiFiles.filter((name) => !showcasedUi.includes(name));
 const missingSections = sectionFiles.filter((name) => !showcasedSections.includes(name));
@@ -89,6 +91,17 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
       <figure class="dev_variant">
         <div class="dev_stage theme--dark"><Button variant="arrow" href="/">Start Your Pilot</Button></div>
         <figcaption><code>&lt;Button variant="arrow" href="/"&gt;</code> → a</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="dev_component" id="ui-square">
+    <h3>Square</h3>
+    <p class="dev_component-meta"><code>src/components/ui/Square.astro</code> — the blue square, 30 px (24 px from tablet down), turns a quarter on hover; aria-hidden. The caller positions it with its own class.</p>
+    <div class="dev_variants">
+      <figure class="dev_variant">
+        <div class="dev_stage theme--dark"><Square /></div>
+        <figcaption><code>&lt;Square class="…"&gt;</code> → span</figcaption>
       </figure>
     </div>
   </section>
@@ -152,4 +165,5 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
   )}
   <div class="dev_section-frame"><div class="dev_section-label">SiteHeader.astro</div><div class="header"><SiteHeader /></div></div>
   <div class="dev_section-frame"><div class="dev_section-label">Hero.astro (start state; the step runs on the home page)</div><Hero /></div>
+  <div class="dev_section-frame"><div class="dev_section-label">OurClients.astro (set 1; the steps and the scramble run on the home page)</div><OurClients /></div>
 </DevShell>

@@ -3,7 +3,8 @@
  * the move between sections and `advance` — the one function every gesture, key and button goes through.
  * Source: kulbit-webflow `src/03-sections.js` (registerSections, registerSteps, resetHeroState, teardownHero,
  * buildDesktopAnimations, buildSectionTimeline, setupStacking, applyStackingPositions, resetSteps, playStep,
- * reverseStep, goToSection, passHero, restoreSection, advance, autoAdvanceTo, goToSectionStep).
+ * reverseStep, goToSection, passHero, restoreSection, advance, autoAdvanceTo, goToSectionStep). The button jump
+ * (autoAdvanceTo) is ours: the source moved there like a scroll and opened a section above at its end.
  * The section-specific branches of the source (`oc` / `pv` / `hswipe` / `wp` / `ft` / `tp`) are one generic
  * `section.controller` here (see SectionController in ./app).
  */
@@ -333,18 +334,119 @@ export const advance = (dir: Direction) => {
   goToSection(app.currentSectionIndex + dir, false, dir);
 };
 
-/**
- * Button jump (ADR-003): one smooth move to the target section with a constant duration whatever the distance;
- * the sections in between go straight into the stack.
- */
+// ---------- Button jump (ADR-003, the header button, the menu): the target always at its start ----------
+// Down: a black backdrop slides in over the current section first, the sections in between go into the stack under
+// it (their states never show), then the target slides in over the backdrop and plays its appearance. Up: the current
+// section slides away and reveals the target, already at its start. anchorDuration in total whatever the distance
+// (down: half the backdrop, half the target).
+let backdrop: HTMLElement | null = null;
+const jumpBackdrop = () => {
+  if (backdrop?.isConnected) return backdrop;
+  backdrop = document.createElement('div');
+  backdrop.setAttribute('data-kulbit-jump-backdrop', '');
+  backdrop.setAttribute('aria-hidden', 'true');
+  Object.assign(backdrop.style, {
+    position: 'absolute',
+    top: '0',
+    left: '0',
+    width: '100%',
+    height: '100vh',
+    backgroundColor: 'var(--theme-page-bg)',
+    pointerEvents: 'none',
+  });
+  // First in the stacking container: with the target's z-index it lies right under the target, over the rest
+  app.content?.prepend(backdrop);
+  gsap.set(backdrop, { yPercent: 100, autoAlpha: 0 });
+  return backdrop;
+};
+
+/** A section without a controller at its start: the desktop timeline at 0, the reveal steps hidden */
+const setSectionStart = (section: KulbitSection) => {
+  if (section.isAnimated && section.timeline) section.timeline.progress(0).pause();
+  else if (section.isStepped) resetSteps(section, false);
+};
+
+const jumpDown = (target: KulbitSection, prev: number) => {
+  const half = config.anchorDuration / 2;
+  const hero = app.sections[0];
+  const cover = jumpBackdrop();
+  app.isAnimating = true;
+  app.currentSectionIndex = target.index;
+  app.currentStep = 0;
+  persistSection();
+  showCurrentVideo();
+  target.controller?.prepare?.();
+  if (!target.controller) setSectionStart(target);
+  gsap.set(cover, { zIndex: target.index, yPercent: 100, autoAlpha: 1 });
+  // From the hero: its step (the header leaving) plays while the backdrop comes
+  if (prev === 0 && hero?.isAnimated && hero.timeline) {
+    hero.timeline.tweenTo(hero.timeline.duration(), { duration: half });
+  } else if (prev === 0 && hero?.isTabletHero && hero.tabletTL) {
+    const s1 = hero.tabletTL.labels.s1 ?? hero.tabletTL.duration();
+    if (hero.tabletTL.time() < s1) hero.tabletTL.tweenTo(s1, { duration: half });
+  }
+  gsap.to(cover, {
+    yPercent: 0,
+    duration: half,
+    ease: config.ease,
+    onComplete: () => {
+      passHero(); // the hero at its end (tablet: its hand-off puts section 1 into the stack)
+      app.isAnimating = true; // the hero timeline's own onComplete released it
+      for (let i = prev + 1; i < target.index; i++) gsap.set(app.sections[i].el, { yPercent: 0 });
+      gsap.set(target.el, { yPercent: 100 }); // the tablet hand-off may have moved section 1
+      gsap.to(target.el, {
+        yPercent: 0,
+        duration: half,
+        ease: config.ease,
+        onComplete: () => {
+          gsap.set(cover, { yPercent: 100, autoAlpha: 0 });
+          app.isAnimating = false;
+          hideOtherVideos();
+          target.controller?.enter?.();
+        },
+      });
+    },
+  });
+};
+
+const jumpUp = (target: KulbitSection, prev: number) => {
+  const duration = config.anchorDuration;
+  const hero = app.sections[0];
+  const leaving = app.sections[prev];
+  app.isAnimating = true;
+  app.currentSectionIndex = target.index;
+  app.currentStep = 0;
+  persistSection();
+  showCurrentVideo();
+  for (let i = target.index + 1; i < prev; i++) gsap.set(app.sections[i].el, { yPercent: 100 });
+  if (target.controller) target.controller.reset?.(false);
+  else if (target.index === 0 && hero?.isAnimated && hero.timeline) {
+    // The hero's step back while the section slides away (the header returns)
+    hero.timeline.tweenTo(0, { duration });
+  } else if (target.index === 0 && hero?.isTabletHero && hero.tabletTL) {
+    // The hand-off undone at once (under the leaving section), the first step back with the slide
+    const s1 = hero.tabletTL.labels.s1 ?? 0;
+    hero.tabletTL.progress(0).time(s1).pause();
+    hero.tabletTL.tweenTo(0, { duration });
+  } else setSectionStart(target);
+  leaving.controller?.collapse?.();
+  gsap.to(leaving.el, {
+    yPercent: 100,
+    duration,
+    ease: config.ease,
+    onComplete: () => {
+      app.isAnimating = false;
+      hideOtherVideos();
+    },
+  });
+};
+
 export const autoAdvanceTo = (targetIndex: number) => {
   const target = Math.max(0, Math.min(targetIndex, app.sections.length - 1));
-  if (target === app.currentSectionIndex || app.isAnimating) return;
-  const dir: Direction = target > app.currentSectionIndex ? 1 : -1;
-  const saved = config.scrollDuration;
-  config.scrollDuration = config.anchorDuration; // read synchronously by goToSection
-  goToSection(target, false, dir);
-  config.scrollDuration = saved;
+  const prev = app.currentSectionIndex;
+  if (target === prev || app.isAnimating) return;
+  if (target > prev) jumpDown(app.sections[target], prev);
+  else jumpUp(app.sections[target], prev);
 };
 
 /** A section + a given step (buttons with data-target-step): stacking positions animated, the steps set */

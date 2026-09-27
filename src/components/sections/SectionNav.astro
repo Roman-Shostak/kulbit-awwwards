@@ -1,0 +1,165 @@
+---
+/**
+ * SectionNav — the quick jump between the screens of the home page: «Menu», a button fixed at the bottom right, always
+ * on screen, opens the list of the eight screens with the current one marked (a square + aria-current, kept live by
+ * the engine's `kulbit:section` event); an item jumps to its screen at its start (data-target-section → the engine's
+ * autoAdvanceTo: down over a black backdrop, src/scripts/kulbit/sections.ts) and closes the list.
+ * Not in the Webflow build or in Figma: a provisional look in the site's style (the frame and the hover border of the
+ * header button, the Decima Mono label) until the designer's mockup — the values are marked TODO.
+ * Disclosure pattern: <nav> > <button aria-expanded aria-controls> + the list (hidden when closed, over the button);
+ * Esc and a click outside close it (Esc and an item chosen from the keyboard return the focus to the button). The
+ * list fades and slides on the motion tokens; `hidden` only after its transition.
+ * The items target the screens by index: their order is the order of the page.
+ */
+import Square from '@/components/ui/Square.astro';
+import { useTranslations } from '@/i18n';
+
+const t = useTranslations(Astro.currentLocale).sectionNav;
+---
+
+<nav class="section-nav" aria-label={t.label} data-section-nav>
+  <div class="text-size-16/16/13 text-weight-700 text-style-uppercase">
+    <button
+      type="button"
+      class="section-nav_toggle"
+      aria-expanded="false"
+      aria-controls="section-nav-list"
+      data-kulbit-border
+      data-section-nav-toggle>
+      <Square size="12" />
+      {t.toggle}
+    </button>
+    <ul class="section-nav_list" id="section-nav-list" hidden data-section-nav-list>
+      {
+        t.items.map((item, i) => (
+          <li>
+            <button type="button" class="section-nav_item" aria-current={i === 0 ? 'true' : undefined} data-target-section={i}>
+              <Square size="12" class="section-nav_mark" />
+              {item}
+            </button>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</nav>
+
+<style>
+  /* TODO: not in Figma — every value below is provisional until the designer's mockup */
+  .section-nav {
+    position: fixed;
+    right: var(--container-padding);
+    bottom: var(--size-12); /* under the hero's CTA in the same corner, ~10 apart */
+    z-index: 20;
+  }
+  /* Decima Mono Bold 16 / 1.1, tracking 0.03em (mobile 13): the section label style of the site */
+  .text-size-16\/16\/13 {
+    font-size: var(--size-16);
+    line-height: 1.1;
+    letter-spacing: 0.03em;
+  }
+  /* The frame of the header button (an inner outline: the hover border of data-kulbit-border draws on its line) */
+  .section-nav_toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--size-8);
+    padding: var(--size-12) var(--size-16);
+    outline: var(--size-2) solid #171717;
+    outline-offset: calc(var(--size-2) * -1);
+    border-radius: calc(0.5625rem * var(--fluid-scale)); /* 9 */
+    background-color: var(--theme-page-bg);
+  }
+  /* Over the button, right-aligned, as wide as the longest item; hidden: faded and a little lower */
+  .section-nav_list {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + var(--size-8));
+    min-width: 100%;
+    padding-block: var(--size-8);
+    outline: var(--size-2) solid #171717;
+    outline-offset: calc(var(--size-2) * -1);
+    border-radius: calc(0.5625rem * var(--fluid-scale)); /* 9 */
+    background-color: var(--theme-page-bg);
+    opacity: 0;
+    transform: translateY(var(--size-8));
+    transition:
+      opacity var(--transition-duration) var(--transition-easing),
+      transform var(--transition-duration) var(--transition-easing);
+  }
+  .section-nav_list.is--open {
+    opacity: 1;
+    transform: none;
+  }
+  .section-nav_item {
+    display: flex;
+    align-items: center;
+    gap: var(--size-8);
+    width: 100%;
+    padding: var(--size-8) var(--size-16);
+    text-align: left;
+    white-space: nowrap;
+    transition: color var(--transition-duration) var(--transition-easing);
+  }
+  .section-nav_item:hover,
+  .section-nav_item:focus-visible {
+    color: #62b0ff;
+  }
+  /* The square of the current screen (the others keep its place) */
+  .section-nav_mark {
+    opacity: 0;
+    transition: opacity var(--transition-duration) var(--transition-easing);
+  }
+  .section-nav_item[aria-current='true'] .section-nav_mark {
+    opacity: 1;
+  }
+</style>
+
+<script>
+  // Open / close the list (the jump itself is the engine's delegated [data-target-section] click) and the mark of the
+  // current screen
+  import { app, SECTION_EVENT } from '@/scripts/kulbit/app';
+
+  const nav = document.querySelector<HTMLElement>('[data-section-nav]');
+  const toggle = nav?.querySelector<HTMLButtonElement>('[data-section-nav-toggle]');
+  const list = nav?.querySelector<HTMLElement>('[data-section-nav-list]');
+
+  if (nav && toggle && list) {
+    const items = [...list.querySelectorAll<HTMLElement>('[data-target-section]')];
+    const markCurrent = (index: number) =>
+      items.forEach((item) => {
+        if (item.getAttribute('data-target-section') === String(index)) item.setAttribute('aria-current', 'true');
+        else item.removeAttribute('aria-current');
+      });
+    document.addEventListener(SECTION_EVENT, (event) => markCurrent((event as CustomEvent<{ index: number }>).detail.index));
+
+    const isOpen = () => list.classList.contains('is--open');
+    const open = () => {
+      markCurrent(app.currentSectionIndex);
+      list.hidden = false;
+      list.getBoundingClientRect(); // commits the hidden state, otherwise no transition runs
+      list.classList.add('is--open');
+      toggle.setAttribute('aria-expanded', 'true');
+    };
+    const close = async (focusToggle = false) => {
+      if (!isOpen()) return;
+      list.classList.remove('is--open');
+      toggle.setAttribute('aria-expanded', 'false');
+      if (focusToggle) toggle.focus();
+      await Promise.allSettled(list.getAnimations().map((animation) => animation.finished));
+      if (!isOpen()) list.hidden = true;
+    };
+
+    toggle.addEventListener('click', () => (isOpen() ? close() : open()));
+    // An item: the engine jumps, the list closes; from the keyboard (a click with detail 0) the focus goes back to the
+    // button (after a mouse click it does not: data-kulbit-border would keep its focus outline on)
+    list.addEventListener('click', (event) => {
+      if (event.target instanceof Element && event.target.closest('[data-target-section]')) close(event.detail === 0);
+    });
+    document.addEventListener('click', (event) => {
+      if (event.target instanceof Node && !nav.contains(event.target)) close();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && isOpen()) close(nav.contains(document.activeElement));
+    });
+  }
+</script>

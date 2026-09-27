@@ -4,11 +4,28 @@
  *   data-target-section="projects"   the section with data-section-name="projects" (reorder-safe, preferred)
  *   data-target-step="2"             + that step of the section, instantly (goToSectionStep)
  * Without data-target-step: one smooth jump with a constant duration (autoAdvanceTo). A target that does not
- * exist (yet) is a no-op.
+ * exist (yet) is a no-op. A jump asked while something plays (a move, a section's appearance) waits for its end
+ * instead of being lost; a newer click replaces it.
  * Source: kulbit-webflow `src/04-navigation.js`.
  */
+import { gsap } from 'gsap';
 import { app } from './app';
 import { autoAdvanceTo, goToSectionStep } from './sections';
+
+let pending: (() => void) | null = null;
+const whenIdle = (run: () => void) => {
+  if (pending) gsap.ticker.remove(pending);
+  pending = null;
+  if (!app.isAnimating) return run();
+  const check = () => {
+    if (app.isAnimating) return;
+    gsap.ticker.remove(check);
+    pending = null;
+    run();
+  };
+  pending = check;
+  gsap.ticker.add(check);
+};
 
 const resolveIndex = (target: string | null) => {
   if (target === null) return -1;
@@ -25,7 +42,9 @@ export const setupNavigation = () => {
     const index = resolveIndex(trigger.getAttribute('data-target-section'));
     if (index < 0) return;
     const step = trigger.getAttribute('data-target-step');
-    if (step !== null) goToSectionStep(index, parseInt(step, 10));
-    else autoAdvanceTo(index);
+    whenIdle(() => {
+      if (step !== null) goToSectionStep(index, parseInt(step, 10));
+      else autoAdvanceTo(index);
+    });
   });
 };

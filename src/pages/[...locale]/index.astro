@@ -7,6 +7,7 @@ import OurServices from '@/components/sections/OurServices.astro';
 import IntroScreen from '@/components/sections/IntroScreen.astro';
 import WorkingProcess from '@/components/sections/WorkingProcess.astro';
 import TraditionalProduction from '@/components/sections/TraditionalProduction.astro';
+import SectionNav from '@/components/sections/SectionNav.astro';
 import { localeStaticPaths, useTranslations } from '@/i18n';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
@@ -25,4 +26,5 @@ const t = useTranslations(Astro.currentLocale);
   <WorkingProcess />
   <IntroScreen {...t.traditionalProductionIntro} />
   <TraditionalProduction />
+  <SectionNav />
 </BaseLayout>

@@ -266,6 +266,24 @@ export default {
       { label: 'Personalization:', text: 'Utilize unique versions for every audience segment.' },
     ],
   },
+  /**
+   * The quick jump between the screens (SectionNav): the name of the nav, the button and one item per screen in the
+   * order of the page. TODO: provisional items (the screens' headings) until the designer's mockup
+   */
+  sectionNav: {
+    label: 'Sections',
+    toggle: 'Menu',
+    items: [
+      'Hero',
+      'Our Clients',
+      'Motion Cut',
+      'Our Services',
+      'Working process',
+      'Working process: stages',
+      'Traditional Production',
+      'Traditional vs KULBIT',
+    ],
+  },
   /** Accessible names of the video player controls (the Webflow build has none: its controls are divs) */
   projectVideo: {
     start: 'Play video',

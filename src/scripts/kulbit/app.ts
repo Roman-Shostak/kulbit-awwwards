@@ -90,14 +90,18 @@ export const realViewportHeight = () => window.visualViewport?.height || window.
 /** The visible height of the fixed viewport (not 100vh: on mobile the address bar makes them differ) */
 export const visibleHeight = () => app.wrapper?.clientHeight ?? window.innerHeight;
 
-// Position persistence (sessionStorage): a reload or a breakpoint change keeps the current section
+// Position persistence (sessionStorage): a reload or a breakpoint change keeps the current section. Every change of
+// the current section goes through here, so it also tells the page: `kulbit:section` on document, detail.index
+// (the menu marks its item)
 const SECTION_KEY = 'kulbit-section';
+export const SECTION_EVENT = 'kulbit:section';
 export const persistSection = () => {
   try {
     sessionStorage.setItem(SECTION_KEY, String(app.currentSectionIndex));
   } catch {
     // storage unavailable (private mode): nothing to keep
   }
+  document.dispatchEvent(new CustomEvent(SECTION_EVENT, { detail: { index: app.currentSectionIndex } }));
 };
 export const savedSection = () => {
   try {

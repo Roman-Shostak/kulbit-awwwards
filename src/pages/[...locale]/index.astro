@@ -4,22 +4,25 @@ import Hero from '@/components/sections/Hero.astro';
 import OurClients from '@/components/sections/OurClients.astro';
 import Projects from '@/components/sections/Projects.astro';
 import OurServices from '@/components/sections/OurServices.astro';
-import WorkingProcessIntro from '@/components/sections/WorkingProcessIntro.astro';
+import IntroScreen from '@/components/sections/IntroScreen.astro';
 import WorkingProcess from '@/components/sections/WorkingProcess.astro';
+import TraditionalProduction from '@/components/sections/TraditionalProduction.astro';
 import { localeStaticPaths, useTranslations } from '@/i18n';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
 export const getStaticPaths = localeStaticPaths;
 
-const t = useTranslations(Astro.currentLocale).pages.home;
+const t = useTranslations(Astro.currentLocale);
 ---
 
-<BaseLayout title={t.title} description={t.description} steps>
+<BaseLayout title={t.pages.home.title} description={t.pages.home.description} steps>
   <SiteHeader slot="header" />
   <Hero />
   <OurClients />
   <Projects />
   <OurServices />
-  <WorkingProcessIntro />
+  <IntroScreen {...t.workingProcessIntro} />
   <WorkingProcess />
+  <IntroScreen {...t.traditionalProductionIntro} />
+  <TraditionalProduction />
 </BaseLayout>

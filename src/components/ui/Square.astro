@@ -3,13 +3,13 @@
  * Square — the decorative square of the Webflow build; it turns a quarter on hover (Webflow custom code
  * [data-css-anim='hover-rotate'], 0.3s ease). The caller places it with its own class (position, insets);
  * aria-hidden, every other attribute passes through.
- *   size   30/24/24 (default, .icon-30-24-24) · 24/24/16 (.icon-24-24-16) · 12 (.icon-12)
+ *   size   30/24/24 (default, .icon-30-24-24) · 30/24/16 (.icon-30-24-16) · 24/24/16 (.icon-24-24-16) · 12 (.icon-12)
  *   color  blue (default, .bg-color-blue / .background-color-blue) · red (.background-color-red)
  */
 import type { HTMLAttributes } from 'astro/types';
 
 type Props = HTMLAttributes<'span'> & {
-  size?: '30/24/24' | '24/24/16' | '12';
+  size?: '30/24/24' | '30/24/16' | '24/24/16' | '12';
   color?: 'blue' | 'red';
 };
 
@@ -48,6 +48,7 @@ const { size = '30/24/24', color = 'blue', class: className, ...rest } = Astro.p
     }
   }
   @media (max-width: 479px) {
+    .square.size--30\/24\/16,
     .square.size--24\/24\/16 {
       width: var(--size-16);
     }

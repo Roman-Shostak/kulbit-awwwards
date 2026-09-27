@@ -1,40 +1,53 @@
 ---
 /**
- * WorkingProcessIntro — the screen between Our Services and the working process, built from the Webflow build
- * (kulbit-gsap export, the section with «.flex-h-v-v.is-working-process-screen»); values 1:1 from its CSS
- * (1rem = 16px on the 1920 / 744 / 390 frames = our fluid scale).
+ * IntroScreen — the screen that opens a topic before its section: before the working process («Working process») and
+ * before the traditional production comparison («Traditional Production / vs kulbit»). Built from the Webflow build
+ * (kulbit-gsap export, the sections with «.flex-h-v-v.is-working-process-screen»: the same markup and classes both
+ * times, only the texts differ); values 1:1 from its CSS (1rem = 16px on the 1920 / 744 / 390 frames = our fluid
+ * scale).
  *
- * The full progress line, the label (written by scramble when the section enters the screen, data-kulbit-scramble),
- * the statement (typed letter by letter, data-kulbit-typewriter) and the pilot button (Button «second», the hover
- * border from the cursor: data-kulbit-border). No steps of its own: one gesture moves to the next section.
+ * The full progress line, the label (written by scramble when the section enters the screen, data-kulbit-scramble;
+ * `accent` = its blue part), the statement (typed letter by letter, data-kulbit-typewriter) and the pilot button
+ * (Button «second», the hover border from the cursor: data-kulbit-border). No steps of its own: one gesture moves to
+ * the next section. The label is the <h2> of the topic: the section after the screen continues its outline.
+ * The page passes the texts of one dictionary key (workingProcessIntro, traditionalProductionIntro).
  */
 import Button from '@/components/ui/Button.astro';
-import { useTranslations } from '@/i18n';
 
-const t = useTranslations(Astro.currentLocale).workingProcessIntro;
+interface Props {
+  title: string;
+  accent?: string;
+  /** One sentence; the grey parts as on the site */
+  statement: { text: string; grey: boolean }[];
+  pilot: string;
+}
+
+const { title, accent, statement, pilot } = Astro.props;
 ---
 
 <section class="section padding-64/48/24" data-kulbit-section>
   <div class="container">
     <div class="flex-v spacing-48/48/24 text-style-uppercase">
-      <div class="working-process-intro_progress" aria-hidden="true"></div>
-      <div class="working-process-intro_head flex-h/v/v spacing-0/64/24">
-        <h2 class="text-size-16/16/13" data-kulbit-scramble>{t.title}</h2>
-        <div class="working-process-intro_body flex-v spacing-120/160/64">
-          <div class="working-process-intro_lead">
-            <p class="working-process-intro_statement text-size-32/28/23" data-kulbit-typewriter>
+      <div class="intro-screen_progress" aria-hidden="true"></div>
+      <div class="intro-screen_head flex-h/v/v spacing-0/64/24">
+        <h2 class="text-size-16/16/13" data-kulbit-scramble>
+          {title}{accent && ' '}{accent && <span class="intro-screen_accent">{accent}</span>}
+        </h2>
+        <div class="intro-screen_body flex-v spacing-120/160/64">
+          <div class="intro-screen_lead">
+            <p class="intro-screen_statement text-size-32/28/23" data-kulbit-typewriter>
               {
-                t.statement.map((part, i) => (
+                statement.map((part, i) => (
                   <Fragment>
                     {i > 0 && ' '}
-                    {part.grey ? <span class="working-process-intro_grey">{part.text}</span> : part.text}
+                    {part.grey ? <span class="intro-screen_grey">{part.text}</span> : part.text}
                   </Fragment>
                 ))
               }
             </p>
           </div>
           {/* TODO: where «Start Your Pilot» leads (the same question as the hero's «Start Pilot») */}
-          <Button variant="second" data-kulbit-border>{t.pilot}</Button>
+          <Button variant="second" data-kulbit-border>{pilot}</Button>
         </div>
       </div>
     </div>
@@ -72,30 +85,34 @@ const t = useTranslations(Astro.currentLocale).workingProcessIntro;
   }
 
   /* .section-progresbar: nothing fills it here, the line stays full */
-  .working-process-intro_progress {
+  .intro-screen_progress {
     flex: none;
     height: var(--size-2);
     background-color: var(--theme-text);
   }
   /* .flex-h-v-v.is-working-process-screen */
-  .working-process-intro_head {
+  .intro-screen_head {
     position: relative;
     align-items: flex-start;
     justify-content: space-between;
   }
   /* .margin-left-auto: the tablet column pushes it to the right (the desktop row does it by space-between) */
-  .working-process-intro_body {
+  .intro-screen_body {
     margin-left: auto;
   }
   /* .width-695-557-a */
-  .working-process-intro_lead {
+  .intro-screen_lead {
     width: calc(43.44rem * var(--fluid-scale)); /* 695 */
   }
-  .working-process-intro_statement {
+  .intro-screen_statement {
     text-align: justify;
   }
-  .working-process-intro_grey {
+  .intro-screen_grey {
     color: #404040;
+  }
+  /* .text-color-blue */
+  .intro-screen_accent {
+    color: #62b0ff;
   }
 
   @media (max-width: 991px) {
@@ -111,11 +128,11 @@ const t = useTranslations(Astro.currentLocale).workingProcessIntro;
     .text-size-32\/28\/23 {
       font-size: var(--size-28);
     }
-    .working-process-intro_head {
+    .intro-screen_head {
       align-items: stretch;
       justify-content: flex-start;
     }
-    .working-process-intro_lead {
+    .intro-screen_lead {
       width: calc(34.81rem * var(--fluid-scale)); /* 557 */
     }
   }
@@ -139,7 +156,7 @@ const t = useTranslations(Astro.currentLocale).workingProcessIntro;
     .text-size-32\/28\/23 {
       font-size: calc(1.44rem * var(--fluid-scale));
     }
-    .working-process-intro_lead {
+    .intro-screen_lead {
       width: auto;
     }
   }

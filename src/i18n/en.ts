@@ -159,7 +159,7 @@ export default {
       },
     ],
   },
-  /** The screen between Our Services and the working process: the label, the statement and the pilot button */
+  /** The intro screen (IntroScreen) before the working process: the label, the statement and the pilot button */
   workingProcessIntro: {
     title: 'Working process',
     /** One sentence; the grey parts as on the site */
@@ -211,6 +211,60 @@ export default {
     ],
     /** Two lines */
     scroll: ['Scroll to see', 'more'],
+  },
+  /** The intro screen (IntroScreen) before the comparison: the label (`accent` blue), the statement, the pilot button */
+  traditionalProductionIntro: {
+    title: 'Traditional Production',
+    accent: '/ vs kulbit',
+    /** One sentence; the grey parts as on the site */
+    statement: [
+      { text: 'Faster. Smarter. More Flexible.', grey: false },
+      { text: 'Why', grey: true },
+      { text: 'leading brands', grey: false },
+      { text: 'are switching to the', grey: true },
+      { text: 'Hybrid AI Model.', grey: false },
+    ],
+    pilot: 'Start Your Pilot',
+  },
+  /** Traditional production vs KULBIT: the axes of the radar and the table — its head and three groups of cards */
+  traditionalProduction: {
+    /** The axes of the radar, in the order of the Webflow build (top, left, bottom, bottom right, right) */
+    axes: ['Timeline', 'Budget', 'Scalability', 'Creativity', 'Flexibility'],
+    /** The head of the table: `accent` stands on its own line on desktop. Traditional is all red; scramble rewrites
+     * it to KULBIT (the accent blue) when the KULBIT group starts */
+    head: {
+      traditional: { accent: 'Traditional', text: 'Production House' },
+      kulbit: { accent: 'KULBIT', text: 'AI-Elevated Production' },
+    },
+    /**
+     * The red group — texts from Figma (node 4033:2296; the Webflow build repeats the KULBIT copy here) — and the
+     * KULBIT group: the label and the text (two items = two lines; `lead` stands on its own line before it)
+     */
+    traditional: [
+      { label: 'Timeline:', text: ['3–12 Months. Linear, slow approval cycles.'] },
+      { label: 'Cost Structure:', text: ['High Fixed Costs.Crew, travel, insurance, rentals.'] },
+      { label: 'Flexibility:', text: ['Rigid. Changes require expensive reshoots.'] },
+      { label: 'Scalability:', lead: 'Linear', text: ['1 Shoot = 1 Video.'] },
+    ],
+    kulbit: [
+      { label: 'Timeline:', text: ['6–12 Weeks. Agile, iterative generation.'] },
+      {
+        label: 'Cost Structure:',
+        text: [
+          'Up to 60% more value per dollar — without compromising quality',
+          'Your budget fuels creative output, not production overhead.',
+        ],
+      },
+      { label: 'Flexibility:', text: ['Fluid. A production model that moves with the idea, not against it.'] },
+      { label: 'Scalability:', lead: 'Exponential', text: ['1 Asset = 50+ Variations.'] },
+    ],
+    /** The third group (KULBIT, an icon instead of the bar) */
+    advantages: [
+      { label: 'Capture Market Trends:', text: 'Launch campaigns while demand is still relevant.' },
+      { label: 'Media Reinvestment:', text: 'Savings can be reallocated to ad spend or A/B testing.' },
+      { label: 'Risk Mitigation:', text: 'Adjust the asset quickly if market feedback changes.' },
+      { label: 'Personalization:', text: 'Utilize unique versions for every audience segment.' },
+    ],
   },
   /** Accessible names of the video player controls (the Webflow build has none: its controls are divs) */
   projectVideo: {

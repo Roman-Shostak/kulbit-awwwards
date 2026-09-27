@@ -1,0 +1,1025 @@
+---
+/**
+ * TraditionalProduction — built from the Webflow build (kulbit-gsap export, «section.is-traditional-production»,
+ * right after its intro screen); values 1:1 from its CSS (1rem = 16px on the 1920 / 744 / 390 frames = our fluid
+ * scale).
+ *
+ * Traditional production compared with KULBIT: on the left the radar — the dotted background (one file per
+ * breakpoint), the red «Traditional» and the blue «KULBIT» pentagons and the five axes; on the right the table — its
+ * head («Traditional Production House», the red square) and twelve cards: 1–4 the red group, 5–8 the KULBIT group
+ * (a label, a text, a bar filled to data-kulbit-progress), 9–12 the third group (a label, an icon, a text). A line
+ * over both shows the progress on desktop. The steps (the script below, a port of kulbit-webflow buildTraditional):
+ * one gesture = the next card, its dot on the radar and its bar; the radar draws its outline on cards 4 and 8; on
+ * 4 → 5 the red radar goes grey and scramble rewrites the head to «KULBIT AI-Elevated Production».
+ * Markup: the root is a <div>, not a <section>: the heading of the topic is the visible <h2> of the intro screen right
+ * before it («Traditional Production / vs kulbit», IntroScreen), so the head of the table is an <h3> (it names the
+ * group on screen — the rewrite is a <template>); the cards are label — value pairs, one <dl>. The radar repeats the
+ * cards as a picture: aria-hidden with its axes; the bars and the line are decoration (aria-hidden).
+ * The markup is the natural state (no JS): every card in the flow, both radars drawn, the bars empty.
+ * The backgrounds are files (376–381 KB each: too heavy to inline), loaded eagerly: the stacked sections wait
+ * outside the clipped viewport, where lazy images only start loading once they are on the screen.
+ */
+import { Image } from 'astro:assets';
+import radarBg from '@/assets/traditional-production/radar-bg.svg';
+import radarBgTablet from '@/assets/traditional-production/radar-bg-tablet.svg';
+import radarBgMobile from '@/assets/traditional-production/radar-bg-mobile.svg';
+import IconFlame from '@/assets/icons/flame.svg';
+import IconChartGrowth from '@/assets/icons/chart-growth.svg';
+import IconShieldKeyhole from '@/assets/icons/shield-keyhole.svg';
+import IconDiamondUser from '@/assets/icons/diamond-user.svg';
+import Square from '@/components/ui/Square.astro';
+import { useTranslations } from '@/i18n';
+
+const t = useTranslations(Astro.currentLocale).traditionalProduction;
+
+// The bars of the red and the KULBIT group, % (data-kulbit-progress, as on the Webflow build)
+const progress = [
+  [90, 80, 40, 30],
+  [35, 45, 90, 80],
+];
+const barCards = [t.traditional, t.kulbit].flatMap((cards, g) => cards.map((card, i) => ({ ...card, progress: progress[g][i] })));
+// The third group: its icon; the labels wrap in a 150 column, except the last one (one word, as on the Webflow build)
+const advantages = t.advantages.map((card, i) => ({
+  ...card,
+  Icon: [IconFlame, IconChartGrowth, IconShieldKeyhole, IconDiamondUser][i],
+  narrow: i < t.advantages.length - 1,
+}));
+// The position of each axis (Timeline = the base one)
+const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity', 'axis--flexibility'];
+---
+
+<div class="section padding-top-64/24/24 padding-bottom-64/48/24" data-kulbit-section data-traditional>
+  <div class="container">
+    <div class="flex-v spacing-48/48/24">
+      <div class="desktop-only">
+        <div class="traditional-production_progress" aria-hidden="true" data-traditional-line>
+          <div class="traditional-production_fill" data-traditional-fill></div>
+        </div>
+      </div>
+
+      <div class="flex-h/v/v justify-space-between spacing-0/32/32">
+        <div class="traditional-production_chart" aria-hidden="true" data-traditional-left>
+          <div class="background-slot desktop-only">
+            <Image src={radarBg} alt="" loading="eager" class="fill-box" />
+          </div>
+          <div class="background-slot desktop-hide mobile-hide">
+            <Image src={radarBgTablet} alt="" loading="eager" class="fill-box" />
+          </div>
+          <div class="background-slot mobile-only">
+            <Image src={radarBgMobile} alt="" loading="eager" class="fill-box" />
+          </div>
+          <svg class="traditional-production_radar" viewBox="0 0 489 412" fill="none">
+            <path
+              data-kulbit-svg-fill
+              d="M330.5 4.5L485 254C469.965 294.615 461.535 310.385 446.5 351L331 408L4.5 255.5L330.5 4.5Z"
+              fill="url(#traditional-production-grad-red)"></path>
+            <path data-kulbit-svg-edge="1" d="M330.5 4.5L485 254"></path>
+            <path data-kulbit-svg-edge="2" d="M485 254C469.965 294.615 461.535 310.385 446.5 351"></path>
+            <path data-kulbit-svg-edge="3" d="M446.5 351L331 408"></path>
+            <path data-kulbit-svg-edge="4" d="M331 408L4.5 255.5"></path>
+            <path data-kulbit-svg-edge="5" d="M4.5 255.5L330.5 4.5"></path>
+            <circle data-kulbit-svg-center cx="330.5" cy="255.5" r="6.5"></circle>
+            <circle data-kulbit-svg-dot="1" cx="330.5" cy="4.5" r="4.5"></circle>
+            <circle data-kulbit-svg-dot="2" cx="4.5" cy="255.5" r="4.5"></circle>
+            <circle data-kulbit-svg-dot="3-1" cx="485" cy="255" r="4"></circle>
+            <circle data-kulbit-svg-dot="3-2" cx="447" cy="351" r="4"></circle>
+            <circle data-kulbit-svg-dot="4" cx="331" cy="408" r="4"></circle>
+            <defs>
+              <radialGradient
+                data-kulbit-svg-grad="red"
+                id="traditional-production-grad-red"
+                cx="0"
+                cy="0"
+                r="1"
+                gradientUnits="userSpaceOnUse"
+                gradientTransform="translate(309.5 223.5) rotate(176.133) scale(326.243 344.234)">
+                <stop stop-opacity="0"></stop>
+                <stop offset="0.485577" stop-opacity="0.15"></stop>
+                <stop offset="1" stop-opacity="0.3"></stop>
+              </radialGradient>
+            </defs>
+          </svg>
+          <svg class="traditional-production_radar radar--blue" viewBox="0 0 433 433" fill="none">
+            <path
+              data-kulbit-svg-fill
+              d="M121 4L4.5 120.5L120.5 428L347 300.5L428.5 120.5L121 4Z"
+              fill="url(#traditional-production-grad-blue)"></path>
+            <path data-kulbit-svg-edge="1" d="M121 4L4.5 120.5"></path>
+            <path data-kulbit-svg-edge="2" d="M4.5 120.5L120.5 428"></path>
+            <path data-kulbit-svg-edge="3" d="M120.5 428L347 300.5"></path>
+            <path data-kulbit-svg-edge="4" d="M347 300.5L428.5 120.5"></path>
+            <path data-kulbit-svg-edge="5" d="M428.5 120.5L121 4"></path>
+            <circle data-kulbit-svg-center cx="120.5" cy="120.5" r="6.5"></circle>
+            <circle data-kulbit-svg-dot="1" cx="120.5" cy="4.5" r="4.5"></circle>
+            <circle data-kulbit-svg-dot="2" cx="4.5" cy="120.5" r="4.5"></circle>
+            <circle data-kulbit-svg-dot="3-1" cx="346.5" cy="300.5" r="4.5"></circle>
+            <circle data-kulbit-svg-dot="3-2" cx="428.5" cy="120.5" r="4.5"></circle>
+            <circle data-kulbit-svg-dot="4" cx="120.5" cy="428.5" r="4.5"></circle>
+            <defs>
+              <radialGradient
+                data-kulbit-svg-grad="blue"
+                id="traditional-production-grad-blue"
+                cx="0"
+                cy="0"
+                r="1"
+                gradientUnits="userSpaceOnUse"
+                gradientTransform="translate(195 164.5) rotate(101.799) scale(264.08 286.143)">
+                <stop stop-opacity="0"></stop>
+                <stop offset="0.485577" stop-opacity="0.15"></stop>
+                <stop offset="1" stop-opacity="0.3"></stop>
+              </radialGradient>
+            </defs>
+          </svg>
+          <ul class="text-size-16/13/8 text-weight-700 text-style-uppercase">
+            {t.axes.map((axis, i) => <li class:list={['traditional-production_axis', axisPlaces[i]]}>{axis}</li>)}
+          </ul>
+        </div>
+
+        <div class="traditional-production_table" data-traditional-right>
+          <div class="traditional-production_head text-weight-700 text-style-uppercase">
+            <h3 class="traditional-production_title text-size-16/16/14" data-traditional-head>
+              <span class="traditional-production_accent">{t.head.traditional.accent}</span> {t.head.traditional.text}
+            </h3>
+            <template data-traditional-head-next>
+              <span class="traditional-production_accent accent--blue">{t.head.kulbit.accent}</span> {t.head.kulbit.text}
+            </template>
+            <Square size="30/24/16" color="red" data-traditional-square />
+          </div>
+          <dl class="text-size-16/16/13 text-weight-700">
+            {
+              barCards.map((card, i) => (
+                <div class:list={['traditional-production_card', { 'card--last': i % 4 === 3 }]} data-traditional-card>
+                  <dt class="traditional-production_term text-style-uppercase">{card.label}</dt>
+                  <dd class:list={['width--306 flex-v', i === 0 ? 'spacing-32/24/16' : 'spacing-32']}>
+                    <p class="text-size-18/18/15 text-weight-400">
+                      {card.lead ? (
+                        <>
+                          <span class="traditional-production_line">{card.lead}</span> {card.text[0]}
+                        </>
+                      ) : (
+                        card.text[0]
+                      )}
+                      {card.text[1] && (
+                        <>
+                          <br />
+                          {card.text[1]}
+                        </>
+                      )}
+                    </p>
+                    <div class="traditional-production_bar" aria-hidden="true" data-kulbit-progress={card.progress}>
+                      <div class="traditional-production_fill" data-traditional-fill />
+                    </div>
+                  </dd>
+                </div>
+              ))
+            }
+            {
+              advantages.map((card, i) => (
+                <div class:list={['traditional-production_card', { 'card--last': i === advantages.length - 1 }]} data-traditional-card>
+                  <dt class:list={['traditional-production_term', { 'width--150/150/auto': card.narrow }, 'text-style-uppercase']}>
+                    {card.label}
+                  </dt>
+                  <dd class="width--306 flex-v spacing-8">
+                    <card.Icon class="traditional-production_icon" aria-hidden="true" />
+                    <p class="text-size-18/18/15 text-weight-400">{card.text}</p>
+                  </dd>
+                </div>
+              ))
+            }
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* .section.is-traditional-production: 4rem on top on desktop, 1.5rem from the tablet on (the .is-traditional-
+     production rule beats the tablet .section 3rem); the bottom of .section 4 / 3 / 1.5rem */
+  .padding-top-64\/24\/24 {
+    padding-top: var(--size-64);
+  }
+  .padding-bottom-64\/48\/24 {
+    padding-bottom: var(--size-64);
+  }
+  /* .flex-v.gap-48-32-24 (no tablet rule: 48) */
+  .spacing-48\/48\/24 {
+    gap: var(--size-48);
+  }
+  /* .flex-h-v-v.is-wrapper-traditional-production: no gap on desktop, 2rem when stacked */
+  .spacing-0\/32\/32 {
+    gap: 0;
+  }
+  /* The first card: .flex-v.gap-32-24 (tablet 24, mobile 16); the others .flex-v.gap-32; the third group .gap-8 */
+  .spacing-32\/24\/16 {
+    gap: var(--size-32);
+  }
+  .spacing-32 {
+    gap: var(--size-32);
+  }
+  .spacing-8 {
+    gap: var(--size-8);
+  }
+
+  /* Decima Mono Bold 16 / 1.3, tracking 0.03em (tablet 13, mobile 8): .traditional-production-label */
+  .text-size-16\/13\/8 {
+    font-size: var(--size-16);
+    line-height: 1.3;
+    letter-spacing: 0.03em;
+  }
+  /* Decima Mono Bold 16 / 1.3 (mobile 14): .text-size-production-head */
+  .text-size-16\/16\/14 {
+    font-size: var(--size-16);
+    line-height: 1.3;
+  }
+  /* Decima Mono Bold 16 / 1.3, tracking 0.03em (mobile 13): .traditional-production-label.is-card */
+  .text-size-16\/16\/13 {
+    font-size: var(--size-16);
+    line-height: 1.3;
+    letter-spacing: 0.03em;
+  }
+  /* PP Monument Wide 18 / 1.3, tracking 0.03em (mobile 15): .text-size-production-text */
+  .text-size-18\/18\/15 {
+    font-family: var(--font-secondary);
+    font-size: calc(1.13rem * var(--fluid-scale));
+    line-height: 1.3;
+    letter-spacing: 0.03em;
+  }
+  /* .width-306 (every breakpoint) */
+  .width--306 {
+    width: calc(19.13rem * var(--fluid-scale));
+  }
+  /* .width-150-150-a: the labels of the third group */
+  .width--150\/150\/auto {
+    width: calc(9.38rem * var(--fluid-scale));
+  }
+
+  /* ---------- Progress line (.section-progresbar, desktop only): the track + the fill the script sets ---------- */
+  .traditional-production_progress {
+    position: relative;
+    height: var(--size-2);
+    background-color: rgb(253 252 252 / 0.15);
+  }
+  /* The fill of the line and of every bar (the source injected it): empty at the start */
+  .traditional-production_fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background-color: var(--theme-text);
+  }
+
+  /* ---------- Radar (.traditional-production-left): the background file, the two pentagons, the axes ---------- */
+  .traditional-production_chart {
+    position: relative;
+    width: calc(64.38rem * var(--fluid-scale)); /* 1030 */
+    height: calc(49rem * var(--fluid-scale)); /* 784 */
+  }
+  /* .traditional-production-svg: the red pentagon */
+  .traditional-production_radar {
+    position: absolute;
+    top: calc(9.13rem * var(--fluid-scale)); /* 146 */
+    left: calc(11.56rem * var(--fluid-scale)); /* 185 */
+    width: calc(30.56rem * var(--fluid-scale)); /* 489 */
+    height: calc(25.75rem * var(--fluid-scale)); /* 412 */
+  }
+  /* .is-blue: anchored to the bottom right (every breakpoint) */
+  .traditional-production_radar.radar--blue {
+    top: auto;
+    right: calc(12.62rem * var(--fluid-scale)); /* 202 */
+    bottom: calc(4.35rem * var(--fluid-scale)); /* 70 */
+    left: auto;
+    width: calc(27.06rem * var(--fluid-scale)); /* 433 */
+    height: calc(27.06rem * var(--fluid-scale));
+  }
+  /* The styles the Webflow SVGs carried in their own (page-global) <style>, the colour variables here raw: the
+     outline dashed white, the gradient stops red / blue, the dots and the centre white */
+  .traditional-production_radar [data-kulbit-svg-edge] {
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 2;
+    stroke-dasharray: 2 4;
+  }
+  .traditional-production_radar [data-kulbit-svg-fill] {
+    stroke: none;
+  }
+  .traditional-production_radar [data-kulbit-svg-grad='red'] stop {
+    stop-color: #ff4444;
+  }
+  .traditional-production_radar [data-kulbit-svg-grad='blue'] stop {
+    stop-color: #62b0ff;
+  }
+  .traditional-production_radar [data-kulbit-svg-dot],
+  .traditional-production_radar [data-kulbit-svg-center] {
+    fill: #ffffff;
+  }
+  /* .traditional-production-label: Timeline at the top; the others by their modifiers */
+  .traditional-production_axis {
+    position: absolute;
+    inset: 0 auto auto calc(27.81rem * var(--fluid-scale)); /* 445 */
+    color: #404040;
+  }
+  .traditional-production_axis.axis--budget {
+    inset: calc(24.19rem * var(--fluid-scale)) auto auto 0; /* 387 */
+  }
+  .traditional-production_axis.axis--scalability {
+    inset: auto auto 0 calc(26.4rem * var(--fluid-scale)); /* 422 */
+  }
+  .traditional-production_axis.axis--creativity {
+    inset: auto calc(6.88rem * var(--fluid-scale)) var(--size-64) auto; /* 110 */
+  }
+  .traditional-production_axis.axis--flexibility {
+    inset: calc(24.19rem * var(--fluid-scale)) calc(1.94rem * var(--fluid-scale)) auto auto; /* 387, 31 */
+  }
+
+  /* ---------- Table (.traditional-production-right): the head and the cards ---------- */
+  .traditional-production_table {
+    display: flex;
+    flex-direction: column;
+    width: calc(37.13rem * var(--fluid-scale)); /* 594 */
+  }
+  .traditional-production_head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: var(--size-24) var(--size-32);
+    border: var(--size-2) solid #252525;
+    border-top-left-radius: calc(0.56rem * var(--fluid-scale)); /* 9 */
+    border-top-right-radius: calc(0.56rem * var(--fluid-scale));
+  }
+  /* The head: red (Traditional); the script sets is--kulbit when the KULBIT group starts (the source toggled
+     .text-color-red): the base colour, the accent blue */
+  .traditional-production_title {
+    width: calc(14.38rem * var(--fluid-scale)); /* 230 */
+    color: #ff4444;
+    transition: color var(--transition-duration) var(--transition-easing);
+  }
+  .traditional-production_title.is--kulbit {
+    color: var(--theme-text);
+  }
+  /* .is-block: its own line on desktop, inline from the tablet on */
+  .traditional-production_accent {
+    display: block;
+  }
+  .traditional-production_accent.accent--blue {
+    color: #62b0ff;
+  }
+  /* .traditional-production-card: no top border (the one above draws it) */
+  .traditional-production_card {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: var(--size-32);
+    border-width: var(--size-2);
+    border-style: none solid solid;
+    border-color: #252525;
+  }
+  /* .is-last: the last card of a group closes the table */
+  .traditional-production_card.card--last {
+    border-bottom-right-radius: calc(0.56rem * var(--fluid-scale)); /* 9 */
+    border-bottom-left-radius: calc(0.56rem * var(--fluid-scale));
+  }
+  .traditional-production_term {
+    color: #404040;
+  }
+  /* .span-block: its own line on every breakpoint */
+  .traditional-production_line {
+    display: block;
+  }
+  /* .traditional-product-card-progres */
+  .traditional-production_bar {
+    position: relative;
+    height: var(--size-16);
+    overflow: hidden;
+    background-color: #252525;
+  }
+  /* .icon-32 (every breakpoint) */
+  .traditional-production_icon {
+    width: var(--size-32);
+    height: var(--size-32);
+    color: #404040;
+  }
+
+  @media (max-width: 991px) {
+    .padding-top-64\/24\/24 {
+      padding-top: var(--size-24);
+    }
+    .padding-bottom-64\/48\/24 {
+      padding-bottom: var(--size-48);
+    }
+    .spacing-0\/32\/32 {
+      gap: var(--size-32);
+    }
+    .spacing-32\/24\/16 {
+      gap: var(--size-24);
+    }
+    .text-size-16\/13\/8 {
+      font-size: calc(0.81rem * var(--fluid-scale));
+    }
+    .traditional-production_chart {
+      width: 100%;
+      height: calc(29.63rem * var(--fluid-scale)); /* 474 */
+    }
+    .traditional-production_radar {
+      top: calc(2.4rem * var(--fluid-scale)); /* 38 */
+      left: calc(6.39rem * var(--fluid-scale)); /* 102 */
+      width: calc(21.94rem * var(--fluid-scale)); /* 351 */
+      height: calc(18.5rem * var(--fluid-scale)); /* 296 */
+    }
+    .traditional-production_radar.radar--blue {
+      right: calc(7.29rem * var(--fluid-scale)); /* 117 */
+      bottom: calc(1.75rem * var(--fluid-scale)); /* 28 */
+      width: calc(19.38rem * var(--fluid-scale)); /* 310 */
+      height: calc(19.38rem * var(--fluid-scale));
+    }
+    .traditional-production_axis {
+      left: calc(17.81rem * var(--fluid-scale)); /* 285 */
+    }
+    .traditional-production_axis.axis--budget {
+      top: calc(13.44rem * var(--fluid-scale)); /* 215 */
+    }
+    .traditional-production_axis.axis--scalability {
+      left: calc(16.19rem * var(--fluid-scale)); /* 259 */
+    }
+    .traditional-production_axis.axis--creativity {
+      right: var(--size-48);
+      bottom: var(--size-56);
+    }
+    .traditional-production_axis.axis--flexibility {
+      inset: auto 0 calc(15.13rem * var(--fluid-scale)) auto; /* 242 */
+    }
+    .traditional-production_table {
+      width: 100%;
+    }
+    .traditional-production_head {
+      align-items: center;
+      padding: var(--size-20) var(--size-40);
+    }
+    .traditional-production_title {
+      width: auto;
+    }
+    .traditional-production_accent {
+      display: inline;
+    }
+    .traditional-production_card {
+      padding: calc(1.75rem * var(--fluid-scale)) calc(2.5rem * var(--fluid-scale)); /* 28, 40 */
+    }
+    .traditional-production_bar {
+      height: var(--size-12);
+    }
+  }
+
+  @media (max-width: 479px) {
+    .padding-bottom-64\/48\/24 {
+      padding-bottom: var(--size-24);
+    }
+    .spacing-48\/48\/24 {
+      gap: var(--size-24);
+    }
+    .spacing-32\/24\/16 {
+      gap: var(--size-16);
+    }
+    .text-size-16\/13\/8 {
+      font-size: var(--size-8);
+    }
+    .text-size-16\/16\/14 {
+      font-size: calc(0.88rem * var(--fluid-scale));
+    }
+    .text-size-16\/16\/13 {
+      font-size: calc(0.81rem * var(--fluid-scale));
+    }
+    .text-size-18\/18\/15 {
+      font-size: calc(0.94rem * var(--fluid-scale));
+    }
+    .width--150\/150\/auto {
+      width: auto;
+    }
+    .traditional-production_chart {
+      height: calc(16.25rem * var(--fluid-scale)); /* 260 */
+    }
+    .traditional-production_radar {
+      top: calc(0.13rem * var(--fluid-scale)); /* 2 */
+      left: calc(2.195rem * var(--fluid-scale)); /* 35 */
+      width: calc(13.69rem * var(--fluid-scale)); /* 219 */
+      height: auto;
+    }
+    .traditional-production_radar.radar--blue {
+      right: calc(2.043rem * var(--fluid-scale)); /* 33 */
+      bottom: calc(0.05rem * var(--fluid-scale)); /* 1 */
+      width: calc(12.34rem * var(--fluid-scale)); /* 197 */
+      height: calc(12.34rem * var(--fluid-scale));
+    }
+    .traditional-production_axis {
+      left: calc(7.88rem * var(--fluid-scale)); /* 126 */
+    }
+    .traditional-production_axis.axis--budget {
+      top: calc(5.94rem * var(--fluid-scale)); /* 95 */
+    }
+    .traditional-production_axis.axis--scalability {
+      left: calc(7rem * var(--fluid-scale)); /* 112 */
+    }
+    .traditional-production_axis.axis--creativity {
+      right: calc(0.63rem * var(--fluid-scale)); /* 10 */
+      bottom: var(--size-40);
+    }
+    .traditional-production_axis.axis--flexibility {
+      top: calc(5.94rem * var(--fluid-scale)); /* 95 */
+      bottom: auto;
+    }
+    .traditional-production_head {
+      padding: var(--size-16) var(--size-20);
+    }
+    .traditional-production_card {
+      flex-direction: column;
+      gap: var(--size-16);
+      padding: var(--size-20);
+    }
+    .traditional-production_bar {
+      height: calc(0.65rem * var(--fluid-scale)); /* 10.4 */
+    }
+  }
+</style>
+
+<script>
+  // Steps of the section — port of kulbit-webflow buildTraditional (03-sections.js, block 03i; commits 1b53eb0 desktop
+  // and a8a73b7 tablet / mobile + the third group + the head scramble; the ADR-021 it names is not in docs/adr.md),
+  // the same numbers. The state s = the number of cards shown (1…12). The cards come in pages (desktop 4, tablet /
+  // mobile 2): only the current page is in the flow (the others display: none); at a page border the shown cards
+  // leave in a cascade (the last first) before the next page starts from the top.
+  //   enter (covered): the radar and the table rise, then card 1 comes by itself (state 1).
+  //   A card (step): it rises and fades in, its dot(s) appear, its bar fills to data-kulbit-progress, the line grows
+  //     to s / 12. Cards 4 and 8 also draw their radar's dashed outline edge after edge (a solid clone in a <mask> +
+  //     its dash offset, the technique of the working process arrows), then its gradient fades in.
+  //   4 → 5: the red radar goes grey (#252525) and loses its gradient, the blue centre appears, scramble rewrites the
+  //     head Traditional → KULBIT and its square turns red → white; the blue radar fills with cards 5–8.
+  //   9–12: the third group — no radar, no bar.
+  //   Back = the last step reversed; at state 1 the engine goes to the previous section. There is no collapse.
+  //   reset(toEnd): the instant start (state 1: a restore, a jump) / end (all 12: opened from below — the footer).
+  // Differences from the source: the elements are found by data-traditional-* attributes and the radars by their
+  // data-kulbit-svg-grad (not the Webflow classes); the fills of the bars and of the line are in the markup and the
+  // line's track colour is in the CSS (the source injected them, the fills with a colour variable this site does not
+  // have); the colours are raw (the source read the Webflow variables white, black-30, red, white-10); the head's
+  // colour is the is--kulbit state (the source toggled .text-color-red); the scramble respects reduced motion (as
+  // Our Clients); a breakpoint change kills the running step and the head scramble.
+  import { gsap } from 'gsap';
+  import { app, config, registerSectionBuilder, type SectionController } from '@/scripts/kulbit/app';
+  import { buildSegments, parseSegments, reducedMotion, SCRAMBLE, type Segment } from '@/scripts/kulbit/scramble';
+
+  const root = document.querySelector<HTMLElement>('[data-traditional]');
+  const headText = root?.querySelector<HTMLElement>('[data-traditional-head]') ?? null;
+  const headNext = root?.querySelector<HTMLTemplateElement>('[data-traditional-head-next]') ?? null;
+  // The head as rendered («Traditional») and its rewrite («KULBIT»), read once before anything changes them
+  const traditionalSegs = headText ? parseSegments(headText) : [];
+  const kulbitSegs = headNext ? parseSegments(headNext.content) : [];
+
+  const NS = 'http://www.w3.org/2000/svg';
+  interface Mask {
+    clone: SVGPathElement;
+    L: number;
+  }
+  interface Group {
+    svg: SVGSVGElement | null;
+    key: string;
+    cards: HTMLElement[];
+    dot: (n: string) => SVGElement | null;
+    center: SVGElement | null;
+    edges: (SVGPathElement | null)[];
+    gradFill: SVGElement | null;
+    totalLen: number;
+    progFills: (HTMLElement | null)[];
+  }
+
+  registerSectionBuilder((mode) => {
+    const section = app.sections.find((s) => s.el === root);
+    if (!section || !root) return;
+    const pageSize = mode === 'desktop' ? 4 : 2; // the window of cards: desktop 4, tablet / mobile 2
+
+    const left = root.querySelector<HTMLElement>('[data-traditional-left]');
+    const right = root.querySelector<HTMLElement>('[data-traditional-right]');
+    const sides = [left, right].filter((el): el is HTMLElement => !!el);
+    const allCards = [...root.querySelectorAll<HTMLElement>('[data-traditional-card]')];
+    const cardDots = [['1'], ['2'], ['3-1', '3-2'], ['4']]; // the card i of a group → its dot(s)
+    const DEMO_PCT = [40, 65, 55, 85]; // spare %, for a bar without data-kulbit-progress
+
+    const STEP = config.stepDuration;
+    const SCROLL = config.scrollDuration;
+    const EASE = config.ease;
+    const LINE_TOTAL = 0.85;
+    const CAS = STEP * 0.5;
+    const CAS_STAG = 0.12;
+    const maxState = allCards.length;
+    let state = 0;
+
+    const WHITE = '#ffffff';
+    const BLACK30 = '#252525';
+    const RED = '#ff4444';
+    const WHITE10 = getComputedStyle(root).getPropertyValue('--theme-text').trim() || '#fdfcfc';
+    const headIcon = root.querySelector<HTMLElement>('[data-traditional-square]');
+
+    // The "drawing" mask of a dashed edge (a solid clone + its dash offset)
+    const masks = new Map<SVGPathElement, Mask>();
+    const ensureMask = (svg: SVGSVGElement, edge: SVGPathElement, idx: number, key: string) => {
+      const known = masks.get(edge);
+      if (known) return known;
+      let defs = svg.querySelector('defs');
+      if (!defs) {
+        defs = document.createElementNS(NS, 'defs');
+        svg.appendChild(defs);
+      }
+      const vb = (svg.getAttribute('viewBox') || '0 0 489 412').split(/\s+/);
+      const mask = document.createElementNS(NS, 'mask');
+      mask.id = `tp-${key}-mask-${idx}`;
+      mask.setAttribute('maskUnits', 'userSpaceOnUse');
+      mask.setAttribute('x', vb[0]);
+      mask.setAttribute('y', vb[1]);
+      mask.setAttribute('width', vb[2]);
+      mask.setAttribute('height', vb[3]);
+      const clone = edge.cloneNode(false) as SVGPathElement;
+      // Without the data-* attributes (the Astro scope too) the dashed CSS does not reach the clone
+      [...clone.attributes].forEach((a) => {
+        if (a.name.startsWith('data-')) clone.removeAttribute(a.name);
+      });
+      clone.setAttribute('stroke', 'white');
+      clone.setAttribute('stroke-width', '6');
+      clone.setAttribute('fill', 'none');
+      const L = edge.getTotalLength();
+      clone.setAttribute('stroke-dasharray', String(L));
+      clone.setAttribute('stroke-dashoffset', String(L));
+      mask.appendChild(clone);
+      defs.appendChild(mask);
+      edge.setAttribute('mask', `url(#${mask.id})`);
+      const made = { clone, L };
+      masks.set(edge, made);
+      return made;
+    };
+
+    // A group = its radar + its cards
+    const fillOf = (card: HTMLElement) =>
+      card.querySelector('[data-kulbit-progress]')?.querySelector<HTMLElement>('[data-traditional-fill]') ?? null;
+    const buildGroup = (color: string, cardEls: HTMLElement[], key: string): Group | null => {
+      const svg = root.querySelector(`[data-kulbit-svg-grad="${color}"]`)?.closest<SVGSVGElement>('svg') ?? null;
+      if (!svg) return null;
+      const edges = [1, 2, 3, 4, 5].map((n) => svg.querySelector<SVGPathElement>(`[data-kulbit-svg-edge="${n}"]`));
+      edges.forEach((edge, i) => edge && ensureMask(svg, edge, i, key));
+      return {
+        svg,
+        key,
+        cards: cardEls,
+        dot: (n) => svg.querySelector<SVGElement>(`[data-kulbit-svg-dot="${n}"]`),
+        center: svg.querySelector<SVGElement>('[data-kulbit-svg-center]'),
+        edges,
+        gradFill: svg.querySelector<SVGElement>('[data-kulbit-svg-fill]'),
+        totalLen: edges.reduce((sum, edge) => sum + (edge ? (masks.get(edge)?.L ?? 0) : 0), 0) || 1,
+        progFills: cardEls.map(fillOf),
+      };
+    };
+    const red = buildGroup('red', allCards.slice(0, 4), 'red');
+    const blue = buildGroup('blue', allCards.slice(4, 8), 'blue');
+    if (!red || !blue) return;
+    // The third group (cards 9+): no radar, no bar — only its cards one by one
+    const plain: Group = {
+      svg: null,
+      key: 'plain',
+      cards: allCards.slice(8),
+      dot: () => null,
+      center: null,
+      edges: [],
+      gradFill: null,
+      totalLen: 1,
+      progFills: allCards.slice(8).map(() => null),
+    };
+    const groupOf = (s: number) => (s <= 4 ? red : s <= 8 ? blue : plain);
+    const liOf = (s: number) => (s <= 4 ? s - 1 : s <= 8 ? s - 5 : s - 9);
+
+    // The line of the section
+    const secFill = root.querySelector('[data-traditional-line]')?.querySelector<HTMLElement>('[data-traditional-fill]') ?? null;
+
+    const pctOf = (g: Group, li: number) => {
+      const value = parseFloat(g.cards[li]?.querySelector('[data-kulbit-progress]')?.getAttribute('data-kulbit-progress') ?? '');
+      return Number.isNaN(value) ? DEMO_PCT[li] : Math.max(0, Math.min(100, value));
+    };
+    const edgeDur = (g: Group, L: number) => Math.max(0.04, (L / g.totalLen) * LINE_TOTAL);
+    const setSec = (tl: gsap.core.Timeline, s: number, at: number) => {
+      if (secFill) tl.to(secFill, { width: `${(s / maxState) * 100}%`, duration: STEP, ease: EASE }, at);
+    };
+
+    // The head rewritten by scramble (the mechanics of Our Clients): erase, then write every segment
+    const morphHead = (segments: Segment[]) => {
+      if (!headText) return;
+      gsap.killTweensOf(headText);
+      if (reducedMotion()) {
+        buildSegments(headText, segments, true);
+        return;
+      }
+      gsap.to(headText, {
+        duration: 0.35,
+        scrambleText: { text: '', ...SCRAMBLE, speed: 3 },
+        onComplete: () =>
+          buildSegments(headText, segments, false).forEach(([span, value]) =>
+            gsap.to(span, { duration: 0.6, scrambleText: { text: value, ...SCRAMBLE } }),
+          ),
+      });
+    };
+    // toBlue: true → KULBIT, false → Traditional. With a timeline: scramble in it; without: at once
+    const swapHead = (toBlue: boolean, tl?: gsap.core.Timeline, at?: number) => {
+      if (!headText) return;
+      const apply = () => headText.classList.toggle('is--kulbit', toBlue);
+      if (tl) {
+        tl.call(
+          () => {
+            apply();
+            morphHead(toBlue ? kulbitSegs : traditionalSegs);
+          },
+          undefined,
+          at,
+        );
+        if (headIcon) tl.to(headIcon, { backgroundColor: toBlue ? WHITE10 : RED, duration: STEP, ease: EASE }, at);
+      } else {
+        apply();
+        gsap.killTweensOf(headText);
+        buildSegments(headText, toBlue ? kulbitSegs : traditionalSegs, true);
+        if (headIcon) gsap.set(headIcon, { backgroundColor: toBlue ? WHITE10 : RED });
+      }
+    };
+
+    // The blocks of the timelines (gState = the state the line shows)
+    const addCard = (tl: gsap.core.Timeline, g: Group, li: number, gState: number) => {
+      const at = tl.duration();
+      tl.fromTo(g.cards[li], { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: STEP, ease: EASE }, at);
+      cardDots[li].forEach((n) => {
+        const dot = g.dot(n);
+        if (dot) tl.to(dot, { autoAlpha: 1, duration: STEP, ease: EASE }, at);
+      });
+      const fill = g.progFills[li];
+      if (fill) tl.to(fill, { width: `${pctOf(g, li)}%`, duration: STEP, ease: EASE }, at); // fills from its appearing
+      setSec(tl, gState, at);
+    };
+    // Card 4 + the outline together → the gradient
+    const addFinal = (tl: gsap.core.Timeline, g: Group, gState: number) => {
+      const li = 3;
+      const at = tl.duration();
+      tl.fromTo(g.cards[li], { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: STEP, ease: EASE }, at);
+      cardDots[li].forEach((n) => {
+        const dot = g.dot(n);
+        if (dot) tl.to(dot, { autoAlpha: 1, duration: STEP, ease: EASE }, at);
+      });
+      const fill = g.progFills[li];
+      if (fill) tl.to(fill, { width: `${pctOf(g, li)}%`, duration: STEP, ease: EASE }, at);
+      setSec(tl, gState, at);
+      let lat = at;
+      g.edges.forEach((edge, idx) => {
+        if (!edge || !g.svg) return;
+        const m = ensureMask(g.svg, edge, idx, g.key);
+        const dur = edgeDur(g, m.L);
+        tl.fromTo(m.clone, { attr: { 'stroke-dashoffset': m.L } }, { attr: { 'stroke-dashoffset': 0 }, duration: dur, ease: 'none' }, lat);
+        lat += dur;
+      });
+      if (g.gradFill) tl.to(g.gradFill, { autoAlpha: 1, duration: STEP, ease: EASE }, lat);
+    };
+    const removeCard = (tl: gsap.core.Timeline, g: Group, li: number, gAfter: number) => {
+      const at = tl.duration();
+      const fill = g.progFills[li];
+      if (fill) tl.to(fill, { width: '0%', duration: STEP * 0.5, ease: EASE }, at);
+      cardDots[li].forEach((n) => {
+        const dot = g.dot(n);
+        if (dot) tl.to(dot, { autoAlpha: 0, duration: STEP * 0.6, ease: EASE }, at);
+      });
+      tl.to(g.cards[li], { autoAlpha: 0, y: 40, duration: STEP, ease: EASE }, at);
+      setSec(tl, gAfter, at);
+    };
+    // Card 4 + the outline away together
+    const removeFinal = (tl: gsap.core.Timeline, g: Group, gAfter: number) => {
+      const li = 3;
+      const at0 = tl.duration();
+      if (g.gradFill) tl.to(g.gradFill, { autoAlpha: 0, duration: STEP * 0.4, ease: EASE }, at0);
+      let lat = at0;
+      g.edges
+        .slice()
+        .reverse()
+        .forEach((edge) => {
+          const m = edge ? masks.get(edge) : undefined;
+          if (!m) return;
+          const dur = edgeDur(g, m.L);
+          tl.to(m.clone, { attr: { 'stroke-dashoffset': m.L }, duration: dur, ease: 'none' }, lat);
+          lat += dur;
+        });
+      const fill = g.progFills[li];
+      if (fill) tl.to(fill, { width: '0%', duration: STEP * 0.5, ease: EASE }, at0);
+      cardDots[li].forEach((n) => {
+        const dot = g.dot(n);
+        if (dot) tl.to(dot, { autoAlpha: 0, duration: STEP * 0.6, ease: EASE }, at0);
+      });
+      tl.to(g.cards[li], { autoAlpha: 0, y: 40, duration: STEP, ease: EASE }, at0);
+      setSec(tl, gAfter, at0);
+    };
+
+    const DOTS = ['1', '2', '3-1', '3-2', '4'];
+    // The colours of the red radar (its dots — not the centre — and its outline)
+    const tintRed = (tl: gsap.core.Timeline, color: string, at: number) => {
+      DOTS.forEach((n) => {
+        const dot = red.dot(n);
+        if (dot) tl.to(dot, { fill: color, duration: STEP, ease: EASE }, at);
+      });
+      red.edges.forEach((edge) => edge && tl.to(edge, { stroke: color, duration: STEP, ease: EASE }, at));
+    };
+    // Pages of pageSize cards (only the current one in the flow; the others display: none → its first card on top)
+    const pages: HTMLElement[][] = [];
+    for (let i = 0; i < allCards.length; i += pageSize) pages.push(allCards.slice(i, i + pageSize));
+    const pageOfState = (s: number) => Math.floor((s - 1) / pageSize);
+    const setPageDisplay = (idx: number) => {
+      allCards.forEach((card) => {
+        card.style.display = 'none';
+      });
+      (pages[idx] ?? []).forEach((card) => {
+        card.style.display = '';
+      });
+    };
+    const cascadeOut = (tl: gsap.core.Timeline, cardEls: HTMLElement[], at0: number) => {
+      const reversed = cardEls.slice().reverse();
+      reversed.forEach((card, k) => tl.to(card, { autoAlpha: 0, y: 40, duration: CAS, ease: EASE }, at0 + k * CAS_STAG));
+      return at0 + (reversed.length - 1) * CAS_STAG + CAS;
+    };
+    const cascadeIn = (tl: gsap.core.Timeline, cardEls: HTMLElement[], at0: number) => {
+      cardEls.forEach((card, k) => tl.to(card, { autoAlpha: 1, y: 0, duration: CAS, ease: EASE }, at0 + k * CAS_STAG));
+    };
+    const deactivateRed = (tl: gsap.core.Timeline, at: number) => {
+      if (red.gradFill) tl.to(red.gradFill, { autoAlpha: 0, duration: STEP * 0.5, ease: EASE }, at);
+      tintRed(tl, BLACK30, at);
+    };
+    const reactivateRed = (tl: gsap.core.Timeline, at: number) => {
+      if (red.gradFill) tl.to(red.gradFill, { autoAlpha: 1, duration: STEP, ease: EASE }, at);
+      tintRed(tl, WHITE, at);
+    };
+
+    const forwardTo = (tl: gsap.core.Timeline, s: number) => {
+      const crossing = s > 1 && pageOfState(s) !== pageOfState(s - 1);
+      const crossingSvg = s === 5; // red → blue (always on 4 → 5)
+      if (crossing) {
+        const at0 = tl.duration();
+        const endC = cascadeOut(tl, pages[pageOfState(s - 1)], at0); // the current page leaves in a cascade
+        if (crossingSvg) deactivateRed(tl, at0);
+        tl.call(() => setPageDisplay(pageOfState(s)), undefined, endC); // the new page into the flow
+        if (crossingSvg && blue.center) tl.to(blue.center, { autoAlpha: 1, duration: STEP * 0.5, ease: EASE }, endC);
+        if (crossingSvg) swapHead(true, tl, endC); // the head → KULBIT (scramble) + the square white
+      }
+      const g = groupOf(s);
+      if (s === 4 || s === 8) addFinal(tl, g, s); // with the outline; the others (9+ too) without
+      else addCard(tl, g, liOf(s), s);
+    };
+    // From the state s to s − 1
+    const backFrom = (tl: gsap.core.Timeline, s: number) => {
+      const g = groupOf(s);
+      const crossing = pageOfState(s) !== pageOfState(s - 1);
+      const crossingSvg = s === 5;
+      if (s === 4 || s === 8) removeFinal(tl, g, s - 1);
+      else removeCard(tl, g, liOf(s), s - 1);
+      if (crossing) {
+        const at = tl.duration();
+        if (crossingSvg) {
+          if (blue.center) tl.to(blue.center, { autoAlpha: 0, duration: STEP * 0.4, ease: EASE }, at);
+          reactivateRed(tl, at);
+          swapHead(false, tl, at);
+        }
+        tl.call(() => setPageDisplay(pageOfState(s - 1)), undefined, at);
+        cascadeIn(tl, pages[pageOfState(s - 1)], at);
+      }
+    };
+
+    let running: gsap.core.Timeline | null = null;
+    const newTL = () => {
+      app.isAnimating = true;
+      running = gsap.timeline({
+        onComplete: () => {
+          app.isAnimating = false;
+        },
+      });
+      return running;
+    };
+
+    // The hidden start: the red page in the flow, the red centre only, the head «Traditional»
+    const prepare = () => {
+      gsap.set(sides, { autoAlpha: 0, y: 50 });
+      gsap.set(allCards, { autoAlpha: 0, y: 40 });
+      setPageDisplay(0);
+      if (red.center) gsap.set(red.center, { autoAlpha: 1 }); // the red centre is always visible
+      DOTS.forEach((n) => {
+        const dot = red.dot(n);
+        if (dot) gsap.set(dot, { autoAlpha: 0, fill: WHITE });
+      });
+      red.edges.forEach((edge, i) => {
+        if (!edge || !red.svg) return;
+        const m = ensureMask(red.svg, edge, i, 'red');
+        gsap.set(m.clone, { attr: { 'stroke-dashoffset': m.L } });
+        gsap.set(edge, { stroke: WHITE });
+      });
+      if (red.gradFill) gsap.set(red.gradFill, { autoAlpha: 0 });
+      if (blue.center) gsap.set(blue.center, { autoAlpha: 0 }); // the blue radar hidden entirely
+      DOTS.forEach((n) => {
+        const dot = blue.dot(n);
+        if (dot) gsap.set(dot, { autoAlpha: 0 });
+      });
+      blue.edges.forEach((edge, i) => {
+        if (!edge || !blue.svg) return;
+        const m = ensureMask(blue.svg, edge, i, 'blue');
+        gsap.set(m.clone, { attr: { 'stroke-dashoffset': m.L } });
+      });
+      if (blue.gradFill) gsap.set(blue.gradFill, { autoAlpha: 0 });
+      [...red.progFills, ...blue.progFills, ...plain.progFills].forEach((fill) => fill && gsap.set(fill, { width: '0%' }));
+      if (secFill) gsap.set(secFill, { width: '0%' });
+      swapHead(false);
+      state = 0;
+    };
+    // Instant states (restore / jump): the start …
+    const showStart = () => {
+      prepare();
+      gsap.set(sides, { autoAlpha: 1, y: 0 });
+      gsap.set(red.cards[0], { autoAlpha: 1, y: 0 });
+      const dot = red.dot('1');
+      if (dot) gsap.set(dot, { autoAlpha: 1 });
+      if (red.progFills[0]) gsap.set(red.progFills[0], { width: `${pctOf(red, 0)}%` });
+      if (secFill) gsap.set(secFill, { width: `${(1 / maxState) * 100}%` });
+      state = 1;
+    };
+    // … and the end (opened from below)
+    const showEnd = () => {
+      prepare();
+      gsap.set(sides, { autoAlpha: 1, y: 0 });
+      setPageDisplay(pages.length - 1); // the last page in the flow
+      DOTS.forEach((n) => {
+        const dot = red.dot(n);
+        if (dot) gsap.set(dot, { autoAlpha: 1, fill: BLACK30 });
+      });
+      red.edges.forEach((edge, i) => {
+        if (!edge || !red.svg) return;
+        gsap.set(ensureMask(red.svg, edge, i, 'red').clone, { attr: { 'stroke-dashoffset': 0 } });
+        gsap.set(edge, { stroke: BLACK30 });
+      });
+      if (blue.center) gsap.set(blue.center, { autoAlpha: 1 });
+      DOTS.forEach((n) => {
+        const dot = blue.dot(n);
+        if (dot) gsap.set(dot, { autoAlpha: 1 });
+      });
+      blue.edges.forEach((edge, i) => {
+        if (!edge || !blue.svg) return;
+        gsap.set(ensureMask(blue.svg, edge, i, 'blue').clone, { attr: { 'stroke-dashoffset': 0 } });
+      });
+      if (blue.gradFill) gsap.set(blue.gradFill, { autoAlpha: 1 });
+      plain.cards.forEach((card, li) => {
+        gsap.set(card, { autoAlpha: 1, y: 0 });
+        const fill = plain.progFills[li];
+        if (fill) gsap.set(fill, { width: `${pctOf(plain, li)}%` });
+      }); // the third group visible
+      swapHead(true); // the end: «KULBIT» + the white square
+      if (secFill) gsap.set(secFill, { width: '100%' });
+      state = maxState;
+    };
+
+    const controller: SectionController = {
+      get state() {
+        return state;
+      },
+      prepare,
+      // Covered: the radar and the table rise, then card 1 by itself
+      enter() {
+        const tl = newTL();
+        if (left) tl.to(left, { autoAlpha: 1, y: 0, duration: SCROLL, ease: EASE }, 0);
+        if (right) tl.to(right, { autoAlpha: 1, y: 0, duration: SCROLL, ease: EASE }, 0.1);
+        addCard(tl, red, 0, 1);
+        state = 1;
+      },
+      step(dir) {
+        if (dir > 0) {
+          if (state >= maxState) return false; // the edge → the next section
+          state++;
+          forwardTo(newTL(), state);
+          return true;
+        }
+        if (state <= 1) return false; // state 1 = the first card → up = the previous section
+        const s = state;
+        state--;
+        backFrom(newTL(), s);
+        return true;
+      },
+      reset(toEnd) {
+        if (toEnd) showEnd();
+        else showStart();
+      },
+      // The breakpoint changes: the running step and the head scramble, the pages, the masks
+      dispose() {
+        running?.kill();
+        if (headText) gsap.killTweensOf(headText);
+        allCards.forEach((card) => {
+          card.style.display = '';
+        });
+        masks.forEach(({ clone }, edge) => {
+          edge.removeAttribute('mask');
+          clone.parentElement?.remove();
+        });
+        masks.clear();
+      },
+    };
+    section.controller = controller;
+    prepare();
+  });
+</script>

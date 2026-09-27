@@ -37,7 +37,7 @@ A missing item in the brief (no node id, no page path, no position) → `PAUSED`
      `tokens.css` / `utilities.css`, a new or extended `ui/` component). Anything else in the list →
      `PAUSED`, name the files.
    - `git add <each file by path>` — never `git add -A`, `git add .` or `git add src`.
-   - Message with a heredoc (`git commit -F - <<'EOF'`), per `core.md` §7: title
+   - Message with a heredoc (`git commit -F - <<'EOF'`), per `core.md` §6: title
      `Add section <Name> to page <Page>`; when the commit also adds a ui component, a variant, tokens
      or utilities, the title gets ` + fixes` and the body lists them one `- …` line each. No Claude,
      no AI, no trailer.

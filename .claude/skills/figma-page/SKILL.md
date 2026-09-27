@@ -30,7 +30,7 @@ orchestrates and reviews; it does not build sections itself (see Do not).
 1. **Clean tree on `stage`.** `git status --porcelain` must be empty and `git status -sb` must show
    `stage...origin/stage` without `ahead`/`behind`. Uncommitted changes → stop and ask the user what
    to do with them (commit, stash, or wait). Never commit, stash or discard them yourself. No `stage`
-   yet → create and push it (`core.md` §7).
+   yet → create and push it (`core.md` §6).
 2. **Design system exists.** `src/dev/inventory.md`, tokens and the ui components from the
    inventory are in place. Otherwise say that `/sync-tokens` (and the start kit) come first and stop.
 3. **Page file.** If it does not exist, create it with `/new-page` (parent folder per the URL

@@ -35,7 +35,7 @@ old builds (step 6).
 Check, show the result, fix what the template rules cover:
 
 - `gh auth status` — logged in; `git remote -v` — the repository is in the studio's organisation (the secret goes there).
-- The `stage` branch exists locally and on `origin`; if not, create it from `main` (`core.md` §7:
+- The `stage` branch exists locally and on `origin`; if not, create it from `main` (`core.md` §6:
   `git switch -c stage && git push -u origin stage`).
 - `wrangler` in `devDependencies` (`pnpm exec wrangler --version`), `wrangler.jsonc` present, `site` in
   `astro.config.mjs` (the production URL, or still the `TODO` — noted for step 2).

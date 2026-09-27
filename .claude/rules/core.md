@@ -49,26 +49,7 @@ Whenever you add, remove or materially change a rule, skill, agent, hook, permis
 
 A change to `.claude/` without the README update is incomplete. Write these entries in Ukrainian.
 
-## 6. Template feedback log (`TEMPLATE-FIXES.md`)
-
-This repo is the template; every client project is a copy of it, and the template keeps evolving
-from what goes wrong in projects. Whenever the user says something is wrong, annoying, "should be
-different", asks to fix or redo something — and the cause lies in the **template** (a rule, a skill,
-a hook, the token/utility structure, the layout, a script, a dev page, a convention, a default) rather
-than in this project's own content:
-
-1. In the same turn, **before** fixing, append an entry to `TEMPLATE-FIXES.md` in the root, in the
-   user's language and in the file's format: title, Problem (what happened here — file, line, the
-   user's words), Template file(s), Fix (a concrete instruction), Why.
-2. Then make the fix in this project as asked.
-3. Say in one line that the entry was logged.
-
-Do not log content requests (copy, a colour of this site, a section's layout that follows this
-design) — only what would help the next project start better. In the template repository itself
-(`name: "astro-template"` in `package.json`), apply the change directly instead of logging it.
-The `UserPromptSubmit` hook reminds about this when a message sounds like a complaint.
-
-## 7. Git
+## 6. Git
 
 Commit or push only when the user asks. These rules override Claude Code's built-in commit and PR
 instructions.

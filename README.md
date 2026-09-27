@@ -49,12 +49,6 @@ pnpm dev                                # http://localhost:4321, dev-сторі�
 2. `/prelaunch` — домен, збірка, SEO, згенеровані `robots.txt` / `sitemap.xml` / `llms.txt`, іконки, OG, 404, дані клієнта, помилки в консолі.
 3. Деплоїти `dist/` (див. «Деплой»).
 
-### 6. Зауваження до темплейту
-
-Коли щось у правилах, скілах чи структурі не подобається, скажіть про це Claude у проєкті: він
-запише інструкцію в `TEMPLATE-FIXES.md` і лише потім виправить локально. Файл принесіть у цей
-репозиторій і попросіть застосувати записи — так темплейт покращується після кожного сайту.
-
 ## Деплой
 
 Збірка статична: `pnpm build` → `dist/` можна хостити будь-де. Усе, що має бути свіжим на деплої, генерується самою збіркою, руками нічого не оновлюється: `public/og/*.jpg` (prebuild), а в `dist/` — `robots.txt`, `sitemap.xml`, `llms.txt`, `llms-full.txt` (`scripts/seo-files.mjs`; сторінки з `noindex` і 404 не потрапляють; опції `disallow`, `blockAiCrawlers`, `lastmod`, `llmsFull` в `astro.config.mjs`). Перед деплоєм: `site` = продакшн-домен, `/prelaunch`.
@@ -89,19 +83,21 @@ pnpm dev                                # http://localhost:4321, dev-сторі�
 - Шрифти: Astro Fonts API, subset-woff2 із `pnpm fonts`, приклад у `astro.config.mjs`
 - SEO: canonical, Open Graph, Twitter, фавікони, skip-link і JSON-LD-граф із хлібними крихтами (`src/data/schema.ts`) у `BaseLayout`; дані сайту в `src/data/site.ts`; скіл `/seo` за сучасними практиками і валідатор `pnpm seo`
 - Анімації (опційно, `<BaseLayout motion>`): Lenis, reveal при скролі, хедер ховається при скролі вниз, вступ hero
+- Покроковий скрол на GSAP (опційно, `<BaseLayout steps>`): вільного скролу немає, один жест = один крок (наступна частина анімації секції або наступна секція); секція реєструє свій таймлайн через `scene()`
 - pnpm
 
 ## Структура
 
 ```
 src/
-  layouts/BaseLayout.astro   HTML-оболонка: SEO-head, слоти header/main/footer, проп motion
+  layouts/BaseLayout.astro   HTML-оболонка: SEO-head, слоти header/main/footer, пропи motion і steps
   pages/                     сторінки (назва файлу = URL); title і description обов'язкові
   components/sections/       секції сторінок
   components/ui/             порожня; компоненти проєкту (Button, Tag, Card …) за формою з .claude/rules/astro-components.md
   data/site.ts               назва, мова, контакти, соцмережі, сутність для схеми — єдине джерело
   data/schema.ts             граф Schema.org (Person/Organization, WebSite, WebPage …)
   scripts/motion.ts          модуль анімацій (вмикається пропом motion)
+  scripts/steps.ts           покроковий скрол на GSAP (вмикається пропом steps)
   dev/                       dev-сторінки /dev/tokens і /dev/components (лише в astro dev, не збираються)
   styles/                    tokens.css, reset.css, base.css, utilities.css, global.css
   assets/<section>/          фото (джерела 2x, kebab-case) для astro:assets
@@ -109,7 +105,6 @@ src/
   assets/og/                 джерела OG-картинок → public/og/*.jpg при збірці
   assets/fonts/              woff2 (згенеровані); fonts/source/ — TTF/OTF клієнта
 scripts/                     build-og, build-fonts, build-favicon, screenshot, validate-seo, seo-files (robots/sitemap/llms при збірці)
-TEMPLATE-FIXES.md            журнал зауважень до темплейту з цього проєкту (Claude пише сам, потім переноситься в темплейт)
 public/                      файли як є (favicon.svg + згенеровані іконки, robots.txt)
 .claude/                     правила, скіли, агенти та хуки для Claude Code
 ```
@@ -121,6 +116,6 @@ public/                      файли як є (favicon.svg + згенеров�
 - `rules/` — правила (головне: робити тільки те, що просили; спочатку перевикористати наявний клас/компонент; семантична розмітка і доступність — `markup.md`; формат секцій; адаптив у тому ж проході)
 - `skills/` — `/figma-section` (секція або ціла сторінка), `/new-page`, `/sync-tokens` (інвентаризація дизайну і токени), `/seo`, `/prelaunch` (перевірка перед деплоєм), `/alt-text`
 - `agents/` — `section-reviewer`: read-only звірка зверстаної секції з Figma на трьох брейкпоінтах
-- `hooks/` — нагадування правил перед кожним редагуванням; на старті сесії — встановлення fonttools і визначення середовища (локально / хмара); на повідомленні зі скаргою чи проханням щось виправити — нагадування записати зауваження до темплейту в `TEMPLATE-FIXES.md`
+- `hooks/` — нагадування правил перед кожним редагуванням; на старті сесії — встановлення fonttools і визначення середовища (локально / хмара)
 - `settings.json` — дозволені без підтвердження команди pnpm, заборона читати `.env`
 - `.mcp.json` (корінь) — MCP-сервер документації Astro, щоб ШІ звірявся з актуальними доками

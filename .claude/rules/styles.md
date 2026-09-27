@@ -80,6 +80,7 @@ Responsive values use `/` in desktop/tablet/mobile order and are escaped in CSS 
 | Visibility | `desktop-hide` (≥992), `tablet-hide` (768–991), `landscape-hide` (480–767), `mobile-hide` (≤479), `mobile-only`, `desktop-only` |
 | Mobile modifiers | `mob-width--100` (≤479: `width: 100%` — a CTA or submit button stretched on mobile); other `mob-*` modifiers live in the component until a second component needs them |
 | Motion (attributes, not classes) | `data-reveal`, `data-reveal="stagger"` (children, nth-child delays up to 8), `data-reveal-delay="1…5"`, `data-intro`; the module adds `is--visible`. Keyframe animation `reveal`, gated by `[data-motion]` on `<html>`; static under `prefers-reduced-motion` |
+| Step scroll (attributes) | `data-scenes` on `<main>` (`<BaseLayout steps>`); an inline script in `<head>` sets `data-steps` on `<html>` before the first paint → `overflow: hidden` (the native scroll is locked, the module scrolls) |
 
 Typical section skeleton (`.container` alone; layout on the wrapper inside it):
 ```html

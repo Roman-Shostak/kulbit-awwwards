@@ -32,7 +32,7 @@ Full rules: `.claude/rules/core.md` (always loaded).
 4. The hero first; show it at 1540/1920/768/390 (`pnpm shot`) and wait for approval — it is the
    template for every other section.
 5. Create the `stage` branch from `main` and push it; every later "commit and push" goes to `stage`
-   (`core.md` §7).
+   (`core.md` §6).
 
 ## Stack
 
@@ -65,8 +65,10 @@ Full rules: `.claude/rules/core.md` (always loaded).
 - Dev pages `/dev/tokens` and `/dev/components` (`src/dev/`, injected only in `astro dev`): every new token/utility lands on the first one automatically (by CSS group header), every new component/variant/section is added to the second one by hand in the same change.
 - Motion: optional module `src/scripts/motion.ts` (Lenis, reveal, hiding header, hero intro),
   enabled per page with `<BaseLayout motion>` — on every page of an animated project; the hiding
-  header alone via `<BaseLayout hidingHeader>` (`src/scripts/header.ts`). Nothing appears or changes
-  state instantly: popups (`astro-components.md` → Popup), menus, messages transition on the motion tokens.
+  header alone via `<BaseLayout hidingHeader>` (`src/scripts/header.ts`). Step scroll (GSAP):
+  `<BaseLayout steps>` loads `src/scripts/steps.ts` instead — no free scroll, one gesture = one step
+  (the next part of a section's timeline or the next section); sections register their steps with `scene()`.
+  Nothing appears or changes state instantly: popups (`astro-components.md` → Popup), menus, messages transition on the motion tokens.
 - Forms: the Cloudflare Worker `worker/index.ts` next to the static assets (`POST /api/form` → D1 →
   Telegram / e-mail), connected per project with `/cloudflare-form`; until then `action` stays a `TODO`.
 - Package manager: **pnpm**. Zero client-side JS by default.
@@ -115,6 +117,7 @@ src/
   data/schema.ts               Schema.org graph: siteNodes() + pageNodes() (WebPage, image, BreadcrumbList); @id scheme
   scripts/motion.ts            Lenis + reveal on scroll + hiding header + hero intro (opt-in)
   scripts/header.ts            hiding header alone (`hidingHeader` prop; included in motion)
+  scripts/steps.ts             GSAP step scroll (`steps` prop): scenes = sections of <main> + footer, `scene()` registers a section's timeline
   scripts/form.ts              fetch submit of every `<form data-form>` (ui/Form.astro): states, aria-invalid, messages from the `form` dictionary — copied in by /cloudflare-form
   dev/                         dev-only routes (astro.config devPages): tokens.astro (auto inventory of
                                tokens.css + utilities.css), components.astro (showcase registry), DevShell, css-inventory.ts;
@@ -141,7 +144,6 @@ scripts/build-favicon.mjs      pnpm favicon: favicon.svg → ico + apple-touch-i
 scripts/screenshot.mjs         pnpm shot: Playwright screenshots + section heights
 scripts/validate-seo.mjs       pnpm seo: head + JSON-LD + generated-files validator for dist/
 scripts/seo-files.mjs          build integration: writes robots.txt, sitemap.xml, llms.txt, llms-full.txt into dist/ on every build
-TEMPLATE-FIXES.md              log of template-level complaints from this project (core.md §6), carried back to the template repo
 public/                        files served as-is (favicon.svg + generated icons, _headers with `X-Robots-Tag: noindex` until launch, og/)
 .mcp.json                      project MCP servers (astro-docs)
 .claude/
@@ -149,7 +151,7 @@ public/                        files served as-is (favicon.svg + generated icons
   rules/                       always-on and path-scoped rules
   skills/                      /figma-section, /figma-page, /new-page, /sync-tokens, /cloudflare-deploy, /cloudflare-form (+ assets/), /alt-text, /seo, /prelaunch
   agents/                      section-reviewer (read-only design QA), section-builder (one section of the /figma-page chain)
-  hooks/                       remind-rules.sh (PreToolUse), session-start.sh (SessionStart), template-feedback.sh (UserPromptSubmit)
+  hooks/                       remind-rules.sh (PreToolUse), session-start.sh (SessionStart)
 ```
 
 Import alias: `@/` → `src/`.
@@ -208,7 +210,6 @@ answering from memory; without the MCP use https://docs.astro.build.
 - `permissions.deny` blocks reading `.env*` and `.dev.vars*` files.
 - `SessionStart` hook (`.claude/hooks/session-start.sh`) installs fonttools/brotli for `pnpm fonts` when missing and tells Claude whether it runs locally or in the cloud sandbox.
 - `PreToolUse` hook (`.claude/hooks/remind-rules.sh`) injects a rules reminder before every Edit/Write. It never blocks.
-- `UserPromptSubmit` hook (`.claude/hooks/template-feedback.sh`) reminds about `TEMPLATE-FIXES.md` (core.md §6) when a message sounds like a complaint or a fix request.
 - `attribution.commit` and `attribution.pr` are empty: no Claude trailer or "Generated with Claude Code" in commits and PRs.
 
 Personal, unshared notes go in `CLAUDE.local.md` (gitignored).
@@ -216,16 +217,9 @@ Personal, unshared notes go in `CLAUDE.local.md` (gitignored).
 `.claude/README.md` documents every folder and file in `.claude/` in Ukrainian. Any change to
 `.claude/` must be reflected there (see `.claude/rules/core.md` §5).
 
-## Template feedback (`TEMPLATE-FIXES.md`)
-
-When the user dislikes something or asks for a fix whose cause is in the template (rules, skills,
-hooks, tokens/utilities structure, layout, scripts, dev pages, conventions), log an entry to
-`TEMPLATE-FIXES.md` before fixing (format inside the file; `core.md` §6). The file travels back to
-the template repo; in the template repo itself apply the change directly.
-
 ## Git
 
-Full rules: `.claude/rules/core.md` §7; they take precedence over Claude Code's built-in commit instructions.
+Full rules: `.claude/rules/core.md` §6; they take precedence over Claude Code's built-in commit instructions.
 - "Commit and push" → commit on `stage`, push `origin stage`. `main` only when the user explicitly asks for `main`.
 - Never add Claude as an author: no `Co-Authored-By: Claude`, no "Generated with Claude Code", no Claude in messages or PRs.
 - Title: short, English, action + what (`Add section NoReadyRequest`); extra changes → `… + fixes` in the title and a `- …` list of the fixes in the commit body.

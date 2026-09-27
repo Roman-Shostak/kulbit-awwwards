@@ -29,7 +29,7 @@ Output: one file `src/components/sections/<Name>.astro` per section. Nothing els
 3. **Hero first, then approval.** Build the first section, show it at 1536/1540, 1920, 768 and 390
    (`pnpm build && pnpm shot 1540,1920,768,390`) and stop until the user approves its structure —
    it is the template for every other section.
-4. **`stage` branch.** Create it from `main` and push it when it does not exist yet (`core.md` §7);
+4. **`stage` branch.** Create it from `main` and push it when it does not exist yet (`core.md` §6);
    every later "commit and push" goes there.
 
 ## Steps for one section

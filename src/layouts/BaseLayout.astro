@@ -26,6 +26,9 @@
  *                       intro). Off by default: zero client-side JS.
  *   hidingHeader        loads only src/scripts/header.ts: the header hides on scroll down and returns
  *                       on scroll up, with an offset. Not needed together with `motion` (included there).
+ *   steps               loads src/scripts/steps.ts (GSAP): no free scroll, one gesture = one step (the next
+ *                       part of a section's timeline or the next section); `data-scenes` on <main>.
+ *                       Replaces `motion` (Lenis would fight the lock): with both, only `steps` loads.
  *   noindex             adds <meta name="robots" content="noindex, nofollow"> (dev pages, thank-you pages).
  *
  * Languages (src/i18n): og:locale comes from the page's language; an indexable page gets
@@ -78,11 +81,13 @@ interface Props {
   schema?: { type?: PageSchema['type']; nodes?: SchemaNode[]; mainEntityId?: string; breadcrumbs?: Breadcrumb[] };
   motion?: boolean;
   hidingHeader?: boolean;
+  steps?: boolean;
   noindex?: boolean;
 }
 
 const locale = toLocale(Astro.currentLocale);
-const { title, description, lang = localeMeta[locale].lang, ogImage, schema, motion = false, hidingHeader = false, noindex = false } = Astro.props;
+const { title, description, lang = localeMeta[locale].lang, ogImage, schema, motion = false, hidingHeader = false, steps = false, noindex = false } = Astro.props;
+const loadMotion = motion && !steps;
 const siteName = localized(site.name, locale);
 const skipLabel = { uk: 'Перейти до контенту', ru: 'Перейти к содержимому', en: 'Skip to content' }[lang] ?? 'Skip to content';
 const ogImageUrl = ogImage && (Astro.site ? new URL(ogImage, Astro.site).href : ogImage);
@@ -136,6 +141,8 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
     {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
     <meta name="twitter:card" content={ogImageUrl ? 'summary_large_image' : 'summary'} />
     {graph.length > 0 && <script is:inline type="application/ld+json" set:html={jsonLd} />}
+    {/* Step scroll: the lock (and CSS gated by it) applies before the first paint, only with JS */}
+    {steps && <script is:inline>document.documentElement.dataset.steps = '';</script>}
 
     <!--
       Fluid scale: writes --viewport-width (clientWidth without scrollbar, capped at --max)
@@ -178,7 +185,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
           </div>
         )
       }
-      <main class="main" id="main" tabindex="-1">
+      <main class="main" id="main" tabindex="-1" data-scenes={steps ? '' : undefined}>
         <slot />
       </main>
       {
@@ -190,14 +197,21 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       }
     </div>
     {
-      motion && (
+      steps && (
+        <script>
+          import '@/scripts/steps';
+        </script>
+      )
+    }
+    {
+      loadMotion && (
         <script>
           import '@/scripts/motion';
         </script>
       )
     }
     {
-      hidingHeader && !motion && (
+      hidingHeader && !loadMotion && (
         <script>
           import '@/scripts/header';
         </script>

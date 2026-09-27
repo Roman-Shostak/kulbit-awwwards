@@ -28,6 +28,8 @@ export const site = {
    * Schema.org `sameAs` takes only the profile networks (telegram, instagram, facebook, linkedin, youtube):
    * a messenger chat link (wa.me, viber://) opens a conversation and identifies no profile. */
   socials: {} as Partial<Record<'telegram' | 'whatsapp' | 'viber' | 'instagram' | 'facebook' | 'linkedin' | 'youtube', string>>,
+  /** The footer's «Support team» and «partnership» links: a `mailto:…` or `https://…` address each. TODO */
+  contactLinks: { support: '', partnership: '' },
   /** The build year; set a fixed number if the client wants one */
   copyrightYear: new Date().getFullYear(),
   /** Schema.org entity behind the site (src/data/schema.ts) */

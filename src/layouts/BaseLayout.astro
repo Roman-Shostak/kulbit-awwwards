@@ -8,8 +8,9 @@
  *       <header class="header">           padding/background come from .header in utilities.css —
  *                                         the header component starts directly with <div class="container">
  *     <main class="main">                 default slot — page sections go here
- *     <footer class="footer">             rendered only when slot="footer" is used; dark background,
- *                                         padding and inverse colours come from .footer in utilities.css
+ *     <footer class="footer">             rendered only when slot="footer" is used; background and padding
+ *                                         come from .footer in utilities.css; with `steps` it is the last
+ *                                         [data-kulbit-section] (stacked over the sections, outside <main>)
  *
  * Props:
  *   title, description  required — <title>, meta description, Open Graph, Twitter. No placeholders:
@@ -193,7 +194,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       </main>
       {
         Astro.slots.has('footer') && (
-          <footer class="footer">
+          <footer class="footer" data-kulbit-section={steps ? '' : undefined}>
             <slot name="footer" />
           </footer>
         )

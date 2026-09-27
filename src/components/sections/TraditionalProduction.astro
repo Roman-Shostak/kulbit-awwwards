@@ -561,7 +561,8 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
   // line's track colour is in the CSS (the source injected them, the fills with a colour variable this site does not
   // have); the colours are raw (the source read the Webflow variables white, black-30, red, white-10); the head's
   // colour is the is--kulbit state (the source toggled .text-color-red); the scramble respects reduced motion (as
-  // Our Clients); a breakpoint change kills the running step and the head scramble.
+  // Our Clients); a breakpoint change kills the running step and the head scramble; showEnd (opened from the
+  // footer) fills the bars of the red and the KULBIT groups too (the source left them empty).
   import { gsap } from 'gsap';
   import { app, config, registerSectionBuilder, type SectionController } from '@/scripts/kulbit/app';
   import { buildSegments, parseSegments, reducedMotion, SCRAMBLE, type Segment } from '@/scripts/kulbit/scramble';
@@ -970,6 +971,13 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
         const fill = plain.progFills[li];
         if (fill) gsap.set(fill, { width: `${pctOf(plain, li)}%` });
       }); // the third group visible
+      // The bars of the red and the KULBIT groups filled, as after going through them (the source left them empty:
+      // stepping back from the end showed those cards with empty bars)
+      [red, blue].forEach((g) =>
+        g.progFills.forEach((fill, li) => {
+          if (fill) gsap.set(fill, { width: `${pctOf(g, li)}%` });
+        }),
+      );
       swapHead(true); // the end: «KULBIT» + the white square
       if (secFill) gsap.set(secFill, { width: '100%' });
       state = maxState;

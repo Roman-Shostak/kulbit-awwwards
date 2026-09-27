@@ -83,9 +83,10 @@ html:has([data-menu-toggle][aria-expanded='true']) {
   overflow: hidden;
   scrollbar-gutter: stable;
 }
-/* The footer owns its dark background and padding (the component starts with .container) */
+/* The footer owns its background and padding (the component starts with .container). Kulbit (Webflow .section.footer):
+ * 5rem (tablet 1rem · 6.25rem, mobile 2rem · 4rem) — SiteFooter's content fills the screen minus these */
 .footer {
-  padding-block: var(--section-padding-md);
+  padding-block: var(--size-80);
   background-color: var(--theme-section-bg-dark);
 }
 .section {
@@ -113,11 +114,11 @@ html:has([data-menu-toggle][aria-expanded='true']) {
 }
 
 /* ---------- Dark colour mode ----------
- * The same --theme-* names with the values Figma shows on dark backgrounds, so dark sections and
- * the footer use the very same text-color-* / Card / Tag utilities. sync-tokens fills the values
- * from the dark section's variables; `alw` tokens are deliberately not re-assigned. */
-.theme--dark,
-.footer {
+ * The same --theme-* names with the values Figma shows on dark backgrounds, so dark sections use the
+ * very same text-color-* / Card / Tag utilities. sync-tokens fills the values from the dark section's
+ * variables; `alw` tokens are deliberately not re-assigned. Kulbit: the footer is not in this list — it
+ * keeps the page's own colours (the whole site is dark; Webflow uses the same variables there). */
+.theme--dark {
   --theme-text: var(--swatch-white);
   --theme-text-secondary: var(--swatch-grey-light);
   --theme-text-brand: var(--swatch-grey-light);
@@ -717,6 +718,10 @@ html[data-steps] [data-kulbit-section] {
 
 /* ---------- Tablet (≤ 991px) ---------- */
 @media (max-width: 991px) {
+  .footer {
+    padding-top: var(--size-16);
+    padding-bottom: var(--size-100);
+  }
   .container {
     max-width: none;
   }
@@ -761,6 +766,10 @@ html[data-steps] [data-kulbit-section] {
 
 /* ---------- Mobile portrait (≤ 479px) ---------- */
 @media (max-width: 479px) {
+  .footer {
+    padding-top: var(--size-32);
+    padding-bottom: var(--size-64);
+  }
   /* A CTA / submit button stretched to the column on mobile (the Button sets no width of its own) */
   .mob-width--100 {
     width: 100%;

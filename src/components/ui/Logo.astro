@@ -1,0 +1,58 @@
+---
+/**
+ * Logo — the Kulbit logo linking home (the Webflow build: .logo — the header and .logo.is-footer — the footer). On the
+ * home page it is the current page's own item: <a aria-current="page"> without href. The accessible name is sr-only
+ * text; the square turns red on hover / focus of a real link (Webflow .logo: blue → red).
+ *   size  150/150/125 (default, the header) · 108 (the footer, every breakpoint)
+ * Every other attribute passes through.
+ */
+import type { HTMLAttributes } from 'astro/types';
+import LogoMark from '@/assets/icons/logo.svg';
+import { localePath, useTranslations } from '@/i18n';
+
+type Props = Omit<HTMLAttributes<'a'>, 'href'> & {
+  size?: '150/150/125' | '108';
+};
+
+const { size = '150/150/125', class: className, ...rest } = Astro.props;
+const t = useTranslations(Astro.currentLocale).logo;
+const home = localePath('/', Astro.currentLocale);
+const isHome = Astro.url.pathname === home;
+---
+
+<a
+  class:list={['logo', { 'size--108': size === '108' }, className]}
+  href={isHome ? undefined : home}
+  aria-current={isHome ? 'page' : undefined}
+  {...rest}>
+  <LogoMark aria-hidden="true" />
+  <span class="sr-only">{t.home}</span>
+</a>
+
+<style>
+  .logo {
+    display: block;
+    width: calc(9.38rem * var(--fluid-scale)); /* 150 */
+    color: var(--theme-icon);
+  }
+  .logo.size--108 {
+    width: calc(6.75rem * var(--fluid-scale));
+  }
+  .logo svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .logo :global(rect:first-of-type) {
+    transition: fill var(--transition-duration) var(--transition-easing);
+  }
+  .logo[href]:hover :global(rect:first-of-type),
+  .logo[href]:focus-visible :global(rect:first-of-type) {
+    fill: var(--theme-text-brand);
+  }
+  @media (max-width: 479px) {
+    .logo {
+      width: calc(7.81rem * var(--fluid-scale)); /* 125 */
+    }
+  }
+</style>

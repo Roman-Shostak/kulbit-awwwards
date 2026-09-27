@@ -5,20 +5,15 @@
  * attributes (src/scripts/kulbit): the hero's first step moves it up by 600 % and fades it; the way back returns it.
  */
 import Button from '@/components/ui/Button.astro';
-import { localePath, useTranslations } from '@/i18n';
-import Logo from '@/assets/icons/logo.svg';
+import Logo from '@/components/ui/Logo.astro';
+import { useTranslations } from '@/i18n';
 
 const t = useTranslations(Astro.currentLocale).siteHeader;
-const home = localePath('/', Astro.currentLocale);
-const isHome = Astro.url.pathname === home;
 ---
 
 <div class="container" data-kulbit-header data-kulbit-y="-600" data-kulbit-fade="0" data-kulbit-y-tablet="-600" data-kulbit-fade-tablet="0">
   <div class="site-header_row justify-space-between spacing-16">
-    <a class="site-header_logo" href={isHome ? undefined : home} aria-current={isHome ? 'page' : undefined}>
-      <Logo aria-hidden="true" />
-      <span class="sr-only">{t.logo}</span>
-    </a>
+    <Logo />
     <Button variant="outline" data-kulbit-border data-target-section="projects">{t.projects}</Button>
   </div>
 </div>
@@ -30,28 +25,5 @@ const isHome = Astro.url.pathname === home;
   /* min gap, not in the design (space-between) */
   .spacing-16 {
     gap: var(--size-16);
-  }
-  /* The square of the logo is blue and turns red on hover (Webflow .logo) */
-  .site-header_logo {
-    display: block;
-    width: calc(9.38rem * var(--fluid-scale)); /* 150 */
-    color: var(--theme-icon);
-  }
-  .site-header_logo svg {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-  .site-header_logo :global(rect:first-of-type) {
-    transition: fill var(--transition-duration) var(--transition-easing);
-  }
-  .site-header_logo[href]:hover :global(rect:first-of-type),
-  .site-header_logo[href]:focus-visible :global(rect:first-of-type) {
-    fill: var(--theme-text-brand);
-  }
-  @media (max-width: 479px) {
-    .site-header_logo {
-      width: calc(7.81rem * var(--fluid-scale)); /* 125 */
-    }
   }
 </style>

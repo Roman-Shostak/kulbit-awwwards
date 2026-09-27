@@ -20,7 +20,9 @@
  *                   <div class="dev_section-frame"> in the "Sections" block (header inside
  *                   <div class="header">, footer inside <footer class="footer">).
  */
+import { Picture } from 'astro:assets';
 import Button from '@/components/ui/Button.astro';
+import Logo from '@/components/ui/Logo.astro';
 import ProjectVideo from '@/components/ui/ProjectVideo.astro';
 import Square from '@/components/ui/Square.astro';
 import Hero from '@/components/sections/Hero.astro';
@@ -32,9 +34,11 @@ import WorkingProcess from '@/components/sections/WorkingProcess.astro';
 import TraditionalProduction from '@/components/sections/TraditionalProduction.astro';
 import SectionNav from '@/components/sections/SectionNav.astro';
 import SiteHeader from '@/components/sections/SiteHeader.astro';
+import SiteFooter from '@/components/sections/SiteFooter.astro';
 import { useTranslations } from '@/i18n';
 import DevShell from './DevShell.astro';
 import posterRushCore from '@/assets/projects/project-rush-core-poster.avif';
+import footerShowreel from '@/assets/site-footer/footer-showreel.avif';
 
 const t = useTranslations(Astro.currentLocale);
 const tProjects = t.projects;
@@ -43,8 +47,8 @@ const uiFiles = Object.keys(import.meta.glob('../components/ui/*.astro')).map(fi
 const sectionFiles = Object.keys(import.meta.glob('../components/sections/*.astro')).map(fileName);
 
 // Registry of what this page renders — keep in sync with the blocks below
-const showcasedUi: string[] = ['Button', 'Square', 'ProjectVideo'];
-const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients', 'Projects', 'OurServices', 'IntroScreen', 'WorkingProcess', 'TraditionalProduction', 'SectionNav'];
+const showcasedUi: string[] = ['Button', 'Square', 'ProjectVideo', 'Logo'];
+const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients', 'Projects', 'OurServices', 'IntroScreen', 'WorkingProcess', 'TraditionalProduction', 'SectionNav', 'SiteFooter'];
 
 const missingUi = uiFiles.filter((name) => !showcasedUi.includes(name));
 const missingSections = sectionFiles.filter((name) => !showcasedSections.includes(name));
@@ -85,7 +89,7 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
 
   <section class="dev_component" id="ui-button">
     <h3>Button</h3>
-    <p class="dev_component-meta"><code>src/components/ui/Button.astro</code> — variant: outline | arrow | second; href → a, otherwise button[type=button]. The labels hide on mobile (outline) and ≤ 991px (arrow) and stay the accessible name; second: the square turns red on hover.</p>
+    <p class="dev_component-meta"><code>src/components/ui/Button.astro</code> — variant: outline | arrow | second | second-footer | showreel; href → a, otherwise button[type=button]. The labels hide on mobile (outline, showreel) and ≤ 991px (arrow) and stay the accessible name; second / second-footer: the square turns red on hover; second-footer: the whole width with the square at the end ≤ 991px, centred ≤ 479px; showreel: the picture comes in the <code>media</code> slot and fills the frame (the whole width).</p>
     <div class="dev_variants dev_variants--wide">
       <figure class="dev_variant">
         <div class="dev_stage theme--dark"><Button variant="outline">Showreel</Button></div>
@@ -110,6 +114,34 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
       <figure class="dev_variant">
         <div class="dev_stage theme--dark"><Button variant="second" href="/">Start Your Pilot</Button></div>
         <figcaption><code>&lt;Button variant="second" href="/"&gt;</code> → a</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage theme--dark"><Button variant="second-footer">Let’s discuss</Button></div>
+        <figcaption><code>&lt;Button variant="second-footer"&gt;</code> → button</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage theme--dark">
+          <Button variant="showreel">
+            <Picture slot="media" src={footerShowreel} formats={['avif', 'webp']} fallbackFormat="jpg" width={680} alt="" class="fill-box" />
+            Showreel
+          </Button>
+        </div>
+        <figcaption><code>&lt;Button variant="showreel"&gt;&lt;Picture slot="media" … /&gt;</code> → button</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="dev_component" id="ui-logo">
+    <h3>Logo</h3>
+    <p class="dev_component-meta"><code>src/components/ui/Logo.astro</code> — the logo linking home (on the home page: aria-current="page", no href); the square turns red on hover of a real link. size: 150/150/125 (default, the header) | 108 (the footer).</p>
+    <div class="dev_variants">
+      <figure class="dev_variant">
+        <div class="dev_stage theme--dark"><Logo /></div>
+        <figcaption><code>&lt;Logo /&gt;</code> → a, 150/150/125</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage theme--dark"><Logo size="108" /></div>
+        <figcaption><code>&lt;Logo size="108" /&gt;</code></figcaption>
       </figure>
     </div>
   </section>
@@ -223,4 +255,5 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
   <div class="dev_section-frame"><div class="dev_section-label">IntroScreen.astro — traditional production (the label with its blue accent)</div><IntroScreen {...t.traditionalProductionIntro} /></div>
   <div class="dev_section-frame"><div class="dev_section-label">TraditionalProduction.astro (the natural state: every card, both radars drawn; the steps and the head scramble run on the home page)</div><TraditionalProduction /></div>
   <div class="dev_section-frame"><div class="dev_section-label">SectionNav.astro (the arrow on the right edge of the window slides the panel in — here too; the jumps and the current mark work on the home page)</div><SectionNav /></div>
+  <div class="dev_section-frame"><div class="dev_section-label">SiteFooter.astro (in the layout's footer; the step scroll of tablet / mobile runs on the home page)</div><footer class="footer"><SiteFooter /></footer></div>
 </DevShell>

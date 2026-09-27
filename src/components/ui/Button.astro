@@ -5,6 +5,11 @@
  *   arrow    a red label + the red arrow square in a row: the hero CTA; the square only at ≤ 991px
  *   second   a white label in two lines + the blue arrow square in a 2px #171717 frame (.button.is-second): the
  *            pilot button of the working process; the square turns red on hover
+ *   second-footer  the same in the footer (.button.is-second-footer): the whole width with the square at the end
+ *            at 991px and below, centred at 479px and below
+ *   showreel the play icon + label of `outline` centred over a picture that fills the frame (.button.is-footer: the
+ *            footer's «Explore» card, the whole width; the label only on tablet / desktop); the picture comes in the
+ *            `media` slot
  * `href` → <a>, otherwise <button type="button">; every other attribute passes through. A hidden label stays the
  * accessible name. The variant is `variant`, not `type` (that is the button's own attribute).
  */
@@ -12,13 +17,20 @@ import type { HTMLAttributes } from 'astro/types';
 import IconArrow from '@/assets/icons/arrow-pilot.svg';
 import IconPlay from '@/assets/icons/play.svg';
 
-type Variant = { variant: 'outline' | 'arrow' | 'second' };
+type Variant = { variant: 'outline' | 'arrow' | 'second' | 'second-footer' | 'showreel' };
 type Props = Variant & ((HTMLAttributes<'a'> & { href: string }) | (HTMLAttributes<'button'> & { href?: never }));
 
 const { variant, href, class: className, type, ...rest } = Astro.props;
 const Tag = href ? 'a' : 'button';
 const buttonType = href ? undefined : ((type ?? 'button') as 'button' | 'submit' | 'reset');
-const textSize = { outline: 'text-size-16/14/14', arrow: 'text-size-32', second: 'text-size-18/18/16' }[variant];
+const textSize = {
+  outline: 'text-size-16/14/14',
+  arrow: 'text-size-32',
+  second: 'text-size-18/18/16',
+  'second-footer': 'text-size-18/18/16',
+  showreel: 'text-size-16/14/14',
+}[variant];
+const withPlay = variant === 'outline' || variant === 'showreel';
 ---
 
 <Tag
@@ -27,9 +39,10 @@ const textSize = { outline: 'text-size-16/14/14', arrow: 'text-size-32', second:
   class:list={['button', `type--${variant}`, textSize, className]}
   {...rest}
 >
-  {variant === 'outline' && <IconPlay class="button_icon" aria-hidden="true" />}
+  {Astro.slots.has('media') && <span class="button_media"><slot name="media" /></span>}
+  {withPlay && <IconPlay class="button_icon" aria-hidden="true" />}
   <span class="button_label"><slot /></span>
-  {variant !== 'outline' && <IconArrow class="button_arrow" aria-hidden="true" />}
+  {!withPlay && <IconArrow class="button_arrow" aria-hidden="true" />}
 </Tag>
 
 <style>
@@ -99,8 +112,32 @@ const textSize = { outline: 'text-size-16/14/14', arrow: 'text-size-32', second:
     color: #62b0ff;
   }
 
-  /* ---------- second: the pilot button of the working process (.button.is-second) ---------- */
-  .button.type--second {
+  /* ---------- showreel: the footer's «Explore» card (.button.is-footer) ---------- */
+  .button.type--showreel {
+    position: relative;
+    isolation: isolate;
+    flex-direction: column;
+    gap: var(--size-8);
+    width: 100%;
+    height: calc(17rem * var(--fluid-scale)); /* 272 */
+    padding: var(--size-20); /* .button: 1.25rem (tablet 1, mobile 0.75) */
+    overflow: hidden;
+    outline: var(--size-2) solid #171717;
+    outline-offset: calc(var(--size-2) * -1);
+    border-radius: calc(0.5625rem * var(--fluid-scale)); /* 9 */
+    background-color: var(--theme-page-bg);
+  }
+  /* The picture under the icon and the label (Webflow: the background image, cover) */
+  .button_media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  /* ---------- second: the pilot button of the working process (.button.is-second); second-footer: the footer's
+     (.button.is-second-footer), the same at desktop ---------- */
+  .button.type--second,
+  .button.type--second-footer {
     gap: var(--size-24);
     align-self: flex-start;
     padding: var(--size-24) var(--size-32);
@@ -112,20 +149,24 @@ const textSize = { outline: 'text-size-16/14/14', arrow: 'text-size-32', second:
     transition: color var(--transition-duration) var(--transition-easing);
   }
   /* .width-140.is-second-button: the label wraps in 140 and keeps its white */
-  .type--second .button_label {
+  .type--second .button_label,
+  .type--second-footer .button_label {
     width: calc(8.75rem * var(--fluid-scale)); /* 140 */
     color: var(--theme-text);
     text-align: left;
     white-space: normal;
   }
   /* .icon-40-40-32 */
-  .type--second .button_arrow {
+  .type--second .button_arrow,
+  .type--second-footer .button_arrow {
     width: var(--size-40);
     height: var(--size-40);
   }
   /* the Webflow interaction «Second Button [Hover]»: the square blue → red */
   .button.type--second:hover,
-  .button.type--second:focus-visible {
+  .button.type--second:focus-visible,
+  .button.type--second-footer:hover,
+  .button.type--second-footer:focus-visible {
     color: var(--theme-text-brand);
   }
 
@@ -136,6 +177,14 @@ const textSize = { outline: 'text-size-16/14/14', arrow: 'text-size-32', second:
     .button.type--outline {
       width: calc(12.9375rem * var(--fluid-scale)); /* 207 */
       height: var(--size-56);
+    }
+    .button.type--showreel {
+      height: calc(17.63rem * var(--fluid-scale)); /* 282 */
+      padding: var(--size-16);
+    }
+    .button.type--second-footer {
+      justify-content: space-between;
+      width: 100%;
     }
     /* the square only; the label stays the accessible name */
     .type--arrow .button_label {
@@ -155,16 +204,31 @@ const textSize = { outline: 'text-size-16/14/14', arrow: 'text-size-32', second:
       gap: var(--size-16);
       padding: var(--size-20) var(--size-28);
     }
-    .type--second .button_arrow {
+    .type--second .button_arrow,
+    .type--second-footer .button_arrow {
       width: var(--size-32);
       height: var(--size-32);
+    }
+    .button.type--second-footer {
+      gap: var(--size-24);
+      justify-content: center;
+      padding: var(--size-16) var(--size-32);
+    }
+    /* .width-140-140-a: auto */
+    .type--second-footer .button_label {
+      width: auto;
+    }
+    .button.type--showreel {
+      height: calc(11.25rem * var(--fluid-scale)); /* 180 */
+      padding: var(--size-12);
     }
     .button.type--outline {
       width: calc(5.625rem * var(--fluid-scale)); /* 90 */
       height: var(--size-48);
     }
     /* the play icon only */
-    .type--outline .button_label {
+    .type--outline .button_label,
+    .type--showreel .button_label {
       position: absolute;
       width: 1px;
       height: 1px;

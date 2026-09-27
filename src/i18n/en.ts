@@ -13,9 +13,12 @@ export default {
     },
   },
   siteHeader: {
-    /** sr-only name of the logo link */
-    logo: 'Kulbit — home',
     projects: 'Projects',
+  },
+  /** The logo link (ui/Logo: the header and the footer) */
+  logo: {
+    /** sr-only name of the link */
+    home: 'Kulbit — home',
   },
   hero: {
     /** «Filmmaker Vision x AI Dimension»: the accent part is blue */
@@ -282,7 +285,35 @@ export default {
       'Working process: stages',
       'Traditional Production',
       'Traditional vs KULBIT',
+      'Footer',
     ],
+  },
+  /** The footer: the copyright line, its three columns (the Webflow copy) and the names of the icon links */
+  siteFooter: {
+    /** After «© <year>» */
+    rights: 'All rights reserved.',
+    explore: { title: 'Explore', showreel: 'Showreel' },
+    about: {
+      title: 'about',
+      tagline: 'Filmmaker Vision x AI Dimension',
+      /** One sentence; the grey parts as on the site */
+      text: [
+        { text: 'We blend', grey: true },
+        { text: 'human creative', grey: false },
+        { text: 'direction', grey: true },
+        { text: 'with advanced AI', grey: false },
+        { text: 'to deliver high-end, brand-aligned videos.', grey: true },
+      ],
+      discuss: 'Let’s discuss',
+    },
+    contact: {
+      title: 'contact us',
+      support: 'Support team',
+      partnership: 'partnership',
+      /** sr-only names of the icon links (Webflow: their aria-labels) */
+      linkedin: 'Linkedin — Profile',
+      email: 'Gmail — Send Email',
+    },
   },
   /** Accessible names of the video player controls (the Webflow build has none: its controls are divs) */
   projectVideo: {

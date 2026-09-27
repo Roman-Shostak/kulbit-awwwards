@@ -17,7 +17,6 @@
  *
  * LEFT TO PORT — each with its section, as a `registerSectionBuilder((mode) => …)` that sets `section.controller`
  * (source file → functions):
- *   working process    03-sections.js buildWorkingProcess (l. 765–1045: revealTL, stepTo, setStateInstant, SVG clones)
  *   traditional prod.  03-sections.js buildTraditional (l. 1178–1495: radar, data-kulbit-progress)
  *   footer             03-sections.js buildFooterScroll + FT_STEP_RATIO (l. 1087–1177, tablet / mobile only: its
  *                      controller's prepare() = reset()); 13-misc.js copyright year (#copyright-year)
@@ -25,7 +24,8 @@
  *   landscape popup    only its markup: `[data-kulbit-landscape-popup] hidden` (the logic is in ./responsive)
  * Ported with their sections: our clients (buildOurClients → src/components/sections/OurClients.astro), projects
  * (buildProjects → src/components/sections/Projects.astro), our services (buildHSwipe →
- * src/components/sections/OurServices.astro).
+ * src/components/sections/OurServices.astro), working process (buildWorkingProcess →
+ * src/components/sections/WorkingProcess.astro).
  * 05-header.js is empty in the source: the header moves only through its data-kulbit-* attributes (hero timeline).
  */
 import { gsap } from 'gsap';

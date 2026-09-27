@@ -28,6 +28,7 @@ import OurClients from '@/components/sections/OurClients.astro';
 import Projects from '@/components/sections/Projects.astro';
 import OurServices from '@/components/sections/OurServices.astro';
 import WorkingProcessIntro from '@/components/sections/WorkingProcessIntro.astro';
+import WorkingProcess from '@/components/sections/WorkingProcess.astro';
 import SiteHeader from '@/components/sections/SiteHeader.astro';
 import { useTranslations } from '@/i18n';
 import DevShell from './DevShell.astro';
@@ -40,7 +41,7 @@ const sectionFiles = Object.keys(import.meta.glob('../components/sections/*.astr
 
 // Registry of what this page renders — keep in sync with the blocks below
 const showcasedUi: string[] = ['Button', 'Square', 'ProjectVideo'];
-const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients', 'Projects', 'OurServices', 'WorkingProcessIntro'];
+const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients', 'Projects', 'OurServices', 'WorkingProcessIntro', 'WorkingProcess'];
 
 const missingUi = uiFiles.filter((name) => !showcasedUi.includes(name));
 const missingSections = sectionFiles.filter((name) => !showcasedSections.includes(name));
@@ -112,11 +113,23 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
 
   <section class="dev_component" id="ui-square">
     <h3>Square</h3>
-    <p class="dev_component-meta"><code>src/components/ui/Square.astro</code> — the blue square, 30 px (24 px from tablet down), turns a quarter on hover; aria-hidden. The caller positions it with its own class.</p>
+    <p class="dev_component-meta"><code>src/components/ui/Square.astro</code> — the decorative square, turns a quarter on hover; aria-hidden. size: 30/24/24 (default) | 24/24/16 | 12, color: blue (default) | red. The caller positions it with its own class.</p>
     <div class="dev_variants">
       <figure class="dev_variant">
         <div class="dev_stage theme--dark"><Square /></div>
-        <figcaption><code>&lt;Square class="…"&gt;</code> → span</figcaption>
+        <figcaption><code>&lt;Square class="…"&gt;</code> → span, 30/24/24 blue</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage theme--dark"><Square size="24/24/16" /></div>
+        <figcaption><code>&lt;Square size="24/24/16"&gt;</code></figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage theme--dark"><Square size="12" /></div>
+        <figcaption><code>&lt;Square size="12"&gt;</code></figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage theme--dark"><Square size="12" color="red" /></div>
+        <figcaption><code>&lt;Square size="12" color="red"&gt;</code></figcaption>
       </figure>
     </div>
   </section>
@@ -199,4 +212,5 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
   <div class="dev_section-frame"><div class="dev_section-label">Projects.astro (the first card; the swap steps and the scramble run on the home page)</div><Projects /></div>
   <div class="dev_section-frame"><div class="dev_section-label">OurServices.astro (the first card; the swap steps, the card videos and the scramble run on the home page)</div><OurServices /></div>
   <div class="dev_section-frame"><div class="dev_section-label">WorkingProcessIntro.astro (the scramble and the typewriter run on the home page)</div><WorkingProcessIntro /></div>
+  <div class="dev_section-frame"><div class="dev_section-label">WorkingProcess.astro (the diagram drawn, the first card in front; the reveal and the card steps run on the home page)</div><WorkingProcess /></div>
 </DevShell>

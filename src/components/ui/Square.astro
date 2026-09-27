@@ -1,17 +1,25 @@
 ---
 /**
- * Square — the decorative blue square of the Webflow build (.icon-30-24-24.bg-color-blue): 30 px, 24 px from
- * tablet down; it turns a quarter on hover (Webflow custom code [data-css-anim='hover-rotate'], 0.3s ease).
- * The caller places it with its own class (position, insets); aria-hidden, every other attribute passes through.
+ * Square — the decorative square of the Webflow build; it turns a quarter on hover (Webflow custom code
+ * [data-css-anim='hover-rotate'], 0.3s ease). The caller places it with its own class (position, insets);
+ * aria-hidden, every other attribute passes through.
+ *   size   30/24/24 (default, .icon-30-24-24) · 24/24/16 (.icon-24-24-16) · 12 (.icon-12)
+ *   color  blue (default, .bg-color-blue / .background-color-blue) · red (.background-color-red)
  */
 import type { HTMLAttributes } from 'astro/types';
 
-type Props = HTMLAttributes<'span'>;
+type Props = HTMLAttributes<'span'> & {
+  size?: '30/24/24' | '24/24/16' | '12';
+  color?: 'blue' | 'red';
+};
 
-const { class: className, ...rest } = Astro.props;
+const { size = '30/24/24', color = 'blue', class: className, ...rest } = Astro.props;
 ---
 
-<span class:list={['square', className]} aria-hidden="true" {...rest}></span>
+<span
+  class:list={['square', { [`size--${size}`]: size !== '30/24/24', 'color--red': color === 'red' }, className]}
+  aria-hidden="true"
+  {...rest}></span>
 
 <style>
   .square {
@@ -24,10 +32,24 @@ const { class: className, ...rest } = Astro.props;
   .square:hover {
     transform: rotate(90deg);
   }
+  .square.size--24\/24\/16 {
+    width: var(--size-24);
+  }
+  .square.size--12 {
+    width: var(--size-12);
+  }
+  .square.color--red {
+    background-color: #ff4444;
+  }
 
   @media (max-width: 991px) {
     .square {
       width: var(--size-24);
+    }
+  }
+  @media (max-width: 479px) {
+    .square.size--24\/24\/16 {
+      width: var(--size-16);
     }
   }
 </style>

@@ -172,6 +172,46 @@ export default {
     ],
     pilot: 'Start Your Pilot',
   },
+  /** The working process: the diagram (its legend and the weeks under it) and the three stage cards */
+  workingProcess: {
+    /** The legend of the diagram: the blue line and the red one */
+    legend: { kulbit: 'Kulbit', traditional: 'Traditional' },
+    /** Under the diagram, left to right */
+    weeks: ['(Week 1)', '(Week 2-3)', '(Week 4-8)', '(16 Weeks)'],
+    /** Per stage: the label, the title, «The “Why”» in two lines and the tags by rows (one row = one branch of the
+     * dashed line) */
+    stages: [
+      {
+        label: 'Stage 1:',
+        title: 'Concept & Control',
+        why: [
+          'The “Why”:',
+          '“We lock the narrative and visual flow before generation begins. By defining the ‘bones’ of the video using traditional storyboards, we eliminate the randomness of AI.”',
+        ],
+        tags: [['Creative Brief'], ['Production-Ready Scripting'], ['Storyboard']],
+      },
+      {
+        label: 'Stage 2:',
+        title: 'AI Visualization & Preview',
+        why: [
+          'The “Why”:',
+          '“This is the new Mood Board. Instead of static references, we generate actual AI style frames. You see the look, feel, and lighting early, allowing for instant iteration without cost.”',
+        ],
+        tags: [['Style Frames'], ['Motion Tests'], ['Style Transfer']],
+      },
+      {
+        label: 'Stage 3:',
+        title: 'Hybrid Mastery & Production',
+        why: [
+          'The “Why”:',
+          '“Where raw AI meets human craftsmanship. Our compositors, animators, and sound engineers refine the output, removing artifacts and ensuring broadcast-standard audio-visual quality.”',
+        ],
+        tags: [['Mastering', 'High-Res Generation'], ['3D Integration', 'Sound Design'], ['Motion Graphics']],
+      },
+    ],
+    /** Two lines */
+    scroll: ['Scroll to see', 'more'],
+  },
   /** Accessible names of the video player controls (the Webflow build has none: its controls are divs) */
   projectVideo: {
     start: 'Play video',

@@ -1,0 +1,354 @@
+---
+/**
+ * Projects («Motion Cut») — built from the Webflow build (kulbit-gsap export, section «is-projects»); values 1:1 from
+ * its CSS (1rem = 16px on the 1920 / 744 / 390 frames = our fluid scale).
+ *
+ * The progress line, the heading and its label (written by scramble when the section enters the screen,
+ * data-kulbit-scramble) and a column of cards: the project videos (ui/ProjectVideo) and the last card «more soon...».
+ * The steps (the script below, a port of kulbit-webflow buildProjects, ADR-015 / ADR-016): desktop — one card fills
+ * the frame, a gesture shrinks it to 0 and grows the next one from below (the gap between the cards shows only while
+ * they swap); tablet / mobile — a window of 3 cards shares the free height, then one card less at the top and one
+ * more at the bottom per gesture. A card that leaves the window goes back to its poster; after the last card the next
+ * gesture moves to the next section. The line fills by the window position.
+ * The markup is the natural state: the first window in the frame, the line at its first part.
+ * Files: public/video/project-*-1080.mp4 / -720.mp4 (≤ 991px); posters src/assets/projects/ (2310 × 1290).
+ */
+import { Picture } from 'astro:assets';
+import ProjectVideo from '@/components/ui/ProjectVideo.astro';
+import { useTranslations } from '@/i18n';
+import posterRushCore from '@/assets/projects/project-rush-core-poster.avif';
+import posterSteelFury from '@/assets/projects/project-steel-fury-poster.avif';
+import moreSoon from '@/assets/projects/projects-more-soon.avif';
+
+const t = useTranslations(Astro.currentLocale).projects;
+
+// Was Vimeo 1180815974 and 1190443376 on the Webflow build
+const videos = [
+  { src: '/video/project-rush-core-1080.mp4', srcSmall: '/video/project-rush-core-720.mp4', poster: posterRushCore },
+  { src: '/video/project-steel-fury-1080.mp4', srcSmall: '/video/project-steel-fury-720.mp4', poster: posterSteelFury },
+].map((video, i) => ({ ...video, alt: t.posters[i] }));
+---
+
+<section class="section padding-64/48/24 projects" data-kulbit-section data-section-name="projects">
+  <div class="container">
+    <div class="projects_layout spacing-64/48/32 text-style-uppercase">
+      <div class="projects_progress" aria-hidden="true"><div class="projects_fill" data-projects-fill></div></div>
+      <div class="projects_body flex-v spacing-32">
+        <div class="projects_head justify-space-between spacing-16">
+          <h2 class="text-size-32/28/23" data-kulbit-scramble>{t.title}</h2>
+          <p class="projects_label text-size-16/16/13" data-kulbit-scramble>{t.label}</p>
+        </div>
+        <ul class="projects_cards" data-kulbit-project-group>
+          {videos.map((video) => <ProjectVideo element="li" class="projects_item" {...video} />)}
+          <li class="projects_item projects_soon" data-kulbit-project-end>
+            <div class="projects_soon-media">
+              <Picture src={moreSoon} formats={['avif', 'webp']} fallbackFormat="jpg" width={1750} alt={t.soonAlt} class="fill-box" />
+            </div>
+            <div class="projects_soon-text">
+              <p class="text-size-32/24/16 text-weight-800">{t.soon.lead} <span class="text-color-brand">{t.soon.accent}</span></p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* .section: the screen high (tablet 100svh); the container fills it (a grid row stretches its item) */
+  .projects {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    height: 100vh;
+  }
+  /* .section: 4rem top and bottom (tablet 3, mobile 1.5) */
+  .padding-64\/48\/24 {
+    padding-block: var(--size-64);
+  }
+  .projects_layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .spacing-64\/48\/32 {
+    gap: var(--size-64);
+  }
+  .spacing-32 {
+    gap: var(--size-32);
+  }
+  /* min gap, not in the design (space-between) */
+  .spacing-16 {
+    gap: var(--size-16);
+  }
+
+  /* PP Monument Wide 32 / 1.3, tracking 0.03em (tablet 28, mobile 23): .text-size-section-h2 */
+  .text-size-32\/28\/23 {
+    font-family: var(--font-secondary);
+    font-size: var(--size-32);
+    line-height: 1.3;
+    letter-spacing: 0.03em;
+  }
+  /* Decima Mono 16 / 1.1, tracking 0.03em (mobile 13): .text-size-section-label */
+  .text-size-16\/16\/13 {
+    font-size: var(--size-16);
+    line-height: 1.1;
+    letter-spacing: 0.03em;
+  }
+  /* PP Monument Wide Black 32 / 1.3, tracking 0.03em (tablet 24, mobile 16): .text-size-projects-more-soon */
+  .text-size-32\/24\/16 {
+    font-family: var(--font-secondary);
+    font-size: var(--size-32);
+    line-height: 1.3;
+    letter-spacing: 0.03em;
+  }
+
+  /* ---------- Progress line (.section-progresbar + the fill kulbit-webflow adds): the track at 15 % ---------- */
+  .projects_progress {
+    position: relative;
+    flex: none;
+    height: var(--size-2);
+    background-color: rgb(253 252 252 / 0.15);
+  }
+  .projects_fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(100% / 3); /* the first of 3 cards; the script drives it */
+    height: 100%;
+    background-color: var(--theme-text);
+  }
+
+  .projects_body {
+    flex: 1;
+  }
+  .projects_head {
+    align-items: flex-start;
+  }
+  .projects_label {
+    color: #62b0ff;
+  }
+
+  /* ---------- Cards (.projects-cards-wrapper > .projects-video-wrapper) ---------- */
+  .projects_cards {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: calc(3.38rem * var(--fluid-scale)); /* 54 */
+    overflow: hidden;
+  }
+  /* desktop: every card as high as the column — the column shows the first one */
+  .projects_item {
+    flex: none;
+    height: 100%;
+  }
+  .projects_soon {
+    position: relative;
+    overflow: hidden;
+    border-radius: calc(0.56rem * var(--fluid-scale)); /* 9 */
+  }
+  /* out of the flow, as .projects-tumb: its own height must not stretch the column */
+  .projects_soon-media {
+    position: absolute;
+    inset: 0;
+  }
+  .projects_soon-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 991px) {
+    .projects {
+      height: 100svh;
+    }
+    .padding-64\/48\/24 {
+      padding-block: var(--size-48);
+    }
+    .spacing-64\/48\/32 {
+      gap: var(--size-48);
+    }
+    .text-size-32\/28\/23 {
+      font-size: var(--size-28);
+    }
+    .text-size-32\/24\/16 {
+      font-size: var(--size-24);
+    }
+    /* 3 cards share the column */
+    .projects_fill {
+      width: 100%;
+    }
+    .projects_cards {
+      gap: var(--size-24);
+    }
+    .projects_item {
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 479px) {
+    .padding-64\/48\/24 {
+      padding-block: var(--size-24);
+    }
+    .spacing-64\/48\/32 {
+      gap: var(--size-32);
+    }
+    .text-size-32\/28\/23 {
+      font-size: calc(1.44rem * var(--fluid-scale));
+    }
+    .text-size-16\/16\/13 {
+      font-size: calc(0.81rem * var(--fluid-scale));
+    }
+    .text-size-32\/24\/16 {
+      font-size: var(--size-16);
+    }
+  }
+</style>
+
+<script>
+  // Steps of the section — port of kulbit-webflow buildProjects (03-sections.js, ADR-015 + ADR-016 p. 1), the same
+  // numbers. A window of WIN cards (desktop 1, tablet / mobile up to 3) over the column: state = its first card, the
+  // cards in it are open (desktop 100 %, tablet / mobile slotH px), the rest 0; the column moves up by state × gap, so
+  // the gap stays between the cards but hides above the window. maxState = total − WIN: the last card at the bottom
+  // of the window. A step shrinks the top card of the window (or the bottom one, going back) and grows the new one;
+  // the leaving card goes back to its poster. The line: (state + 1) / (maxState + 1).
+  // The engine calls prepare (slide-in start: the line empty), enter (covered: the line fills its first part),
+  // collapse (slides away: the line empties), reset(toEnd) (instant state; revealed from above = the last window).
+  import { gsap } from 'gsap';
+  import { app, config, registerSectionBuilder, visibleHeight, type SectionController } from '@/scripts/kulbit/app';
+  import { resetProjectVideo } from '@/scripts/kulbit/project-video';
+
+  const group = document.querySelector<HTMLElement>('[data-kulbit-project-group]');
+
+  registerSectionBuilder((mode) => {
+    const section = app.sections.find((s) => group && s.el.contains(group));
+    if (!section || !group) return;
+    // The cards = the children of the group; Astro renders the player's <script> before its first card
+    const items = [...group.querySelectorAll<HTMLElement>(':scope > :not(script, template)')];
+    const total = items.length;
+    if (total < 2) return;
+    const fill = section.el.querySelector<HTMLElement>('[data-projects-fill]');
+    const STEP = config.scrollDuration;
+    const EASE = config.ease;
+    const isDesktop = mode === 'desktop';
+    const WIN = isDesktop ? 1 : Math.min(3, total);
+    const maxState = total - WIN;
+    const gap = () => parseFloat(getComputedStyle(group).rowGap) || 0;
+
+    // tablet / mobile: the cards are flex: 1 there — flex-grow would share the height and ignore `height`
+    if (!isDesktop) gsap.set(items, { flex: 'none' });
+
+    // tablet / mobile: the free height under the heading / WIN. The space above the column is measured from the
+    // SECTION, not the viewport: while the section still waits below the screen the slot would come out wrong
+    const slotHeight = () => {
+      const top = group.getBoundingClientRect().top - section.el.getBoundingClientRect().top;
+      const paddingBottom = parseFloat(getComputedStyle(section.el).paddingBottom) || 0;
+      const free = visibleHeight() - top - paddingBottom;
+      return (free - (WIN - 1) * gap()) / WIN;
+    };
+
+    // Progress line by the window position; empty at once while sliding in, 0 → its first part once covered,
+    // empties while sliding away
+    const setFill = (state: number, animate: boolean) => {
+      if (!fill) return;
+      const width = `${((state + 1) / (maxState + 1)) * 100}%`;
+      if (animate) gsap.to(fill, { width, duration: STEP, ease: EASE });
+      else gsap.set(fill, { width });
+    };
+    const prepareLine = () => {
+      if (!fill) return;
+      gsap.killTweensOf(fill);
+      gsap.set(fill, { width: '0%' });
+    };
+    const enterLine = () => {
+      prepareLine();
+      setFill(0, true);
+    };
+    const collapseLine = () => {
+      if (!fill) return;
+      gsap.killTweensOf(fill);
+      gsap.to(fill, { width: '0%', duration: STEP, ease: EASE });
+    };
+
+    // A video card back to its poster (pause, time 0, controls away); the end card has nothing to reset
+    const resetOthers = (active: number) =>
+      items.forEach((item, i) => {
+        if (i !== active) resetProjectVideo(item);
+      });
+
+    const setHeights = (state: number, animate: boolean) => {
+      const slot = isDesktop ? 0 : slotHeight();
+      items.forEach((item, i) => {
+        const open = i >= state && i < state + WIN;
+        const height = isDesktop ? (open ? '100%' : '0%') : open ? slot : 0;
+        if (animate) gsap.to(item, { height, duration: STEP, ease: EASE });
+        else gsap.set(item, { height });
+      });
+    };
+    const moveColumn = (state: number, animate: boolean) => {
+      const y = -state * gap();
+      if (animate) gsap.to(items, { y, duration: STEP, ease: EASE });
+      else gsap.set(items, { y });
+    };
+    const applyState = (state: number) => {
+      setHeights(state, false);
+      moveColumn(state, false);
+    };
+
+    let state = 0;
+    applyState(0);
+    resetOthers(0);
+    prepareLine(); // hidden start until the section appears
+
+    const controller: SectionController = {
+      get state() {
+        return state;
+      },
+      prepare() {
+        state = 0;
+        applyState(0);
+        resetOthers(0);
+        prepareLine();
+      },
+      enter() {
+        state = 0;
+        applyState(0);
+        resetOthers(0);
+        enterLine();
+      },
+      collapse: collapseLine,
+      reset(toEnd) {
+        state = toEnd ? maxState : 0;
+        applyState(state);
+        setFill(state, false);
+        resetOthers(state);
+      },
+      // The breakpoint changes: heights, the column shift and flex from the steps live outside the matchMedia context
+      dispose() {
+        gsap.killTweensOf(items);
+        gsap.set(items, { clearProps: 'height,transform,flex' });
+        if (fill) {
+          gsap.killTweensOf(fill);
+          gsap.set(fill, { clearProps: 'width' });
+        }
+      },
+      step(dir) {
+        const next = Math.max(0, Math.min(maxState, state + dir));
+        if (next === state) return false; // the edge of the window: the engine moves to the neighbouring section
+        const leaving = dir > 0 ? items[state] : items[state + WIN - 1];
+        state = next;
+        app.isAnimating = true;
+        resetProjectVideo(leaving);
+        setHeights(state, true); // the top card shrinks, the new one grows, the ones between stay
+        moveColumn(state, true);
+        setFill(state, true);
+        gsap.delayedCall(STEP, () => {
+          app.isAnimating = false;
+        });
+        return true;
+      },
+    };
+    section.controller = controller;
+  });
+</script>

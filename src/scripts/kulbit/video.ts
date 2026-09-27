@@ -83,7 +83,7 @@ export const setupVideos = () => {
   });
 };
 
-/** Adds another module's video (the future project videos) to the visibility logic */
+/** Adds another module's video (the project videos, ./project-video) to the visibility logic */
 export const registerVideo = (record: VideoRecord) => {
   videos.push(record);
 };

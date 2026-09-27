@@ -36,7 +36,7 @@ export const registerAnimations = () => {
   app.mm.add('(max-width: 479px)', branch('mobile'));
 };
 
-/** Re-applies the landscape state (the future project-video module calls it after a fullscreen change) */
+/** Re-applies the landscape state (./project-video calls it after a fullscreen change) */
 export let reapplyResponsive = () => {};
 
 export const setupLandscape = () => {

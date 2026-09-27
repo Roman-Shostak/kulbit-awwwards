@@ -13,12 +13,10 @@
  *   hero-height.ts    the hero's height = visualViewport height
  *   button-border.ts  [data-kulbit-border] hover border
  *   scramble.ts       [data-kulbit-scramble] / [data-kulbit-typewriter] texts written on entering the screen (ADR-017)
+ *   project-video.ts  the project video player (ADR-014/016), started by src/components/ui/ProjectVideo.astro
  *
  * LEFT TO PORT — each with its section, as a `registerSectionBuilder((mode) => …)` that sets `section.controller`
  * (source file → functions):
- *   projects           03-sections.js buildProjects (l. 507–644: window swap WIN, slotHeight, resetItem, progress);
- *                      10-project-video.js initProjectVideo (custom controls, registry / pauseOthers, fullscreen →
- *                      app.videoFullscreen + reapplyResponsive from ./responsive; its records → registerVideo in ./video)
  *   our services       03-sections.js buildHSwipe (l. 645–764)
  *   working process    03-sections.js buildWorkingProcess (l. 765–1045: revealTL, stepTo, setStateInstant, SVG clones)
  *   traditional prod.  03-sections.js buildTraditional (l. 1178–1495: radar, data-kulbit-progress)
@@ -26,7 +24,8 @@
  *                      controller's prepare() = reset()); 13-misc.js copyright year (#copyright-year)
  *   popup form         07-popup-form.js — empty in the source (placeholder)
  *   landscape popup    only its markup: `[data-kulbit-landscape-popup] hidden` (the logic is in ./responsive)
- * Ported with their sections: our clients (buildOurClients → src/components/sections/OurClients.astro).
+ * Ported with their sections: our clients (buildOurClients → src/components/sections/OurClients.astro), projects
+ * (buildProjects → src/components/sections/Projects.astro).
  * 05-header.js is empty in the source: the header moves only through its data-kulbit-* attributes (hero timeline).
  */
 import { gsap } from 'gsap';

@@ -21,19 +21,24 @@
  *                   <div class="header">, footer inside <footer class="footer">).
  */
 import Button from '@/components/ui/Button.astro';
+import ProjectVideo from '@/components/ui/ProjectVideo.astro';
 import Square from '@/components/ui/Square.astro';
 import Hero from '@/components/sections/Hero.astro';
 import OurClients from '@/components/sections/OurClients.astro';
+import Projects from '@/components/sections/Projects.astro';
 import SiteHeader from '@/components/sections/SiteHeader.astro';
+import { useTranslations } from '@/i18n';
 import DevShell from './DevShell.astro';
+import posterRushCore from '@/assets/projects/project-rush-core-poster.avif';
 
+const tProjects = useTranslations(Astro.currentLocale).projects;
 const fileName = (path: string) => path.split('/').pop()!.replace(/\.astro$/, '');
 const uiFiles = Object.keys(import.meta.glob('../components/ui/*.astro')).map(fileName);
 const sectionFiles = Object.keys(import.meta.glob('../components/sections/*.astro')).map(fileName);
 
 // Registry of what this page renders — keep in sync with the blocks below
-const showcasedUi: string[] = ['Button', 'Square'];
-const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients'];
+const showcasedUi: string[] = ['Button', 'Square', 'ProjectVideo'];
+const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients', 'Projects'];
 
 const missingUi = uiFiles.filter((name) => !showcasedUi.includes(name));
 const missingSections = sectionFiles.filter((name) => !showcasedSections.includes(name));
@@ -106,6 +111,21 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
     </div>
   </section>
 
+  <section class="dev_component" id="ui-projectvideo">
+    <h3>ProjectVideo</h3>
+    <p class="dev_component-meta"><code>src/components/ui/ProjectVideo.astro</code> — the project video player: poster + start button, then play / pause, time, seek with buffer, volume (a vertical slider; ≤ 991px a mute toggle), fullscreen. src (1080p) + srcSmall (720p, ≤ 991px), poster + alt; element: div | li (li in Projects). Fills its box: the caller sizes it.</p>
+    <div class="dev_variants dev_variants--wide">
+      <figure class="dev_variant">
+        <div class="dev_stage theme--dark">
+          <div class="dev_player">
+            <ProjectVideo src="/video/project-rush-core-1080.mp4" srcSmall="/video/project-rush-core-720.mp4" poster={posterRushCore} alt={tProjects.posters[0]} />
+          </div>
+        </div>
+        <figcaption><code>&lt;ProjectVideo src srcSmall poster alt&gt;</code> → div (16:9 box of this page)</figcaption>
+      </figure>
+    </div>
+  </section>
+
   {/*
     Example block — the Button of a project with its variants:
 
@@ -166,4 +186,5 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
   <div class="dev_section-frame"><div class="dev_section-label">SiteHeader.astro</div><div class="header"><SiteHeader /></div></div>
   <div class="dev_section-frame"><div class="dev_section-label">Hero.astro (start state; the step runs on the home page)</div><Hero /></div>
   <div class="dev_section-frame"><div class="dev_section-label">OurClients.astro (set 1; the steps and the scramble run on the home page)</div><OurClients /></div>
+  <div class="dev_section-frame"><div class="dev_section-label">Projects.astro (the first card; the swap steps and the scramble run on the home page)</div><Projects /></div>
 </DevShell>

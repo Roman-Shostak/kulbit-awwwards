@@ -69,4 +69,25 @@ export default {
       'Laurel wreaths surrounding text reading Best Video Music Salento International Film Festival 2017.',
     ],
   },
+  projects: {
+    title: 'Motion Cut',
+    label: '/ by kulbit',
+    /** alt of the video posters, in the order of the cards */
+    posters: [
+      'Three futuristic motorcyclists racing on a desert road with neon and fiery effects at sunset.',
+      'Close-up of a dark futuristic robot head with a glowing blue horizontal visor in a dim setting.',
+    ],
+    /** The last card: «more soon...», the second word red */
+    soon: { lead: 'more', accent: 'soon...' },
+    soonAlt: 'Meditating samurai in a mossy forest with pink blossoms and a katana planted in the ground.',
+  },
+  /** Accessible names of the video player controls (the Webflow build has none: its controls are divs) */
+  projectVideo: {
+    start: 'Play video',
+    play: 'Play',
+    pause: 'Pause',
+    seek: 'Seek',
+    volume: 'Volume',
+    fullscreen: 'Fullscreen',
+  },
 };

@@ -73,7 +73,7 @@ export const app = {
   content: null as HTMLElement | null,
   /** The landscape "rotate your phone" popup is shown: videos stay paused, navigation is off */
   landscapeBlocked: false,
-  /** A video is in fullscreen (set by the future project-video module): rotation must not pause it */
+  /** A video is in fullscreen (set by ./project-video): rotation must not pause it */
   videoFullscreen: false,
   initialized: false,
 };

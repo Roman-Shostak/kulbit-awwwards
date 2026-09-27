@@ -378,6 +378,10 @@
 .dev_stage:not(.theme--dark) {
   background: var(--theme-page-bg);
 }
+/* A player fills its box: a 16:9 box on the showcase */
+.dev_player {
+  aspect-ratio: 16 / 9;
+}
 /* Sections have no background of their own: the frame is the site's body (page background + text colour) */
 .dev_section-frame {
   margin-bottom: 1.5rem;

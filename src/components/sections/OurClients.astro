@@ -11,6 +11,8 @@
  * are rewritten when the last set appears. Hovering a client card crossfades its logo to the colour version.
  * The markup is the natural state: set 1 in the frame, the others below it, the line at a third.
  * Files: src/assets/our-clients/ — logos as SVG files (107 KB together: too heavy to inline), awards 4x PNG.
+ * Images load eagerly: the stacked sections wait outside the clipped viewport, where lazy images only start loading
+ * once they are on the screen (they appeared empty and popped in).
  */
 import { Image, Picture } from 'astro:assets';
 import Square from '@/components/ui/Square.astro';
@@ -120,10 +122,10 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
                 {set.logos.map((logo, j) => (
                   <li class:list={['our-clients_card', { 'size--big': isBig(j, set.logos.length) }]}>
                     <div class="our-clients_logo">
-                      <Image src={logo.white} alt={logo.name} class="fill-box" />
+                      <Image src={logo.white} alt={logo.name} loading="eager" class="fill-box" />
                     </div>
                     <div class="our-clients_logo logo--color">
-                      <Image src={logo.color} alt="" class="fill-box" />
+                      <Image src={logo.color} alt="" loading="eager" class="fill-box" />
                     </div>
                   </li>
                 ))}
@@ -135,7 +137,7 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
               awards.map((award, j) => (
                 <li class:list={['our-clients_card', { 'size--big': isBig(j, awards.length) }]}>
                   <div class="our-clients_logo">
-                    <Picture src={award.src} formats={['avif', 'webp']} width={159} alt={award.alt} class="fill-box" />
+                    <Picture src={award.src} formats={['avif', 'webp']} width={159} alt={award.alt} loading="eager" class="fill-box" />
                   </div>
                 </li>
               ))

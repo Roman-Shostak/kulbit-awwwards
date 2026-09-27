@@ -377,15 +377,23 @@ const initProjectVideo = (root: HTMLElement) => {
   renderVolume(video.muted ? 0 : video.volume);
   players.set(root, reset);
 
-  // Covered by the next section / the landscape popup → pause; never autoplays (show is a no-op)
+  // Covered by the next section / the landscape popup → pause; never autoplays. The file waits with preload="none"
+  // (Safari downloaded both files whole at the page start for their metadata): the metadata (the total time) loads when
+  // the section before becomes the current one (warm) or, after a jump, when its own section does (show)
+  const loadMetadata = () => {
+    if (video.readyState > HTMLMediaElement.HAVE_NOTHING || video.networkState === HTMLMediaElement.NETWORK_LOADING) return;
+    video.preload = 'metadata';
+    video.load();
+  };
   const sectionEl = root.closest('[data-kulbit-section]');
   if (sectionEl) {
     registerVideo({
       get sectionIndex() {
         return app.sections.findIndex((section) => section.el === sectionEl);
       },
-      show: () => {},
+      show: loadMetadata,
       hide: () => video.pause(),
+      warm: loadMetadata,
     });
   }
 };

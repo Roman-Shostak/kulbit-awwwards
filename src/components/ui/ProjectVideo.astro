@@ -6,7 +6,9 @@
  * from 991px down a mute toggle) and fullscreen. The behaviour is src/scripts/kulbit/project-video.ts (a port of
  * kulbit-webflow 10-project-video.js on a native <video> instead of the Vimeo SDK).
  * Props: `src` (1080p, above 991px) + `srcSmall` (720p, up to 991px) — like the hero; `poster` + `alt` (astro:assets);
- * `element` div | li. The root fills its box (100 % × 100 %): the caller sizes it with its own class.
+ * `element` div | li. The root fills its box (100 % × 100 %): the caller sizes it with its own class. The poster loads
+ * eagerly (in a stacked, clipped section a lazy one starts loading only once it is on the screen); the video waits with
+ * preload="none" until its section is the next one (src/scripts/kulbit/project-video.ts → warm).
  */
 import type { ImageMetadata } from 'astro';
 import type { HTMLAttributes } from 'astro/types';
@@ -35,12 +37,12 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
 ---
 
 <Tag class:list={['project-video', className]} data-kulbit-project-video {...rest}>
-  <video class="project-video_video" playsinline preload="metadata">
+  <video class="project-video_video" playsinline preload="none">
     <source src={srcSmall} type="video/mp4" media="(max-width: 991px)" />
     <source src={src} type="video/mp4" />
   </video>
   <div class="project-video_poster" data-kulbit-poster>
-    <Picture src={poster} formats={['avif', 'webp']} fallbackFormat="jpg" width={1750} alt={alt} class="fill-box" />
+    <Picture src={poster} formats={['avif', 'webp']} fallbackFormat="jpg" width={1750} alt={alt} loading="eager" class="fill-box" />
   </div>
   <button class="project-video_start" type="button" data-kulbit-play>
     <IconPlay class="project-video_glyph" aria-hidden="true" />

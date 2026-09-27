@@ -11,7 +11,8 @@
  * more at the bottom per gesture. A card that leaves the window goes back to its poster; after the last card the next
  * gesture moves to the next section. The line fills by the window position.
  * The markup is the natural state: the first window in the frame, the line at its first part.
- * Files: public/video/project-*-1080.mp4 / -720.mp4 (≤ 991px); posters src/assets/projects/ (2310 × 1290).
+ * Files: public/video/project-*-1080.mp4 / -720.mp4 (≤ 991px); posters src/assets/projects/ (2310 × 1290). Images load
+ * eagerly: lazy ones in the stacked (clipped) sections start loading only once they are on the screen.
  */
 import { Picture } from 'astro:assets';
 import ProjectVideo from '@/components/ui/ProjectVideo.astro';
@@ -42,7 +43,7 @@ const videos = [
           {videos.map((video) => <ProjectVideo element="li" class="projects_item" {...video} />)}
           <li class="projects_item projects_soon" data-kulbit-project-end>
             <div class="projects_soon-media">
-              <Picture src={moreSoon} formats={['avif', 'webp']} fallbackFormat="jpg" width={1750} alt={t.soonAlt} class="fill-box" />
+              <Picture src={moreSoon} formats={['avif', 'webp']} fallbackFormat="jpg" width={1750} alt={t.soonAlt} loading="eager" class="fill-box" />
             </div>
             <div class="projects_soon-text">
               <p class="text-size-32/24/16 text-weight-800">{t.soon.lead} <span class="text-color-brand">{t.soon.accent}</span></p>

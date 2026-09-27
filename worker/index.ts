@@ -2,7 +2,8 @@
  * Form handler — the only Worker of the site. `POST /api/form` (ui/Form.astro + src/scripts/form.ts) checks the
  * submission, stores it in D1 (`env.DB`, schema in migrations/) and notifies the client through the channels
  * in `env.NOTIFY` — Telegram (secrets TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID) and/or e-mail (Cloudflare Email
- * Service binding `env.EMAIL`, vars EMAIL_FROM / EMAIL_TO — Workers Paid plan; a free alternative would be a Resend channel). Every other URL goes to the static assets (`env.ASSETS`).
+ * Service binding `env.EMAIL`, vars EMAIL_FROM / EMAIL_TO — Workers Paid plan; a free alternative would be a Resend channel). Every other URL goes to the static assets (`env.ASSETS`);
+ * /video/* through the edge cache, which answers Range requests (`serveVideo`).
  * Spam: a honeypot field (`website`), a minimum fill time (`started`, set by the script) and a per-IP rate limit
  * (`env.FORM_RATE_LIMIT`); a caught bot gets the success answer and nothing is stored.
  * Answers: JSON for the script (`Accept: application/json`), a plain HTML page without JS.
@@ -73,6 +74,7 @@ type Result = { ok: true } | { ok: false; code: Invalid['code'] | 'rate' | 'erro
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith('/video/')) return serveVideo(request, url, env);
     if (url.pathname !== '/api/form' && url.pathname !== '/api/telegram') return serveAssets(request, url, env);
     // Forms not connected yet (no D1 / rate limit binding in wrangler.jsonc): /api/* is an unknown URL → 404 page
     if (!hasForms(env)) return serveAssets(request, url, env);
@@ -88,10 +90,44 @@ const serveAssets = async (request: Request, url: URL, env: Bindings): Promise<R
   if (url.pathname === '/robots.txt') {
     return new Response('User-agent: *\nDisallow: /\n', { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Robots-Tag': 'noindex' } });
   }
-  const response = await env.ASSETS.fetch(request);
+  return withNoindex(await env.ASSETS.fetch(request));
+};
+
+const withNoindex = (response: Response): Response => {
   const headers = new Headers(response.headers);
   headers.set('X-Robots-Tag', 'noindex');
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+};
+
+/** Videos (/video/*; production: `run_worker_first` in wrangler.jsonc). The static assets answer a Range request with
+ * 200 and the whole file: Safari does not play such a video, the other browsers download it whole (a 24 MB project video
+ * only for its metadata) and cannot seek without it. The Cache API slices ranges itself (206; HEAD and If-None-Match
+ * too), so each file goes into the data centre's cache once, keyed by its ETag (a new version of a file = a new key),
+ * and every request is answered from there. Without a cache (local wrangler dev may lack it) the plain file is served */
+const VIDEO_CACHE_CONTROL = 'public, max-age=86400';
+const serveVideo = async (request: Request, url: URL, env: Bindings): Promise<Response> => {
+  if (request.method !== 'GET' && request.method !== 'HEAD') return serveAssets(request, url, env);
+  const head = await env.ASSETS.fetch(new Request(url.toString(), { method: 'HEAD' }));
+  const etag = head.headers.get('ETag');
+  if (head.status !== 200 || !etag) return serveAssets(request, url, env);
+
+  const cache = caches.default;
+  const key = `${url.origin}${url.pathname}?etag=${encodeURIComponent(etag)}`;
+  // The browser's own headers (Range, If-None-Match) pick the part of the cached file
+  const lookup = new Request(key, { headers: request.headers });
+  let response = await cache.match(lookup);
+  if (!response) {
+    const file = await env.ASSETS.fetch(new Request(url.toString()));
+    if (file.status !== 200 || !file.body) return serveAssets(request, url, env);
+    const headers = new Headers(file.headers);
+    headers.set('Cache-Control', VIDEO_CACHE_CONTROL);
+    headers.set('Accept-Ranges', 'bytes');
+    await cache.put(key, new Response(file.body, { status: 200, headers }));
+    response = await cache.match(lookup);
+    if (!response) return serveAssets(request, url, env);
+  }
+  if (request.method === 'HEAD') response = new Response(null, response);
+  return env.ENVIRONMENT === 'production' ? response : withNoindex(response);
 };
 
 const handleForm = async (request: Request, env: FormBindings): Promise<Response> => {

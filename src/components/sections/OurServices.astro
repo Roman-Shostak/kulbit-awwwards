@@ -9,7 +9,8 @@
  * kulbit-webflow buildHSwipe, ADR-018): appear (the cards rise) → step 1 (the statement is erased; desktop / tablet —
  * its height collapses and the cards rise; mobile — the line, the label and the statement fade out and the cards go
  * up to the section's padding) → the cards swap horizontally, one gesture = one card. The line fills by the state.
- * Only the card in view plays its video, and only while the section is the current one.
+ * Only the card in view plays its video, and only while the section is the current one; the files load ahead (the
+ * first card's when the section before becomes the current one, the next card's while one plays).
  * The markup is the natural state: the first card in the frame, the line at its first part.
  * Files: public/video/service-*-1080.mp4 (the originals) / -720.mp4 (the Webflow transcodes, ≤ 991px); posters
  * src/assets/our-services/ (the first frames, 1280 × 720).
@@ -508,13 +509,32 @@ const cards = await Promise.all(
     videos.forEach((video, i) => {
       if (i !== keep) video?.pause();
     });
+  // Loading ahead (the files wait with preload="none"): the card in view when the section before becomes the current
+  // one (./video → warm), the next card once the one in view can play through — a swap never waits for its file
+  const load = (i: number) => {
+    const video = videos[i];
+    if (!video || reducedMotion() || video.readyState > HTMLMediaElement.HAVE_NOTHING) return;
+    if (video.networkState === HTMLMediaElement.NETWORK_LOADING) return;
+    video.preload = 'auto';
+    video.load();
+  };
+  const loadNext = () => {
+    const video = videos[active];
+    if (!video) return;
+    if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) load(active + 1);
+    else video.addEventListener('canplaythrough', () => load(active + 1), { once: true });
+  };
   if (root) {
     registerVideo({
       get sectionIndex() {
         return app.sections.findIndex((section) => section.el === root);
       },
-      show: playActive,
+      show: () => {
+        playActive();
+        loadNext();
+      },
       hide: () => pauseOthers(-1),
+      warm: () => load(active),
     });
   }
 
@@ -614,6 +634,7 @@ const cards = await Promise.all(
       active = swapIndexOf(s);
       pauseOthers(active);
       playActive();
+      loadNext();
     };
 
     let state = 0;
@@ -679,7 +700,10 @@ const cards = await Promise.all(
         // The incoming card plays at once, the leaving one stops when it is out of the frame
         const leaving = active;
         active = swapIndexOf(next);
-        if (active !== leaving) playActive();
+        if (active !== leaving) {
+          playActive();
+          loadNext();
+        }
         gsap.delayedCall(STEP, () => {
           app.isAnimating = false;
           if (active !== leaving) pauseOthers(active);

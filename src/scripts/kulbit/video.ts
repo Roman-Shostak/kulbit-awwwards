@@ -9,6 +9,8 @@
  * user chose (`soundOn`). Showing the current video happens at once (it plays while its section slides in),
  * hiding the covered ones at the END of the move (`goToSection` / the tablet hero hand-off).
  * `prefers-reduced-motion: reduce`: no autoplay — the video starts only when the user turns the sound on.
+ * A module's video (`registerVideo`) may also have `warm`: called when its section becomes the next one, so a video that
+ * waits with preload="none" is loaded before the user gets there.
  */
 import { gsap } from 'gsap';
 import { app } from './app';
@@ -17,6 +19,8 @@ export interface VideoRecord {
   sectionIndex: number;
   show: () => void;
   hide: () => void;
+  /** Its section is the next one: start loading ahead (a video with preload="none") */
+  warm?: () => void;
 }
 
 const videos: VideoRecord[] = [];
@@ -88,11 +92,12 @@ export const registerVideo = (record: VideoRecord) => {
   videos.push(record);
 };
 
-/** Plays the current section's video (at once, while its section slides in) */
+/** Plays the current section's video (at once, while its section slides in); the next section's videos load ahead */
 export const showCurrentVideo = () => {
   if (app.videoFullscreen || app.landscapeBlocked) return;
   videos.forEach((record) => {
     if (record.sectionIndex === app.currentSectionIndex) record.show();
+    else if (record.sectionIndex === app.currentSectionIndex + 1) record.warm?.();
   });
 };
 

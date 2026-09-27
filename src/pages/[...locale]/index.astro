@@ -3,6 +3,7 @@ import SiteHeader from '@/components/sections/SiteHeader.astro';
 import Hero from '@/components/sections/Hero.astro';
 import OurClients from '@/components/sections/OurClients.astro';
 import Projects from '@/components/sections/Projects.astro';
+import OurServices from '@/components/sections/OurServices.astro';
 import { localeStaticPaths, useTranslations } from '@/i18n';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
@@ -16,4 +17,5 @@ const t = useTranslations(Astro.currentLocale).pages.home;
   <Hero />
   <OurClients />
   <Projects />
+  <OurServices />
 </BaseLayout>

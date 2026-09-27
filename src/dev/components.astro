@@ -26,6 +26,7 @@ import Square from '@/components/ui/Square.astro';
 import Hero from '@/components/sections/Hero.astro';
 import OurClients from '@/components/sections/OurClients.astro';
 import Projects from '@/components/sections/Projects.astro';
+import OurServices from '@/components/sections/OurServices.astro';
 import SiteHeader from '@/components/sections/SiteHeader.astro';
 import { useTranslations } from '@/i18n';
 import DevShell from './DevShell.astro';
@@ -38,7 +39,7 @@ const sectionFiles = Object.keys(import.meta.glob('../components/sections/*.astr
 
 // Registry of what this page renders — keep in sync with the blocks below
 const showcasedUi: string[] = ['Button', 'Square', 'ProjectVideo'];
-const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients', 'Projects'];
+const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients', 'Projects', 'OurServices'];
 
 const missingUi = uiFiles.filter((name) => !showcasedUi.includes(name));
 const missingSections = sectionFiles.filter((name) => !showcasedSections.includes(name));
@@ -187,4 +188,5 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
   <div class="dev_section-frame"><div class="dev_section-label">Hero.astro (start state; the step runs on the home page)</div><Hero /></div>
   <div class="dev_section-frame"><div class="dev_section-label">OurClients.astro (set 1; the steps and the scramble run on the home page)</div><OurClients /></div>
   <div class="dev_section-frame"><div class="dev_section-label">Projects.astro (the first card; the swap steps and the scramble run on the home page)</div><Projects /></div>
+  <div class="dev_section-frame"><div class="dev_section-label">OurServices.astro (the first card; the swap steps, the card videos and the scramble run on the home page)</div><OurServices /></div>
 </DevShell>

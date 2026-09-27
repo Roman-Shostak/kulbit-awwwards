@@ -81,6 +81,84 @@ export default {
     soon: { lead: 'more', accent: 'soon...' },
     soonAlt: 'Meditating samurai in a mossy forest with pink blossoms and a katana planted in the ground.',
   },
+  ourServices: {
+    title: 'our Services',
+    /** One sentence; the grey parts as on the site */
+    statement: [
+      { text: 'A Comprehensive', grey: true },
+      { text: 'AI Production', grey: false },
+      { text: 'Architecture. From', grey: true },
+      { text: 'strategic concept to global', grey: false },
+      { text: 'scale.', grey: true },
+    ],
+    /**
+     * The five cards in order: the red meta line(s), two columns of paragraphs (`list`: two bulleted lists) and the
+     * tags. Card 3's texts come from Figma (the Webflow build repeats card 1 there); card 4 has no meta line.
+     */
+    cards: [
+      {
+        title: '1. Strategy & Pre-Visualization',
+        meta: ['Timeline: 1–2 Weeks'],
+        list: false,
+        columns: [
+          ['Script & Scenario Development, Creative Direction, AI Storyboarding, Concept Frames.', 'The blueprint of success.'],
+          [
+            'We lock the visual language and narrative arc before production begins, ensuring total alignment and eliminating costly downstream revisions.',
+          ],
+        ],
+        tags: ['Creative Direction', 'Concept', 'AI Storyboarding', 'visual language'],
+      },
+      {
+        title: '2. Brand Videos',
+        meta: ['Timeline: 4–8 Weeks', 'Specs: 60–120 Seconds.'],
+        list: false,
+        columns: [
+          [
+            'Cinematic Brand Storytelling & Corporate Identity Films.',
+            'High-fidelity, narrative-driven assets designed to define your market position.',
+          ],
+          ['We fuse emotional storytelling with high-end AI visuals to build long-term brand equity.'],
+        ],
+        tags: ['Storytelling', 'high-end AI visuals', 'Corporate Identity'],
+      },
+      {
+        title: '3. Product Videos (KPI-Driven)',
+        meta: ['Timeline: 3–4 Weeks'],
+        list: false,
+        columns: [
+          [
+            'The KPIs: Optimized for CVR (Conversion Rate), CTR (Click-Through Rate), VTR (View-Through Rate), CPV (Cost Per View), and ROAS (Return on Ad Spend).',
+          ],
+          [
+            'Performance-first assets engineered to stop the scroll. We iterate rapidly on hooks and visuals to maximize your media spend efficiency.',
+          ],
+        ],
+        tags: ['Optimization', 'Conversion Rate', 'AD', 'Performance'],
+      },
+      {
+        title: '4. Global Scale & Adaptation',
+        meta: [],
+        list: false,
+        columns: [
+          ['50+ Languages Global Localization & Dynamic Video Variations.', 'Instantly adapt your master asset for any market.'],
+          [
+            'We utilize AI for lip-syncing and cultural adaptation, allowing you to launch global campaigns from a single creative source.',
+          ],
+        ],
+        tags: ['50+ Languages', 'Localization', 'global campaigns'],
+      },
+      {
+        title: '5. Extended Capabilities',
+        meta: ['Product Showcase / 360° Videos'],
+        list: true,
+        columns: [
+          ['Social Media Viral Videos', 'Explainer & Educational Content'],
+          ['Motion Graphics', 'High-End 3D & Animation'],
+        ],
+        tags: ['Motion', 'High-End 3D', 'Social Media'],
+      },
+    ],
+  },
   /** Accessible names of the video player controls (the Webflow build has none: its controls are divs) */
   projectVideo: {
     start: 'Play video',

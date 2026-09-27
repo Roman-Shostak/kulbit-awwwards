@@ -1,7 +1,8 @@
 # Cloudflare response headers (PageSpeed → Best Practices → Trust and Safety)
 # (Only one rule per path is applied, so every header for /* stays in this one block.)
 # Stage is kept out of search by the Worker (worker/index.ts → serveAssets), not here.
-# TODO: remove X-Robots-Tag at launch — keeps production out of search until the client approves the site (/prelaunch reminds)
+# X-Robots-Tag stays for good (not a launch TODO): kulbit.site is a portfolio / Awwwards site and must never compete
+# in search with the client's own site kulbit.com. robots.txt keeps crawling allowed so crawlers can read the noindex.
 /*
   X-Frame-Options: SAMEORIGIN
   Cross-Origin-Opener-Policy: same-origin

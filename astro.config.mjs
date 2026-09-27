@@ -114,7 +114,7 @@ export default defineConfig({
   // (https://<project>.<account>.workers.dev, *.pages.dev, *.vercel.app, *.netlify.app) with a TODO
   // to swap it for the production domain — never example.com: link previews (og:image) would 404
   // and `pnpm seo` reports a placeholder host as an error.
-  // site: 'https://client-site.example.workers.dev', // TODO: the production domain
+  site: 'https://kulbit.site',
 
   image: {
     // Every <Image>/<Picture> gets srcset + sizes automatically, scaled to its container

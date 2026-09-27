@@ -10,13 +10,12 @@
 // the local D1 needs `pnpm worker:migrate` once.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  // TODO: the Worker name, lowercase with dashes (the client's site, e.g. `mila-doctor`); the stage Worker is `<name>-stage`
-  "name": "client-site",
-  "account_id": "<client account id>",
-  "compatibility_date": "2026-09-15",
+  "name": "kulbit",
+  "account_id": "ed1903c11ca21f56172d07247042f65c",
+  "compatibility_date": "2026-09-27",
   "main": "worker/index.ts",
   // Production domain (zone in the client's account); Cloudflare creates the DNS record and certificate
-  "routes": [{ "pattern": "<domain>", "custom_domain": true }],
+  "routes": [{ "pattern": "kulbit.site", "custom_domain": true }],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
@@ -31,14 +30,14 @@
   "vars": {
     "ENVIRONMENT": "production",
     "NOTIFY": "telegram",
-    "SITE_NAME": "<domain>",
+    "SITE_NAME": "kulbit.site",
   },
   // Form submissions storage (D1 in the client's account, `wrangler d1 create <name>-forms`); schema in migrations/
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "<name>-forms",
-      "database_id": "<database id>",
+      "database_name": "kulbit-forms",
+      "database_id": "8139149e-2c15-49a2-a8dd-1281881a716a",
     },
   ],
   // Submissions per IP: 5 a minute, the rest get 429 (counted after validation)
@@ -48,7 +47,7 @@
     // Bindings and vars are not inherited from the top level, so everything is repeated here.
     "stage": {
       // own domain; without it the stage Worker would inherit the production domain
-      "routes": [{ "pattern": "stage.<domain>", "custom_domain": true }],
+      "routes": [{ "pattern": "stage.kulbit.site", "custom_domain": true }],
       // every request goes through the Worker: it adds `X-Robots-Tag: noindex` and a closed robots.txt on stage
       "assets": {
         "directory": "./dist",
@@ -59,14 +58,14 @@
       "vars": {
         "ENVIRONMENT": "stage",
         "NOTIFY": "telegram",
-        "SITE_NAME": "<domain>",
+        "SITE_NAME": "kulbit.site",
       },
       // own database for test submissions (`wrangler d1 create <name>-forms-stage`)
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "<name>-forms-stage",
-          "database_id": "<stage database id>",
+          "database_name": "kulbit-forms-stage",
+          "database_id": "4d50d1f9-1787-4ea0-b4b3-f6766593f465",
         },
       ],
       "ratelimits": [{ "name": "FORM_RATE_LIMIT", "namespace_id": "1002", "simple": { "limit": 5, "period": 60 } }],

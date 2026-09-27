@@ -267,8 +267,8 @@ export default {
     ],
   },
   /**
-   * The quick jump between the screens (SectionNav): the name of the nav, the button and one item per screen in the
-   * order of the page. TODO: provisional items (the screens' headings) until the designer's mockup
+   * The quick jump between the screens (SectionNav): the name of the nav, the name of the arrow that opens the panel
+   * and one item per screen in the order of the page. TODO: provisional items (the screens' headings) until the designer's mockup
    */
   sectionNav: {
     label: 'Sections',

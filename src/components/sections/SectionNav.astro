@@ -1,16 +1,20 @@
 ---
 /**
- * SectionNav — the quick jump between the screens of the home page: «Menu», a button fixed at the bottom right, always
- * on screen, opens the list of the eight screens with the current one marked (a square + aria-current, kept live by
- * the engine's `kulbit:section` event); an item jumps to its screen at its start (data-target-section → the engine's
- * autoAdvanceTo: down over a black backdrop, src/scripts/kulbit/sections.ts) and closes the list.
- * Not in the Webflow build or in Figma: a provisional look in the site's style (the frame and the hover border of the
- * header button, the Decima Mono label) until the designer's mockup — the values are marked TODO.
- * Disclosure pattern: <nav> > <button aria-expanded aria-controls> + the list (hidden when closed, over the button);
- * Esc and a click outside close it (Esc and an item chosen from the keyboard return the focus to the button). The
- * list fades and slides on the motion tokens; `hidden` only after its transition.
+ * SectionNav — the quick jump between the screens of the home page: an arrow tab on the right edge of the screen,
+ * always there, slides the menu panel in from the right (and back); the panel lists the eight screens with the
+ * current one marked (a square + aria-current, kept live by the engine's `kulbit:section` event); an item jumps to
+ * its screen at its start (data-target-section → the engine's autoAdvanceTo: down over a black backdrop,
+ * src/scripts/kulbit/sections.ts) and closes the panel.
+ * Rendered in the header slot (<SectionNav slot="header" />): .header-fixed lies over the stacked sections and has no
+ * transform, so the fixed panel covers the whole screen height, the header button included.
+ * Not in the Webflow build or in Figma: a provisional look in the site's style (the #171717 frames, the Decima Mono
+ * label, the triangle of the player icons) until the designer's mockup — the values are marked TODO.
+ * Disclosure pattern: <nav> > <button aria-expanded aria-controls> (the arrow, named by aria-label) + the panel
+ * (inert + aria-hidden while closed). Esc, a click outside and an item close it; Esc and an item bring the focus back
+ * to the arrow. The panel slides and the arrow turns on the motion tokens.
  * The items target the screens by index: their order is the order of the page.
  */
+import IconTriangle from '@/assets/icons/play-triangle.svg';
 import Square from '@/components/ui/Square.astro';
 import { useTranslations } from '@/i18n';
 
@@ -18,18 +22,17 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
 ---
 
 <nav class="section-nav" aria-label={t.label} data-section-nav>
-  <div class="text-size-16/16/13 text-weight-700 text-style-uppercase">
-    <button
-      type="button"
-      class="section-nav_toggle"
-      aria-expanded="false"
-      aria-controls="section-nav-list"
-      data-kulbit-border
-      data-section-nav-toggle>
-      <Square size="12" />
-      {t.toggle}
-    </button>
-    <ul class="section-nav_list" id="section-nav-list" hidden data-section-nav-list>
+  <button
+    type="button"
+    class="section-nav_tab"
+    aria-expanded="false"
+    aria-controls="section-nav-panel"
+    aria-label={t.toggle}
+    data-section-nav-toggle>
+    <IconTriangle class="section-nav_arrow" aria-hidden="true" />
+  </button>
+  <div class="section-nav_panel" id="section-nav-panel" inert aria-hidden="true" data-section-nav-panel>
+    <ul class="text-size-16/16/13 text-weight-700 text-style-uppercase">
       {
         t.items.map((item, i) => (
           <li>
@@ -46,11 +49,19 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
 
 <style>
   /* TODO: not in Figma — every value below is provisional until the designer's mockup */
+  /* The panel on the right, the whole screen height; closed = moved out by its own width (the tab stays on the edge) */
   .section-nav {
     position: fixed;
-    right: var(--container-padding);
-    bottom: var(--size-12); /* under the hero's CTA in the same corner, ~10 apart */
-    z-index: 20;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    width: calc(22.5rem * var(--fluid-scale)); /* 360 */
+    transform: translateX(100%);
+    transition: transform var(--transition-duration) var(--transition-easing);
+  }
+  .section-nav.is--open {
+    transform: none;
   }
   /* Decima Mono Bold 16 / 1.1, tracking 0.03em (mobile 13): the section label style of the site */
   .text-size-16\/16\/13 {
@@ -58,46 +69,54 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
     line-height: 1.1;
     letter-spacing: 0.03em;
   }
-  /* The frame of the header button (an inner outline: the hover border of data-kulbit-border draws on its line) */
-  .section-nav_toggle {
+  /* The arrow tab: on the panel's left edge, in the middle of the screen */
+  .section-nav_tab {
+    position: absolute;
+    top: 50%;
+    right: 100%;
     display: flex;
     align-items: center;
-    gap: var(--size-8);
-    padding: var(--size-12) var(--size-16);
+    justify-content: center;
+    width: var(--size-32);
+    height: var(--size-64);
     outline: var(--size-2) solid #171717;
     outline-offset: calc(var(--size-2) * -1);
-    border-radius: calc(0.5625rem * var(--fluid-scale)); /* 9 */
+    border-radius: calc(0.5625rem * var(--fluid-scale)) 0 0 calc(0.5625rem * var(--fluid-scale)); /* 9 */
     background-color: var(--theme-page-bg);
+    transform: translateY(-50%);
+    transition: color var(--transition-duration) var(--transition-easing);
   }
-  /* Over the button, right-aligned, as wide as the longest item; hidden: faded and a little lower */
-  .section-nav_list {
-    position: absolute;
-    right: 0;
-    bottom: calc(100% + var(--size-8));
-    min-width: 100%;
-    padding-block: var(--size-8);
-    outline: var(--size-2) solid #171717;
-    outline-offset: calc(var(--size-2) * -1);
-    border-radius: calc(0.5625rem * var(--fluid-scale)); /* 9 */
-    background-color: var(--theme-page-bg);
-    opacity: 0;
-    transform: translateY(var(--size-8));
-    transition:
-      opacity var(--transition-duration) var(--transition-easing),
-      transform var(--transition-duration) var(--transition-easing);
+  .section-nav_tab:hover,
+  .section-nav_tab:focus-visible {
+    color: #62b0ff;
   }
-  .section-nav_list.is--open {
-    opacity: 1;
+  /* The triangle points left (the panel comes from there) and turns to the right when the panel is open */
+  .section-nav_arrow {
+    width: var(--size-12);
+    height: var(--size-12);
+    transform: rotate(180deg);
+    transition: transform var(--transition-duration) var(--transition-easing);
+  }
+  .section-nav_tab[aria-expanded='true'] .section-nav_arrow {
     transform: none;
+  }
+  .section-nav_panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    padding: var(--size-32);
+    overflow-y: auto;
+    border-left: var(--size-2) solid #171717;
+    background-color: var(--theme-page-bg);
   }
   .section-nav_item {
     display: flex;
     align-items: center;
     gap: var(--size-8);
     width: 100%;
-    padding: var(--size-8) var(--size-16);
+    padding-block: var(--size-12);
     text-align: left;
-    white-space: nowrap;
     transition: color var(--transition-duration) var(--transition-easing);
   }
   .section-nav_item:hover,
@@ -106,25 +125,39 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
   }
   /* The square of the current screen (the others keep its place) */
   .section-nav_mark {
+    flex: none;
     opacity: 0;
     transition: opacity var(--transition-duration) var(--transition-easing);
   }
   .section-nav_item[aria-current='true'] .section-nav_mark {
     opacity: 1;
   }
+
+  @media (max-width: 479px) {
+    .section-nav {
+      width: calc(16.25rem * var(--fluid-scale)); /* 260 */
+    }
+    .section-nav_tab {
+      width: var(--size-24);
+      height: var(--size-56);
+    }
+    .section-nav_panel {
+      padding: var(--size-20);
+    }
+  }
 </style>
 
 <script>
-  // Open / close the list (the jump itself is the engine's delegated [data-target-section] click) and the mark of the
-  // current screen
+  // Open / close the panel (the jump itself is the engine's delegated [data-target-section] click) and the mark of
+  // the current screen
   import { app, SECTION_EVENT } from '@/scripts/kulbit/app';
 
   const nav = document.querySelector<HTMLElement>('[data-section-nav]');
   const toggle = nav?.querySelector<HTMLButtonElement>('[data-section-nav-toggle]');
-  const list = nav?.querySelector<HTMLElement>('[data-section-nav-list]');
+  const panel = nav?.querySelector<HTMLElement>('[data-section-nav-panel]');
 
-  if (nav && toggle && list) {
-    const items = [...list.querySelectorAll<HTMLElement>('[data-target-section]')];
+  if (nav && toggle && panel) {
+    const items = [...panel.querySelectorAll<HTMLElement>('[data-target-section]')];
     const markCurrent = (index: number) =>
       items.forEach((item) => {
         if (item.getAttribute('data-target-section') === String(index)) item.setAttribute('aria-current', 'true');
@@ -132,34 +165,35 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
       });
     document.addEventListener(SECTION_EVENT, (event) => markCurrent((event as CustomEvent<{ index: number }>).detail.index));
 
-    const isOpen = () => list.classList.contains('is--open');
+    const isOpen = () => nav.classList.contains('is--open');
+    const setOpen = (open: boolean) => {
+      nav.classList.toggle('is--open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+      panel.inert = !open;
+      if (open) panel.removeAttribute('aria-hidden');
+      else panel.setAttribute('aria-hidden', 'true');
+    };
     const open = () => {
       markCurrent(app.currentSectionIndex);
-      list.hidden = false;
-      list.getBoundingClientRect(); // commits the hidden state, otherwise no transition runs
-      list.classList.add('is--open');
-      toggle.setAttribute('aria-expanded', 'true');
+      setOpen(true);
     };
-    const close = async (focusToggle = false) => {
+    const close = (focusToggle = false) => {
       if (!isOpen()) return;
-      list.classList.remove('is--open');
-      toggle.setAttribute('aria-expanded', 'false');
-      if (focusToggle) toggle.focus();
-      await Promise.allSettled(list.getAnimations().map((animation) => animation.finished));
-      if (!isOpen()) list.hidden = true;
+      // The focus leaves the panel before it turns inert
+      if (focusToggle || panel.contains(document.activeElement)) toggle.focus();
+      setOpen(false);
     };
 
     toggle.addEventListener('click', () => (isOpen() ? close() : open()));
-    // An item: the engine jumps, the list closes; from the keyboard (a click with detail 0) the focus goes back to the
-    // button (after a mouse click it does not: data-kulbit-border would keep its focus outline on)
-    list.addEventListener('click', (event) => {
-      if (event.target instanceof Element && event.target.closest('[data-target-section]')) close(event.detail === 0);
+    // An item: the engine jumps, the panel closes
+    panel.addEventListener('click', (event) => {
+      if (event.target instanceof Element && event.target.closest('[data-target-section]')) close(true);
     });
     document.addEventListener('click', (event) => {
       if (event.target instanceof Node && !nav.contains(event.target)) close();
     });
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && isOpen()) close(nav.contains(document.activeElement));
+      if (event.key === 'Escape' && isOpen()) close(true);
     });
   }
 </script>

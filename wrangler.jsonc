@@ -1,0 +1,75 @@
+// wrangler.jsonc of a client project: the static dist/ built by `pnpm build` plus one Worker (worker/index.ts) that
+// handles the site forms — `POST /api/form` → D1 + Telegram (+ e-mail); every other URL is served from the assets.
+// Replace every <placeholder> and `name`: /cloudflare-deploy sets `name`, `account_id` and the domains, /cloudflare-form
+// the D1 ids. The template keeps a valid `name` so that `pnpm check` (`wrangler types`) runs before the project is configured.
+// Deployed to the client's Cloudflare account by GitHub Actions (.github/workflows/deploy.yml) with the project's own
+// wrangler and the API token in the repository secret CLOUDFLARE_API_TOKEN — no Workers Builds, no GitHub App:
+//   `main`  → production Worker `<name>` (`wrangler deploy --env=""`)
+//   `stage` → Worker `<name>-stage` (`wrangler deploy --env stage`), D1 migrations applied before every deploy
+// Local: `pnpm worker` (wrangler dev on :8787, `pnpm dev` proxies /api to it), secrets in .dev.vars (gitignored),
+// the local D1 needs `pnpm worker:migrate` once.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // TODO: the Worker name, lowercase with dashes (the client's site, e.g. `mila-doctor`); the stage Worker is `<name>-stage`
+  "name": "client-site",
+  "account_id": "<client account id>",
+  "compatibility_date": "2026-09-15",
+  "main": "worker/index.ts",
+  // Production domain (zone in the client's account); Cloudflare creates the DNS record and certificate
+  "routes": [{ "pattern": "<domain>", "custom_domain": true }],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    // only /api/* reaches the Worker before the assets; unknown URLs get dist/404.html with a 404 status
+    "run_worker_first": ["/api/*"],
+    "not_found_handling": "404-page",
+  },
+  // Plain settings read by the Worker as `env.*`. Secrets — TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
+  // TELEGRAM_WEBHOOK_SECRET — are set with `wrangler secret put`, never here.
+  // NOTIFY: `telegram`, `email` or `telegram,email`. E-mail (Cloudflare Email Service) needs the Workers Paid plan:
+  // add `send_email: [{ "name": "EMAIL" }]` + vars EMAIL_FROM / EMAIL_TO, or a Resend channel in worker/index.ts.
+  "vars": {
+    "ENVIRONMENT": "production",
+    "NOTIFY": "telegram",
+    "SITE_NAME": "<domain>",
+  },
+  // Form submissions storage (D1 in the client's account, `wrangler d1 create <name>-forms`); schema in migrations/
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "<name>-forms",
+      "database_id": "<database id>",
+    },
+  ],
+  // Submissions per IP: 5 a minute, the rest get 429 (counted after validation)
+  "ratelimits": [{ "name": "FORM_RATE_LIMIT", "namespace_id": "1001", "simple": { "limit": 5, "period": 60 } }],
+  "env": {
+    // Worker `<name>-stage`, deployed from the `stage` branch by the workflow with `wrangler deploy --env stage`.
+    // Bindings and vars are not inherited from the top level, so everything is repeated here.
+    "stage": {
+      // own domain; without it the stage Worker would inherit the production domain
+      "routes": [{ "pattern": "stage.<domain>", "custom_domain": true }],
+      // every request goes through the Worker: it adds `X-Robots-Tag: noindex` and a closed robots.txt on stage
+      "assets": {
+        "directory": "./dist",
+        "binding": "ASSETS",
+        "run_worker_first": true,
+        "not_found_handling": "404-page",
+      },
+      "vars": {
+        "ENVIRONMENT": "stage",
+        "NOTIFY": "telegram",
+        "SITE_NAME": "<domain>",
+      },
+      // own database for test submissions (`wrangler d1 create <name>-forms-stage`)
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "<name>-forms-stage",
+          "database_id": "<stage database id>",
+        },
+      ],
+      "ratelimits": [{ "name": "FORM_RATE_LIMIT", "namespace_id": "1002", "simple": { "limit": 5, "period": 60 } }],
+    },
+  },
+}

@@ -1,0 +1,17 @@
+/*
+ * Global stylesheet — imported once in BaseLayout.astro.
+ *
+ * Cascade layers (lowest → highest priority):
+ *   reset      browser normalisation
+ *   base       element defaults built on tokens (body, headings, links, media)
+ *   utilities  single-purpose classes (flex-v, align-center, spacing-xl, text-size-h2, …)
+ *
+ * Component-scoped <style> blocks in .astro files are unlayered, so they
+ * always win over utilities. Use them for what is unique to a section.
+ */
+@layer reset, astro.images, base, utilities;
+
+@import './tokens.css';
+@import './reset.css' layer(reset);
+@import './base.css' layer(base);
+@import './utilities.css' layer(utilities);

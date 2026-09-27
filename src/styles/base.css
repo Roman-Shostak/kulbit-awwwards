@@ -1,0 +1,64 @@
+/*
+ * Element defaults built on tokens.
+ * Webflow-framework philosophy: tags carry semantics only. h1–h6, p, label inherit
+ * everything from their parent; visual size comes from utility classes
+ * (text-size-h2, text-size-body-lg, text-size-caption …). body sets the default text style from
+ * the --*-default tokens (tokens.css points them at the client's most used body style).
+ */
+
+body {
+  font-family: var(--font-primary);
+  font-size: var(--font-default);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-default);
+  letter-spacing: var(--letter-spacing-default);
+  color: var(--theme-text);
+  background-color: var(--theme-page-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+label {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-wrap: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Links inside text are underlined */
+:is(h1, h2, h3, h4, h5, h6, p) a {
+  text-decoration: underline;
+}
+
+a,
+button,
+input {
+  touch-action: manipulation;
+}
+
+svg {
+  display: block;
+}
+
+:focus-visible {
+  outline: 2px solid var(--theme-text);
+  outline-offset: 2px;
+}

@@ -1,0 +1,33 @@
+---
+/**
+ * Shell of the dev-only pages (/dev/tokens, /dev/components): BaseLayout with `noindex`,
+ * a sticky dev nav and the dev stylesheet. These routes are injected by the `devPages`
+ * integration in astro.config.mjs only when `astro dev` runs — `astro build` never emits them.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import './dev.css';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+const links = [
+  { href: '/dev/tokens', label: 'Tokens & utilities' },
+  { href: '/dev/components', label: 'Components' },
+];
+const current = Astro.url.pathname.replace(/\/$/, '');
+---
+
+<BaseLayout title={`Dev · ${title}`} description="Development-only page: never built, never indexed." noindex>
+  <div class="dev">
+    <nav class="dev_nav" aria-label="Dev pages">
+      <span class="dev_badge">dev only · not in dist/</span>
+      {links.map((link) => <a href={link.href} aria-current={current === link.href ? 'page' : undefined}>{link.label}</a>)}
+      <a href="/">← site</a>
+    </nav>
+    <div class="container">
+      <slot />
+    </div>
+  </div>
+</BaseLayout>

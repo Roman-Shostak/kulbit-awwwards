@@ -1,0 +1,102 @@
+---
+/**
+ * Live demo of one utility class on /dev/tokens. The sampled class always sits on an element
+ * INSIDE `.dev_demo` that carries no conflicting dev style (dev.css is unlayered and would win).
+ * The kind of demo comes from the class name (css-inventory.ts → utilityKind). Dev-only.
+ */
+import { utilityKind } from './css-inventory';
+
+interface Props {
+  className?: string;
+}
+
+const { className } = Astro.props;
+const kind = utilityKind(className);
+const cls = className ?? '';
+// spacing-* and wrap only work on a flex/grid parent: demo them on a row
+const layoutClass = /^(spacing-|wrap$)/.test(cls) ? `flex-h ${cls}` : cls;
+const isTextColor = /^text-color-/.test(cls);
+const sample = 'Заголовок секції · Body text 0123';
+---
+
+{kind === 'layout' && (
+  <div class="dev_demo">
+    <div class:list={['dev_layout', layoutClass]}>
+      <i>1</i><i>2</i><i>3</i><i>4</i>
+    </div>
+  </div>
+)}
+{kind === 'self' && (
+  <div class="dev_demo">
+    <div class="dev_row">
+      <i>1</i><i class={cls}>2 · {cls}</i><i>3</i>
+    </div>
+  </div>
+)}
+{kind === 'col' && (
+  <div class="dev_demo">
+    <div class="dev_track"><i class:list={['dev_fill', cls]} data-dev-measure="width"></i></div>
+    <output></output>
+  </div>
+)}
+{kind === 'padding' && (
+  <div class="dev_demo">
+    <div class:list={['dev_pad', cls]}><i>content</i></div>
+  </div>
+)}
+{kind === 'text' && !isTextColor && (
+  <div class="dev_demo">
+    <p class={cls}>{sample}</p>
+  </div>
+)}
+{kind === 'text' && isTextColor && (
+  <div class="dev_demo">
+    <div class="dev_side">
+      <div class="dev_panel dev_panel--light"><p class={cls}>{sample}</p></div>
+      <div class="dev_panel theme--dark"><p class={cls}>{sample}</p></div>
+    </div>
+  </div>
+)}
+{kind === 'icon' && (
+  <div class="dev_demo">
+    <svg class={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" /><path d="M8 12h8M12 8v8" />
+    </svg>
+  </div>
+)}
+{kind === 'border' && (
+  <div class="dev_demo">
+    <i class:list={['dev_box', cls]}></i>
+  </div>
+)}
+{kind === 'visibility' && (
+  <div class="dev_demo">
+    <span class:list={['dev_chip', cls]}>visible at this width</span>
+    <span class="dev_hint"> ← resize the window; hidden when the chip disappears</span>
+  </div>
+)}
+{kind === 'theme' && (
+  <div class="dev_demo">
+    <div class="dev_side">
+      <div class="dev_panel dev_panel--light">
+        <p class="text-color-primary">text-color-primary</p>
+        <p class="text-color-secondary">text-color-secondary</p>
+        <p class="text-color-brand">text-color-brand</p>
+      </div>
+      <div class="dev_panel theme--dark">
+        <p class="text-color-primary">text-color-primary</p>
+        <p class="text-color-secondary">text-color-secondary</p>
+        <p class="text-color-brand">text-color-brand</p>
+      </div>
+    </div>
+  </div>
+)}
+{kind === 'box' && (
+  <div class="dev_demo">
+    {cls === 'display-none' || cls === 'sr-only' ? (
+      <span class="dev_hint">{cls}: hidden by design — the element below is not visible</span>
+    ) : null}
+    <div class="dev_row"><i class={cls}>{cls}</i></div>
+  </div>
+)}
+{kind === 'none' && <span class="dev_hint">structural — used by the layout, no demo</span>}

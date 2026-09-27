@@ -1,0 +1,12 @@
+# Cloudflare response headers (PageSpeed → Best Practices → Trust and Safety)
+# (Only one rule per path is applied, so every header for /* stays in this one block.)
+# Stage is kept out of search by the Worker (worker/index.ts → serveAssets), not here.
+# TODO: remove X-Robots-Tag at launch — keeps production out of search until the client approves the site (/prelaunch reminds)
+/*
+  X-Frame-Options: SAMEORIGIN
+  Cross-Origin-Opener-Policy: same-origin
+  X-Robots-Tag: noindex
+
+# Hashed build assets never change under the same URL (Cloudflare's default is max-age=0)
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

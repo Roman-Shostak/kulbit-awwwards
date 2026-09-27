@@ -1,0 +1,72 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "permissions": {
+    "allow": [
+      "Bash(pnpm check)",
+      "Bash(pnpm build)",
+      "Bash(pnpm dev *)",
+      "Bash(pnpm preview *)",
+      "Bash(pnpm astro *)",
+      "Bash(pnpm install)",
+      "Bash(pnpm outdated)",
+      "Bash(pnpm list *)",
+      "Bash(pnpm og)",
+      "Bash(pnpm fonts *)",
+      "Bash(pnpm favicon *)",
+      "Bash(pnpm shot *)",
+      "Bash(pnpm seo *)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push origin stage)",
+      "Bash(git pull --rebase origin stage)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(.dev.vars*)"
+    ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/template-feedback.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh",
+            "timeout": 90
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/remind-rules.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

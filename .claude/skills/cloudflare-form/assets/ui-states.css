@@ -1,0 +1,11 @@
+/* src/components/ui/Checkbox.astro — the error state the form script sets (aria-invalid on the input) */
+  /* Error state (src/scripts/form.ts): the border in the input error colour, like Input */
+  .checkbox_input[aria-invalid='true'] + .checkbox_box {
+    border-color: var(--theme-input-border-error);
+  }
+
+/* src/components/ui/Button.astro — disabled while a form sends / after it was sent */
+  /* Disabled while a form sends or after it was sent (src/scripts/form.ts): no hover, no clicks, the look stays */
+  .button:disabled {
+    pointer-events: none;
+  }

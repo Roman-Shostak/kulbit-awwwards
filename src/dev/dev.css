@@ -1,0 +1,393 @@
+/*
+ * Styles of the dev-only pages (/dev/tokens, /dev/components). Dev tooling, not client code:
+ * neutral chrome that stays readable whatever the client's tokens are. Samples inside `.dev_demo`
+ * use the real utilities and tokens; these rules never set a property a sampled utility sets
+ * on the same element (this file is unlayered and would win).
+ */
+.dev {
+  --dev-ink: #1f2328;
+  --dev-muted: #6b7280;
+  --dev-line: #e5e7eb;
+  --dev-soft: #f6f7f9;
+  --dev-accent: #2563eb;
+  --dev-warn: #b91c1c;
+  --dev-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  padding-bottom: 6rem;
+  color: var(--dev-ink);
+  background: #fff;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.dev_nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.6rem 1.25rem;
+  border-bottom: 1px solid var(--dev-line);
+  background: rgb(255 255 255 / 0.92);
+  backdrop-filter: blur(8px);
+  font-family: var(--dev-mono);
+  font-size: 0.8rem;
+}
+.dev_nav a {
+  color: var(--dev-muted);
+}
+.dev_nav a:hover,
+.dev_nav a:focus-visible,
+.dev_nav a[aria-current='page'] {
+  color: var(--dev-accent);
+}
+.dev_badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.dev_head {
+  padding-block: 2.5rem 1.5rem;
+  border-bottom: 1px solid var(--dev-line);
+  margin-bottom: 2rem;
+}
+.dev_head h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+.dev_head p {
+  max-width: 70ch;
+  color: var(--dev-muted);
+}
+.dev_toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  margin-top: 1rem;
+  font-family: var(--dev-mono);
+  font-size: 0.75rem;
+}
+.dev_toc a {
+  color: var(--dev-accent);
+}
+.dev_toc a:hover,
+.dev_toc a:focus-visible {
+  text-decoration: underline;
+}
+.dev_status {
+  display: inline-flex;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--dev-soft);
+  font-family: var(--dev-mono);
+  font-size: 0.75rem;
+}
+.dev h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 3rem 0 1rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--dev-ink);
+}
+.dev_group {
+  margin-bottom: 2.5rem;
+}
+.dev_group h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+.dev_group h3 small {
+  margin-left: 0.5rem;
+  font-family: var(--dev-mono);
+  font-weight: 400;
+  color: var(--dev-muted);
+}
+.dev code,
+.dev pre,
+.dev output {
+  font-family: var(--dev-mono);
+  font-size: 0.75rem;
+}
+.dev pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--dev-muted);
+}
+.dev output {
+  color: var(--dev-muted);
+}
+.dev_note {
+  color: var(--dev-muted);
+}
+.dev_warn {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  background: #fef2f2;
+  color: var(--dev-warn);
+}
+.dev_warn code {
+  color: inherit;
+}
+.dev_empty {
+  padding: 1rem;
+  border: 1px dashed var(--dev-line);
+  border-radius: 0.5rem;
+  color: var(--dev-muted);
+}
+
+/* ---- tables ---- */
+.dev_table-wrap {
+  overflow-x: auto;
+}
+.dev_table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+.dev_table th,
+.dev_table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--dev-line);
+  text-align: left;
+  vertical-align: middle;
+}
+.dev_table th {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--dev-muted);
+  background: var(--dev-soft);
+}
+.dev_table td:first-child {
+  white-space: nowrap;
+}
+.dev_table td:first-child code {
+  color: var(--dev-ink);
+  font-weight: 600;
+}
+.dev_cell-sample {
+  min-width: 14rem;
+  max-width: 34rem;
+  overflow: hidden;
+}
+
+/* ---- token samples ---- */
+.dev_sample {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.dev_swatch {
+  display: block;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.4rem;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+  background-image: linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%), linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 6px 6px;
+}
+.dev_swatch i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+.dev_bar {
+  display: block;
+  flex: none;
+  height: 0.75rem;
+  max-width: none;
+  border-radius: 2px;
+  background: var(--dev-accent);
+}
+.dev_text {
+  white-space: nowrap;
+}
+.dev_lines {
+  max-width: 22rem;
+  padding: 0.25rem 0;
+  background: repeating-linear-gradient(to bottom, transparent 0, transparent calc(100% - 1px), var(--dev-line) calc(100% - 1px));
+}
+.dev_box {
+  display: block;
+  flex: none;
+  width: 3rem;
+  height: 3rem;
+  background: var(--dev-soft);
+  border-color: var(--dev-ink);
+}
+.dev_shadow {
+  width: 4rem;
+  height: 3rem;
+  margin: 0.5rem;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+.dev_motion {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.4rem;
+  background: var(--dev-accent);
+  cursor: pointer;
+}
+.dev_motion:hover {
+  transform: translateX(3rem);
+}
+
+/* ---- utility demos: the sampled class sits on the element INSIDE .dev_demo ---- */
+.dev_demo {
+  padding: 0.5rem;
+  border: 1px dashed var(--dev-line);
+  border-radius: 0.4rem;
+  background: var(--dev-soft);
+}
+.dev_demo > .dev_layout {
+  width: 100%;
+  min-height: 3.5rem;
+}
+.dev_demo i {
+  display: block;
+  min-width: 2rem;
+  min-height: 1.5rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  background: var(--dev-accent);
+  color: #fff;
+  font-family: var(--dev-mono);
+  font-size: 0.7rem;
+  font-style: normal;
+  line-height: 1.5rem;
+  text-align: center;
+}
+.dev_demo .dev_layout > i:nth-child(2) {
+  min-height: 2.5rem;
+}
+.dev_demo > .dev_track {
+  width: 100%;
+  background: repeating-linear-gradient(to right, var(--dev-line) 0 1px, transparent 1px calc(100% / 12));
+}
+.dev_demo .dev_fill {
+  display: block;
+  height: 0.75rem;
+  border-radius: 2px;
+  background: var(--dev-accent);
+}
+.dev_demo .dev_pad {
+  background: #fff;
+  outline: 1px solid var(--dev-line);
+}
+.dev_demo .dev_pad > i {
+  min-height: 1rem;
+}
+.dev_demo .dev_chip {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-family: var(--dev-mono);
+  font-size: 0.7rem;
+}
+.dev_demo .dev_hint {
+  color: var(--dev-muted);
+  font-family: var(--dev-mono);
+  font-size: 0.7rem;
+}
+.dev_demo .dev_side {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+.dev_demo .dev_side > * {
+  flex: 1;
+}
+.dev_panel {
+  padding: 0.75rem;
+  border-radius: 0.4rem;
+}
+.dev_panel--light {
+  background: var(--theme-page-bg);
+  box-shadow: inset 0 0 0 1px var(--dev-line);
+}
+.dev_demo .dev_row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  min-height: 3.5rem;
+}
+
+/* ---- components page ---- */
+.dev_component {
+  margin-bottom: 3rem;
+}
+.dev_component h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.dev_component-meta {
+  margin-bottom: 1rem;
+  color: var(--dev-muted);
+}
+.dev_variants {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: 1rem;
+}
+/* wide components (buttons, tags, logos with white-space: nowrap) get wider columns */
+.dev_variants.dev_variants--wide {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr));
+}
+.dev_variant {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.5rem;
+}
+.dev_variant figcaption {
+  font-family: var(--dev-mono);
+  font-size: 0.72rem;
+  color: var(--dev-muted);
+}
+.dev_variant figcaption code {
+  color: var(--dev-ink);
+}
+.dev_stage {
+  padding: 1.25rem;
+  border-radius: 0.5rem;
+  box-shadow: inset 0 0 0 1px var(--dev-line);
+  /* a component wider than a narrow screen scrolls inside its stage instead of widening the page */
+  overflow-x: auto;
+}
+/* unlayered rule: must not touch a theme--dark stage, whose background comes from the utility */
+.dev_stage:not(.theme--dark) {
+  background: var(--theme-page-bg);
+}
+.dev_section-frame {
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--dev-line);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+.dev_section-frame > .dev_section-label {
+  padding: 0.35rem 0.75rem;
+  border-bottom: 1px solid var(--dev-line);
+  background: var(--dev-soft);
+  font-family: var(--dev-mono);
+  font-size: 0.72rem;
+  color: var(--dev-muted);
+}

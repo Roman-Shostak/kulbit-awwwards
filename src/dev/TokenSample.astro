@@ -1,0 +1,89 @@
+---
+/**
+ * Live preview of one token on /dev/tokens, chosen by the token name (css-inventory.ts → tokenKind).
+ * The element with `data-dev-measure` is measured by the script on the page; the result goes into
+ * the sibling <output>. Dev-only.
+ */
+import { tokenKind } from './css-inventory';
+
+interface Props {
+  name: string;
+}
+
+const { name } = Astro.props;
+const kind = tokenKind(name);
+const v = `var(${name})`;
+---
+
+{kind === 'color' && (
+  <span class="dev_sample">
+    <span class="dev_swatch"><i style={`background: ${v}`} data-dev-measure="color"></i></span>
+    <output></output>
+  </span>
+)}
+{kind === 'length' && (
+  <span class="dev_sample">
+    <i class="dev_bar" style={`width: ${v}`} data-dev-measure="width"></i>
+    <output></output>
+  </span>
+)}
+{kind === 'font-size' && (
+  <span class="dev_sample">
+    <span class="dev_text" style={`font-size: ${v}; line-height: 1`} data-dev-measure="font-size">Aa Ґґ 123</span>
+    <output></output>
+  </span>
+)}
+{kind === 'font-family' && (
+  <span class="dev_sample">
+    <span class="dev_text" style={`font-family: ${v}; font-size: 1.25rem`} data-dev-measure="font-family">Aa Bb Ґґ Яя 0123</span>
+    <output></output>
+  </span>
+)}
+{kind === 'font-weight' && (
+  <span class="dev_sample">
+    <span class="dev_text" style={`font-weight: ${v}; font-size: 1.25rem`} data-dev-measure="font-weight">Aa Ґґ weight</span>
+    <output></output>
+  </span>
+)}
+{kind === 'line-height' && (
+  <span class="dev_sample">
+    <span class="dev_lines" style={`line-height: ${v}`} data-dev-measure="line-height">Перший рядок тексту<br />другий рядок тексту</span>
+    <output></output>
+  </span>
+)}
+{kind === 'letter-spacing' && (
+  <span class="dev_sample">
+    <span class="dev_text" style={`letter-spacing: ${v}; font-size: 1.25rem`} data-dev-measure="letter-spacing">Letter spacing</span>
+    <output></output>
+  </span>
+)}
+{kind === 'radius' && (
+  <span class="dev_sample">
+    <i class="dev_box" style={`border-radius: ${v}; background: var(--dev-accent)`} data-dev-measure="border-radius"></i>
+    <output></output>
+  </span>
+)}
+{kind === 'border' && (
+  <span class="dev_sample">
+    <i class="dev_box" style={`border: ${v} solid currentColor`} data-dev-measure="border-width"></i>
+    <output></output>
+  </span>
+)}
+{kind === 'duration' && (
+  <span class="dev_sample">
+    <i class="dev_motion" style={`transition: transform ${v} var(--transition-easing)`} title="hover me"></i>
+    <output data-dev-var={name}></output>
+  </span>
+)}
+{kind === 'easing' && (
+  <span class="dev_sample">
+    <i class="dev_motion" style={`transition: transform 1s ${v}`} title="hover me"></i>
+    <output data-dev-var={name}></output>
+  </span>
+)}
+{kind === 'shadow' && (
+  <span class="dev_sample">
+    <i class="dev_shadow" style={`box-shadow: ${v}`}></i>
+  </span>
+)}
+{kind === 'plain' && <output data-dev-var={name}></output>}

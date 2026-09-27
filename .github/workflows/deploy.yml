@@ -1,0 +1,52 @@
+# Deploys the site to the client's Cloudflare account with the project's own wrangler and one API token
+# (no Workers Builds, no GitHub App). Set up per project by /cloudflare-deploy.
+# `stage` branch → Worker `<name>-stage` (`--env stage`), `main` → Worker `<name>` (production).
+# Needs one repository secret: CLOUDFLARE_API_TOKEN (the account id is in wrangler.jsonc).
+name: Deploy
+
+on:
+  push:
+    branches: [main, stage]
+  workflow_dispatch:
+
+# one deploy per branch at a time; later pushes wait instead of racing
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      WRANGLER_SEND_METRICS: 'false'
+      # `--env=""` = the top-level (production) config, `--env stage` = env.stage. The explicit empty value
+      # is what silences wrangler's "Multiple environments are defined" warning on production.
+      WRANGLER_ENV: ${{ github.ref_name == 'stage' && '--env stage' || '--env=""' }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # the pnpm version comes from `packageManager` in package.json
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build
+
+      # D1 appears in wrangler.jsonc when /cloudflare-form connects the forms; until then there is nothing to migrate
+      - name: Check for D1
+        id: d1
+        run: echo "present=$(grep -Eq '^\s*"d1_databases"\s*:' wrangler.jsonc && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Apply D1 migrations
+        if: steps.d1.outputs.present == 'true'
+        run: pnpm exec wrangler d1 migrations apply DB --remote ${{ env.WRANGLER_ENV }}
+
+      - name: Deploy Worker
+        run: pnpm exec wrangler deploy ${{ env.WRANGLER_ENV }}

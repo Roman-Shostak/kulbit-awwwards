@@ -1,0 +1,172 @@
+---
+/**
+ * /dev/tokens — every design token and every utility class, read from src/styles/tokens.css and
+ * src/styles/utilities.css at request time. Nothing is listed by hand: a token or class added
+ * under a `/* ---------- Group ---------- *\/` header in those files shows up here in that group,
+ * with its breakpoint overrides and a live sample measured at the current viewport.
+ * Dev-only route (astro.config.mjs → devPages): never built, never indexed.
+ */
+import DevShell from './DevShell.astro';
+import TokenSample from './TokenSample.astro';
+import UtilitySample from './UtilitySample.astro';
+import tokensCss from '@/styles/tokens.css?raw';
+import utilitiesCss from '@/styles/utilities.css?raw';
+import { parseTokens, parseUtilities, slug } from './css-inventory';
+
+const tokenGroups = parseTokens(tokensCss);
+const utilityGroups = parseUtilities(utilitiesCss);
+const tokenCount = tokenGroups.reduce((n, g) => n + g.items.length, 0);
+const utilityCount = utilityGroups.reduce((n, g) => n + g.items.length, 0);
+---
+
+<DevShell title="Tokens & utilities">
+  <header class="dev_head">
+    <h1>Tokens &amp; utilities</h1>
+    <p>
+      Generated from <code>src/styles/tokens.css</code> ({tokenCount} tokens) and <code>src/styles/utilities.css</code> ({utilityCount} classes).
+      Groups follow the <code>/* ---------- Group ---------- */</code> headers in those files; a trailing <code>/* note */</code> after a token is shown as its note.
+      Samples are measured live — resize the window to see the fluid scale and the breakpoint values.
+    </p>
+    <div class="dev_status">
+      <span>viewport <output data-dev-viewport>…</output></span>
+      <span>reference <output data-dev-reference>…</output></span>
+      <span>fluid-scale <output data-dev-scale>…</output></span>
+    </div>
+    <nav class="dev_toc" aria-label="Groups">
+      <strong>Tokens:</strong>
+      {tokenGroups.map((g) => <a href={`#t-${slug(g.title)}`}>{g.title}</a>)}
+    </nav>
+    <nav class="dev_toc" aria-label="Utility groups">
+      <strong>Utilities:</strong>
+      {utilityGroups.map((g) => <a href={`#u-${slug(g.title)}`}>{g.title}</a>)}
+    </nav>
+  </header>
+
+  <h2 id="tokens">Tokens</h2>
+  {
+    tokenGroups.map((group) => (
+      <section class="dev_group" id={`t-${slug(group.title)}`}>
+        <h3>
+          {group.title}
+          <small>{group.items.length}</small>
+        </h3>
+        <div class="dev_table-wrap">
+          <table class="dev_table">
+            <thead>
+              <tr>
+                <th>Token</th>
+                <th>Sample</th>
+                <th>Value</th>
+                {group.medias.map((m) => <th>{m}</th>)}
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              {group.items.map((token) => (
+                <tr>
+                  <td><code>{token.name}</code></td>
+                  <td class="dev_cell-sample"><TokenSample name={token.name} /></td>
+                  <td><pre>{token.value}</pre></td>
+                  {group.medias.map((m) => <td><pre>{token.overrides[m] ?? ''}</pre></td>)}
+                  <td class="dev_note">{token.note}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    ))
+  }
+
+  <h2 id="utilities">Utilities</h2>
+  {
+    utilityGroups.map((group) => (
+      <section class="dev_group" id={`u-${slug(group.title)}`}>
+        <h3>
+          {group.title}
+          <small>{group.items.length}</small>
+        </h3>
+        <div class="dev_table-wrap">
+          <table class="dev_table">
+            <thead>
+              <tr>
+                <th>Class</th>
+                <th>Sample</th>
+                <th>CSS</th>
+                {group.medias.map((m) => <th>{m}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {group.items.map((utility) => (
+                <tr>
+                  <td><code>{utility.className ?? utility.selector}</code></td>
+                  <td class="dev_cell-sample"><UtilitySample className={utility.className} /></td>
+                  <td><pre>{utility.declarations}</pre></td>
+                  {group.medias.map((m) => <td><pre>{utility.overrides[m] ?? ''}</pre></td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    ))
+  }
+</DevShell>
+
+<script>
+  // Measures every sample at the current viewport; re-runs on resize (fluid scale changes).
+  const root = document.documentElement;
+  const px = (n: number) => `${Math.round(n * 100) / 100}px`;
+
+  const measure = () => {
+    const width = root.clientWidth;
+    const reference = parseFloat(getComputedStyle(root).getPropertyValue('--reference'));
+    const max = parseFloat(getComputedStyle(root).getPropertyValue('--max'));
+    const scale = (max && width >= max ? max : width) / reference;
+    document.querySelector<HTMLOutputElement>('[data-dev-viewport]')!.value = `${width}px`;
+    document.querySelector<HTMLOutputElement>('[data-dev-reference]')!.value = `${reference}`;
+    document.querySelector<HTMLOutputElement>('[data-dev-scale]')!.value = scale.toFixed(3);
+
+    document.querySelectorAll<HTMLElement>('[data-dev-measure]').forEach((el) => {
+      const out = el.closest('.dev_sample, .dev_demo')?.querySelector('output');
+      if (!out) return;
+      const style = getComputedStyle(el);
+      switch (el.dataset.devMeasure) {
+        case 'width':
+          out.value = px(el.getBoundingClientRect().width);
+          break;
+        case 'color':
+          out.value = style.backgroundColor;
+          break;
+        case 'font-size':
+          out.value = style.fontSize;
+          break;
+        case 'font-family':
+          out.value = style.fontFamily.split(',')[0]!.replace(/"/g, '').trim();
+          break;
+        case 'font-weight':
+          out.value = style.fontWeight;
+          break;
+        case 'line-height':
+          out.value = `${style.lineHeight} (${(parseFloat(style.lineHeight) / parseFloat(style.fontSize)).toFixed(2)})`;
+          break;
+        case 'letter-spacing':
+          out.value = style.letterSpacing;
+          break;
+        case 'border-radius':
+          out.value = style.borderTopLeftRadius;
+          break;
+        case 'border-width':
+          out.value = style.borderTopWidth;
+          break;
+      }
+    });
+    document.querySelectorAll<HTMLOutputElement>('[data-dev-var]').forEach((out) => {
+      out.value = getComputedStyle(root).getPropertyValue(out.dataset.devVar!).trim();
+    });
+  };
+
+  measure();
+  window.addEventListener('resize', measure);
+  document.fonts.ready.then(measure);
+</script>

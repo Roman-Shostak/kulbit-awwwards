@@ -1,0 +1,22 @@
+  <section class="dev_component" id="ui-form">
+    <h3>Form</h3>
+    <p class="dev_component-meta"><code>src/components/ui/Form.astro</code> — the shell of every form: posts to the Worker (<code>worker/index.ts</code>, <code>POST /api/form</code>) through <code>src/scripts/form.ts</code>; hidden <code>form</code>/<code>locale</code>/<code>started</code> fields, a honeypot, the status message (<code>form</code> dictionary). Live: submit empty → <code>aria-invalid</code> + message; a valid submission needs <code>pnpm worker</code> running (proxied from <code>/api</code>).</p>
+    <div class="dev_variants dev_variants--wide">
+      {modes.map(({ stage, label }) => (
+        <figure class="dev_variant">
+          <div class={stage}>
+            <Form name="dev" class="flex-v align-start spacing-lg">
+              <div class="col-4 flex-v spacing-sm">
+                <Input id={`dev-form-name-${label}`} label={t.cta.nameLabel} name="name" autocomplete="name" required />
+                <Input id={`dev-form-phone-${label}`} label={t.cta.phoneLabel} type="tel" name="phone" autocomplete="tel" />
+                <Input id={`dev-form-email-${label}`} label={t.cta.emailLabel} type="email" name="email" autocomplete="email" />
+              </div>
+              <Checkbox name="consent" required>{t.cta.consentLabel}</Checkbox>
+              <Button type="submit">{t.cta.submitLabel}</Button>
+            </Form>
+          </div>
+          <figcaption>live · {label}</figcaption>
+        </figure>
+      ))}
+    </div>
+  </section>

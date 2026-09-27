@@ -1,0 +1,128 @@
+---
+/**
+ * /dev/components — every component the site uses, with every variant, on a light and a dark
+ * background. Maintained by hand: when a ui component, a variant or a section is added, add it
+ * here in the matching block (rules: .claude/rules/astro-components.md → Dev pages).
+ * The page compares its registry with src/components/ui/ and src/components/sections/ and shows
+ * a red notice for anything not showcased yet, so a missing entry is never silent.
+ * Dev-only route (astro.config.mjs → devPages): never built, never indexed.
+ *
+ * How to add:
+ *   ui component  → import it, push its name to `showcasedUi`, add a <section class="dev_component">
+ *                   with one <figure class="dev_variant"> per prop combination (type × size × element,
+ *                   link vs button, with/without icon …), each on <div class="dev_stage"> and, when
+ *                   colours differ on dark sections, also on <div class="dev_stage theme--dark">.
+ *                   Components wider than ~20rem (buttons, tags, logos: white-space: nowrap) go into
+ *                   <div class="dev_variants dev_variants--wide"> so they fit their stage.
+ *                   The commented block below shows a Button with its variants, the first component
+ *                   of every project.
+ *   section       → import it, push its name to `showcasedSections`, render it inside
+ *                   <div class="dev_section-frame"> in the "Sections" block (header inside
+ *                   <div class="header">, footer inside <footer class="footer">).
+ */
+import DevShell from './DevShell.astro';
+
+const fileName = (path: string) => path.split('/').pop()!.replace(/\.astro$/, '');
+const uiFiles = Object.keys(import.meta.glob('../components/ui/*.astro')).map(fileName);
+const sectionFiles = Object.keys(import.meta.glob('../components/sections/*.astro')).map(fileName);
+
+// Registry of what this page renders — keep in sync with the blocks below
+const showcasedUi: string[] = [];
+const showcasedSections: string[] = [];
+
+const missingUi = uiFiles.filter((name) => !showcasedUi.includes(name));
+const missingSections = sectionFiles.filter((name) => !showcasedSections.includes(name));
+const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedSections.filter((n) => !sectionFiles.includes(n))];
+---
+
+<DevShell title="Components">
+  <header class="dev_head">
+    <h1>Components</h1>
+    <p>
+      Every component from <code>src/components/ui/</code> with all its variants, and every section from
+      <code>src/components/sections/</code>. Each new component or variant is added to this page by hand;
+      the notices below appear when a file is not showcased yet.
+    </p>
+    <div class="dev_status">
+      <span>ui: {uiFiles.length} files / {showcasedUi.length} showcased</span>
+      <span>sections: {sectionFiles.length} files / {showcasedSections.length} showcased</span>
+    </div>
+    <nav class="dev_toc" aria-label="Components">
+      {showcasedUi.map((name) => <a href={`#ui-${name.toLowerCase()}`}>{name}</a>)}
+      <a href="#sections">Sections</a>
+    </nav>
+  </header>
+
+  {missingUi.length > 0 && (
+    <p class="dev_warn">Not showcased yet (src/components/ui/): {missingUi.map((n) => <code>{n} </code>)} — add them to this page with every variant.</p>
+  )}
+  {missingSections.length > 0 && (
+    <p class="dev_warn">Not showcased yet (src/components/sections/): {missingSections.map((n) => <code>{n} </code>)} — add them to the Sections block.</p>
+  )}
+  {stale.length > 0 && <p class="dev_warn">Listed here but the file is gone: {stale.map((n) => <code>{n} </code>)} — remove them from the registry.</p>}
+
+  <h2 id="ui">UI components</h2>
+
+  {showcasedUi.length === 0 && (
+    <p class="dev_empty">No ui components yet. Build them from the inventory list (Button first), then import each one here, add its name to <code>showcasedUi</code> and render every variant.</p>
+  )}
+
+  {/*
+    Example block — the Button of a project with its variants:
+
+    import Button from '@/components/ui/Button.astro';   ← in the frontmatter, and 'Button' in showcasedUi
+
+    <section class="dev_component" id="ui-button">
+      <h3>Button</h3>
+      <p class="dev_component-meta"><code>src/components/ui/Button.astro</code> — href → a, otherwise button[type=button]; every other attribute passes through.</p>
+      <div class="dev_variants dev_variants--wide">
+        <figure class="dev_variant">
+          <div class="dev_stage"><Button href="/">Link button</Button></div>
+          <figcaption><code>&lt;Button href="/"&gt;</code> → a</figcaption>
+        </figure>
+        <figure class="dev_variant">
+          <div class="dev_stage"><Button data-popup="callback">Action button</Button></div>
+          <figcaption><code>&lt;Button data-popup="callback"&gt;</code> → button</figcaption>
+        </figure>
+        <figure class="dev_variant">
+          <div class="dev_stage"><Button type="submit">Submit</Button></div>
+          <figcaption><code>&lt;Button type="submit"&gt;</code></figcaption>
+        </figure>
+        <figure class="dev_variant">
+          <div class="dev_stage theme--dark"><Button href="/">On a dark section</Button></div>
+          <figcaption><code>theme--dark</code></figcaption>
+        </figure>
+      </div>
+    </section>
+  */}
+
+  {/*
+    Example block for a component with prop variants (type × size), e.g. a Card from the inventory:
+
+    const cardTypes = ['default', 'brand'] as const;   ← in the frontmatter
+    const cardSizes = ['md', 'lg', 'xl'] as const;
+
+    <section class="dev_component" id="ui-card">
+      <h3>Card</h3>
+      <p class="dev_component-meta"><code>src/components/ui/Card.astro</code> — type: default | brand, size: md | lg | xl, element: div | li | article.</p>
+      <div class="dev_variants">
+        {cardTypes.map((type) => cardSizes.map((size) => (
+          <figure class="dev_variant">
+            <div class="dev_stage"><Card type={type} size={size}><p class="text-size-body-md">Card {type} / {size}</p></Card></div>
+            <figcaption><code>&lt;Card type="{type}" size="{size}"&gt;</code></figcaption>
+          </figure>
+        )))}
+        <figure class="dev_variant">
+          <div class="dev_stage theme--dark"><Card><p class="text-size-body-sm">on a dark section</p></Card></div>
+          <figcaption><code>theme--dark</code></figcaption>
+        </figure>
+      </div>
+    </section>
+  */}
+
+  <h2 id="sections">Sections</h2>
+  {showcasedSections.length === 0 && (
+    <p class="dev_empty">No sections yet. When a section is built, import it, add its name to <code>showcasedSections</code> and render it here in a <code>dev_section-frame</code>.</p>
+  )}
+  {/* <div class="dev_section-frame"><div class="dev_section-label">Hero.astro</div><Hero /></div> */}
+</DevShell>

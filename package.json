@@ -1,0 +1,38 @@
+{
+  "name": "astro-template",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@12.3.4",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "prebuild": "node scripts/build-og.mjs",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check && pnpm worker:types && tsc -p worker",
+    "og": "node scripts/build-og.mjs",
+    "favicon": "node scripts/build-favicon.mjs",
+    "fonts": "python3 scripts/build-fonts.py",
+    "shot": "node scripts/screenshot.mjs",
+    "seo": "node scripts/validate-seo.mjs",
+    "worker": "wrangler dev",
+    "worker:types": "wrangler types worker/worker-configuration.d.ts",
+    "worker:migrate": "wrangler d1 migrations apply DB --local",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^7.3.2",
+    "lenis": "^1.3.26"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/node": "^26.5.1",
+    "playwright": "^1.58.0",
+    "sharp": "^0.35.4",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.132.0"
+  }
+}

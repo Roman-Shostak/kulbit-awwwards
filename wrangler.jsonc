@@ -12,7 +12,7 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "kulbit",
   "account_id": "ed1903c11ca21f56172d07247042f65c",
-  "compatibility_date": "2026-09-27",
+  "compatibility_date": "2026-09-22",
   "main": "worker/index.ts",
   // Production domain (zone in the client's account); Cloudflare creates the DNS record and certificate
   "routes": [{ "pattern": "kulbit.site", "custom_domain": true }],

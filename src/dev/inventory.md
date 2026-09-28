@@ -34,14 +34,15 @@ two-decimal rem roundings (18px → 1.13rem = 18.08px) are kept exactly, so the 
 | Webflow | Value | Swatch | Roles |
 | --- | --- | --- | --- |
 | black | `#000000` | `--swatch-black` (+ `-a0`, `-a65`) | `--theme-page-bg`, `--theme-text-inverse`; `--theme-fade`, `--theme-vignette` |
-| white-10 | `#fdfcfc` | `--swatch-white-10` (+ `-a5/-a7/-a10/-a12/-a15`) | `--theme-text`, `--theme-icon`; `--theme-track`, `--theme-ring-*`, `--theme-player-seek/-volume` |
+| white-10 | `#fdfcfc` | `--swatch-white-10` (+ `-a5/-a7/-a10/-a12/-a15`) | `--theme-text`, `--theme-icon`; `--theme-track`, `--theme-text-placeholder`, `--theme-ring-*`, `--theme-player-seek/-volume` |
 | white | `#ffffff` | `--swatch-white` | `--theme-illustration` (radar and chart strokes) |
 | black-20 | `#404040` | `--swatch-black-20` | `--theme-text-secondary` → `text-color-secondary` (the grey half of the statements) |
 | black-30 | `#252525` | `--swatch-black-30` | `--theme-border` |
-| — (raw in its classes) | `#171717` | `--swatch-graphite` | `--theme-frame` (button and tile frames) |
-| — (raw in its classes) | `#0f0f0f` | `--swatch-ink-a0/-a85/-a95` | `--theme-player-shade` |
+| — (raw in its classes) | `#171717` | `--swatch-graphite` | `--theme-frame` (button and tile frames, the contact form's hairlines and pills) |
+| — (the contact popup in Figma) | `#121212` | `--swatch-coal` | `--theme-surface` (Button solid, the options of the mobile subject list) |
+| — (raw in its classes) | `#0f0f0f` | `--swatch-ink` (+ `-a0/-a85/-a95`) | `--theme-player-shade`; `--theme-dropdown` (the contact popup's mobile subject list) |
 | blue | `#62b0ff` | `--swatch-blue` | `--theme-text-accent` → `text-color-accent`; `--theme-icon-secondary` (squares, arrows, the logo square) |
-| red | `#ff4444` | `--swatch-red` | `--theme-text-brand` → `text-color-brand`; `--theme-icon-brand` (red squares, chart line) |
+| red | `#ff4444` | `--swatch-red` | `--theme-text-brand` → `text-color-brand`; `--theme-icon-brand` (red squares, chart line); `--theme-error` (the contact form's error state) |
 
 Note: `#404040` on black is 2.03:1 — below WCAG AA for text. It is the design's value (kept); changing it is one
 line: `--theme-text-secondary` in `tokens.css` (≥ `#767676` passes 4.5:1).
@@ -56,7 +57,9 @@ Shared (token + utility):
 | `text-size-h3` | `.text-size-h3` | Monument 28 / 1.3 / .03em → 32 → 20 | WorkingProcess stages |
 | `text-size-section-h2` | `.text-size-section-h2` | Monument 32 / 1.3 / .03em → 28 → 23.04 | 4 statements |
 | `text-size-section-label` | `.text-size-section-label` | Decima 16 / 1.1 / .03em → 12.96 | 6 section labels, SectionNav, footer row |
-| `text-size-hero` | `.text-size-hero` | Decima 16 / 1.37 | Hero, OurClients, WorkingProcess, 404 |
+| `text-size-hero` | `.text-size-hero` | Decima 16 / 1.37 | Hero, OurClients, WorkingProcess, 404, the Form success sentence |
+| `text-size-label` | — (Figma «Get in touch») | Decima 16 / 1.3 / .03em → 16 → 12 | Input labels, the subjects legend, the consent, the form message |
+| `text-size-pill` | — (Figma «Get in touch») | Decima 16 / 1.3 → 16 → 13 / 1 / .01em | Checkbox pill (the subjects), the mobile subject list's button |
 | body (`--font-default`) | `body` | Decima 16 / 1.1 | the page default |
 
 One-offs (one element each) — declared in their component under the Webflow name, raw values:
@@ -64,7 +67,8 @@ One-offs (one element each) — declared in their component under the Webflow na
 `text-size-more-soon` (Projects); `text-size-footer-label`, `text-size-footer` (SiteFooter);
 `text-size-production-label`, `-production-head`, `-production-card`, `-production-text` (TraditionalProduction);
 `text-size-process-label`, `-process-week`, `-process-number`, `-process-category`, `text-size-list` (WorkingProcess);
-`text-size-player` (ProjectVideo); `text-size-button`, `-button-hero`, `-button-second` (Button).
+`text-size-player` (ProjectVideo); `text-size-button`, `-button-hero`, `-button-second`, `-button-solid` (Button);
+`text-size-popup-title` (ContactPopup); `text-size-input`, `-input-small`, `-input-value` (Input).
 
 ## Spacing, sizes, shape, motion
 
@@ -107,6 +111,7 @@ The step scroll (`src/scripts/kulbit/app.ts` → `config`) keeps the Webflow bui
 
 ## ui components
 
-`Button` (outline · arrow · second · second-footer · showreel), `Logo`, `Square`, `ProjectVideo`, `ProgressLine`
+`Button` (outline · arrow · second · second-footer · showreel · solid), `Input` (input · textarea), `Checkbox` (box · pill),
+`Form` (the Worker form shell), `Logo`, `Square`, `ProjectVideo`, `ProgressLine`
 (extracted with /systemize: the section progress line of OurClients, Projects, OurServices, TraditionalProduction,
 IntroScreen + `src/scripts/kulbit/progress-line.ts`).

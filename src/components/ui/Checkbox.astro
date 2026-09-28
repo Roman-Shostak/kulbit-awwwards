@@ -1,0 +1,134 @@
+---
+/**
+ * Checkbox — a native checkbox whose label is the visible control (the input is visually hidden, still focusable and
+ * read out), two looks:
+ *   box   (default) a square frame + the text in the label style: the consent before «Submit message». Not in Figma:
+ *         composed from the popup's pieces — the 2px --theme-frame frame of the pills, checked = the blue square of the
+ *         site inside it (the blue of the checked subject)
+ *   pill  the text in a round 2px frame (Figma «Get in touch»: the subjects), checked = the blue pill with black text;
+ *         at ≤ 479px an option of the contact popup's subject list (Figma 4033:6368: the whole width, the
+ *         --theme-surface fill, radius 6, centred; checked = blue)
+ * Hover = focus-visible (the focus ring of base.css on the box / the pill): the frame turns white. Error
+ * (`aria-invalid="true"` from src/scripts/form.ts): only the frame turns red — the box's square, a pill's round frame;
+ * the text never changes colour (the user's decision). `class` goes to the label (the root, with the caller's style scope), every other attribute (name,
+ * value, required, checked) to the input.
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'input'> & { variant?: 'box' | 'pill' };
+
+const { variant = 'box', class: className, ...rest } = Astro.props;
+// The caller's `data-astro-cid-*` (its scoped styles) on the root too, where its `class` goes
+const scope = Object.fromEntries(Object.entries(rest).filter(([key]) => key.startsWith('data-astro-cid-')));
+---
+
+<label class:list={['checkbox', `type--${variant}`, variant === 'pill' ? 'text-size-pill' : 'text-size-label', className]} {...scope}>
+  <input type="checkbox" class="checkbox_input" {...rest} />
+  {variant === 'box' && <span class="checkbox_box" aria-hidden="true"></span>}
+  <span><slot /></span>
+</label>
+
+<style>
+  .checkbox {
+    position: relative;
+    display: inline-flex;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      color var(--transition-duration) var(--transition-easing),
+      background-color var(--transition-duration) var(--transition-easing),
+      box-shadow var(--transition-duration) var(--transition-easing);
+  }
+  /* Visually hidden, still in the tab order and the accessibility tree; the label toggles it */
+  .checkbox_input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* ---------- box: the consent ---------- */
+  .checkbox.type--box {
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    color: var(--theme-text-secondary);
+  }
+  /* 20 on the 20.8 line (mobile 16 on 15.6): the frame of the pills, the blue square scales in when checked */
+  .checkbox_box {
+    position: relative;
+    flex: none;
+    width: var(--size-20);
+    aspect-ratio: 1;
+    box-shadow: inset 0 0 0 var(--border-width-md) var(--theme-frame);
+    transition: box-shadow var(--transition-duration) var(--transition-easing);
+  }
+  .checkbox_box::after {
+    content: '';
+    position: absolute;
+    inset: 25%;
+    background-color: var(--theme-icon-secondary);
+    transform: scale(0);
+    transition: transform var(--transition-duration) var(--transition-easing);
+  }
+  .checkbox_input:checked + .checkbox_box::after {
+    transform: none;
+  }
+  .checkbox_input:focus-visible + .checkbox_box {
+    outline: var(--border-width-md) solid var(--theme-text);
+    outline-offset: var(--border-width-md);
+  }
+  .checkbox.type--box:hover .checkbox_box,
+  .checkbox_input:focus-visible + .checkbox_box {
+    box-shadow: inset 0 0 0 var(--border-width-md) var(--theme-text);
+  }
+  .checkbox_input[aria-invalid='true'] + .checkbox_box {
+    box-shadow: inset 0 0 0 var(--border-width-md) var(--theme-error);
+  }
+
+  /* ---------- pill: a subject ---------- */
+  .checkbox.type--pill {
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--size-100); /* Figma 999: round ends */
+    color: var(--theme-text);
+    white-space: nowrap;
+    box-shadow: inset 0 0 0 var(--border-width-md) var(--theme-frame);
+  }
+  .checkbox.type--pill:has(.checkbox_input:focus-visible) {
+    outline: var(--border-width-md) solid var(--theme-text);
+    outline-offset: var(--border-width-md);
+  }
+  /* Checked: the blue pill without a frame (Figma) */
+  .checkbox.type--pill:has(.checkbox_input:checked) {
+    background-color: var(--theme-icon-secondary);
+    color: var(--theme-text-inverse);
+    box-shadow: inset 0 0 0 var(--border-width-md) transparent;
+  }
+  .checkbox.type--pill:hover,
+  .checkbox.type--pill:has(.checkbox_input:focus-visible),
+  .checkbox.type--pill:has(.checkbox_input:checked):hover {
+    box-shadow: inset 0 0 0 var(--border-width-md) var(--theme-text);
+  }
+  /* Error (no subject chosen): the round frames red */
+  .checkbox.type--pill:has(.checkbox_input[aria-invalid='true']) {
+    box-shadow: inset 0 0 0 var(--border-width-md) var(--theme-error);
+  }
+
+  @media (max-width: 479px) {
+    .checkbox_box {
+      width: var(--size-16);
+    }
+    /* An option of the contact popup's subject list */
+    .checkbox.type--pill {
+      width: 100%;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--size-6);
+      background-color: var(--theme-surface);
+      box-shadow: inset 0 0 0 var(--border-width-md) transparent;
+    }
+  }
+</style>

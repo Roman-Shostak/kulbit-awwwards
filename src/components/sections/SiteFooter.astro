@@ -107,8 +107,7 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
                       </p>
                     </div>
                     <div class="flex-v mobile-hide">
-                      {/* TODO: where «Let’s discuss» leads (the same question as «Start Your Pilot») */}
-                      <Button variant="second-footer" data-kulbit-border="">
+                      <Button variant="second-footer" data-kulbit-border="" data-popup="contact">
                         {t.about.discuss}
                       </Button>
                     </div>
@@ -148,8 +147,7 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
         })
       }
       <div class="flex-v mobile-only">
-        {/* TODO: where «Let’s discuss» leads (the same question as «Start Your Pilot») */}
-        <Button variant="second-footer" data-kulbit-border="">
+        <Button variant="second-footer" data-kulbit-border="" data-popup="contact">
           {t.about.discuss}
         </Button>
       </div>

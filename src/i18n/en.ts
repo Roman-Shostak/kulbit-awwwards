@@ -343,6 +343,63 @@ export default {
     mute: 'Mute',
     fullscreen: 'Fullscreen',
   },
+  /**
+   * The contact popup «Get in touch» (ContactPopup; Figma Bal5wro2NSbQThh828lSi7, 4033:9269): texts as in Figma. The
+   * brackets of the placeholders («[ Your Name ]») are drawn by ui/Input, not part of these texts
+   */
+  contactPopup: {
+    title: 'Get in touch',
+    /** The two sentences on the left (desktop); the grey parts as in Figma */
+    intro: [
+      [
+        { text: 'Have an', grey: true },
+        { text: 'idea worth exploring?', grey: false },
+      ],
+      [
+        { text: 'Share the details in the form below', grey: false },
+        { text: 'and let’s start the conversation.', grey: true },
+      ],
+    ],
+    /** sr-only name of ✕ and the label of the button under «Thank you!» (not in Figma) */
+    close: 'Close',
+    name: { label: 'name', placeholder: 'Your Name' },
+    email: { label: 'Email Address', placeholder: 'example@mail.com' },
+    subjects: {
+      legend: 'subject of the message',
+      /** The mobile list's button with nothing chosen. TODO: not in Figma (the mobile frames show a choice) — confirm */
+      choose: 'Choose a variant',
+      /** One label per value of SUBJECTS (worker/validate.ts); the mobile list shows the same labels */
+      options: {
+        strategy: 'Strategy & Pre-Visualization',
+        'brand-videos': 'Brand Videos',
+        'product-videos': 'Product Videos',
+        'global-campaigns': 'global campaigns',
+        'social-media': 'Social Media',
+        other: 'Other',
+      },
+    },
+    message: { label: 'your message', placeholder: 'Example Text' },
+    /** Not in Figma: the client's decision (a checkbox before the button) */
+    consent: 'I agree to the processing of my personal data to receive a reply.',
+    submit: 'Submit message',
+  },
+  /**
+   * The states of every form (ui/Form + src/scripts/form.ts): `error<Code>` per code of worker/validate.ts, `errorRate`
+   * (429), `error` (the server or the network). The success texts are the client's; the error texts are the template's
+   * defaults adapted to the popup's fields — TODO: confirm with the client
+   */
+  form: {
+    sending: 'Sending…',
+    successTitle: 'Thank you!',
+    success: 'Your message has been sent. We’ll get back to you soon.',
+    error: 'The message could not be sent. Please try again later.',
+    errorEmailRequired: 'Enter your email address',
+    errorEmail: 'Check the email address',
+    errorSubject: 'Choose at least one subject of the message',
+    errorConsent: 'Confirm the consent to the processing of your personal data',
+    errorLength: 'The text is too long',
+    errorRate: 'Too many attempts. Please wait a minute and try again.',
+  },
   /** The screen a phone held sideways gets (the Webflow build's .landscape-popup), texts as on the build */
   landscapePopup: {
     title: 'Explore better experience',

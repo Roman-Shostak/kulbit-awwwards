@@ -21,6 +21,9 @@
  */
 import { Picture } from 'astro:assets';
 import Button from '@/components/ui/Button.astro';
+import Checkbox from '@/components/ui/Checkbox.astro';
+import Form from '@/components/ui/Form.astro';
+import Input from '@/components/ui/Input.astro';
 import Logo from '@/components/ui/Logo.astro';
 import ProgressLine from '@/components/ui/ProgressLine.astro';
 import ProjectVideo from '@/components/ui/ProjectVideo.astro';
@@ -36,20 +39,23 @@ import SectionNav from '@/components/sections/SectionNav.astro';
 import LandscapePopup from '@/components/sections/LandscapePopup.astro';
 import SiteHeader from '@/components/sections/SiteHeader.astro';
 import SiteFooter from '@/components/sections/SiteFooter.astro';
+import ContactPopup from '@/components/sections/ContactPopup.astro';
 import { useTranslations } from '@/i18n';
+import { SUBJECTS } from '../../worker/validate';
 import DevShell from './DevShell.astro';
 import posterRushCore from '@/assets/projects/project-rush-core-poster.avif';
 import footerShowreel from '@/assets/site-footer/footer-showreel.avif';
 
 const t = useTranslations(Astro.currentLocale);
 const tProjects = t.projects;
+const tPopup = t.contactPopup;
 const fileName = (path: string) => path.split('/').pop()!.replace(/\.astro$/, '');
 const uiFiles = Object.keys(import.meta.glob('../components/ui/*.astro')).map(fileName);
 const sectionFiles = Object.keys(import.meta.glob('../components/sections/*.astro')).map(fileName);
 
 // Registry of what this page renders — keep in sync with the blocks below
-const showcasedUi: string[] = ['Button', 'Square', 'ProgressLine', 'ProjectVideo', 'Logo'];
-const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients', 'Projects', 'OurServices', 'IntroScreen', 'WorkingProcess', 'TraditionalProduction', 'SectionNav', 'LandscapePopup', 'SiteFooter'];
+const showcasedUi: string[] = ['Button', 'Square', 'ProgressLine', 'ProjectVideo', 'Logo', 'Input', 'Checkbox', 'Form'];
+const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients', 'Projects', 'OurServices', 'IntroScreen', 'WorkingProcess', 'TraditionalProduction', 'SectionNav', 'LandscapePopup', 'SiteFooter', 'ContactPopup'];
 
 const missingUi = uiFiles.filter((name) => !showcasedUi.includes(name));
 const missingSections = sectionFiles.filter((name) => !showcasedSections.includes(name));
@@ -90,7 +96,7 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
 
   <section class="dev_component" id="ui-button">
     <h3>Button</h3>
-    <p class="dev_component-meta"><code>src/components/ui/Button.astro</code> — variant: outline | arrow | second | second-footer | showreel; href → a, otherwise button[type=button]. The labels hide on mobile (outline, showreel) and ≤ 991px (arrow) and stay the accessible name; second / second-footer: the square turns red on hover; second-footer: the whole width with the square at the end ≤ 991px, centred ≤ 479px; showreel: the picture comes in the <code>media</code> slot and fills the frame (the whole width).</p>
+    <p class="dev_component-meta"><code>src/components/ui/Button.astro</code> — variant: outline | arrow | second | second-footer | showreel | solid; href → a, otherwise button[type=button]; solid: the whole width, the hover / focus = the Figma filled-state look, <code>:disabled</code> while a form sends (the label carries <code>data-button-label</code>). The labels hide on mobile (outline, showreel) and ≤ 991px (arrow) and stay the accessible name; second / second-footer: the square turns red on hover; second-footer: the whole width with the square at the end ≤ 991px, centred ≤ 479px; showreel: the picture comes in the <code>media</code> slot and fills the frame (the whole width).</p>
     <div class="dev_variants dev_variants--wide">
       <figure class="dev_variant">
         <div class="dev_stage"><Button variant="outline">Showreel</Button></div>
@@ -128,6 +134,88 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
           </Button>
         </div>
         <figcaption><code>&lt;Button variant="showreel"&gt;&lt;Picture slot="media" … /&gt;</code> → button</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage"><Button variant="solid" type="submit">Submit message</Button></div>
+        <figcaption><code>&lt;Button variant="solid" type="submit"&gt;</code> → button (the contact popup)</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage"><Button variant="solid" disabled>Sending…</Button></div>
+        <figcaption><code>&lt;Button variant="solid" disabled&gt;</code> → a form sending</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="dev_component" id="ui-input">
+    <h3>Input</h3>
+    <p class="dev_component-meta"><code>src/components/ui/Input.astro</code> — the contact popup's text field: the label (a red asterisk when required), «[ placeholder ]» over the empty field (the brackets are decoration, gone once it has a value), the hairline (white on hover / focus). element: input (default) | textarea. Error (<code>aria-invalid="true"</code>): the label red, a red asterisk at the end of the line. Type into a field to see the filled state.</p>
+    <div class="dev_variants dev_variants--wide">
+      <figure class="dev_variant">
+        <div class="dev_stage"><Input id="dev-input-name" label={tPopup.name.label} placeholder={tPopup.name.placeholder} autocomplete="off" /></div>
+        <figcaption><code>&lt;Input id label placeholder&gt;</code> → input, empty</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage"><Input id="dev-input-email" type="email" label={tPopup.email.label} placeholder={tPopup.email.placeholder} required autocomplete="off" /></div>
+        <figcaption><code>&lt;Input type="email" required&gt;</code> → the asterisk</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage"><Input id="dev-input-filled" label={tPopup.name.label} placeholder={tPopup.name.placeholder} value="Samuel Bow" autocomplete="off" /></div>
+        <figcaption><code>&lt;Input value="…"&gt;</code> → filled (no brackets)</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage"><Input id="dev-input-error" type="email" label={tPopup.email.label} placeholder={tPopup.email.placeholder} required aria-invalid="true" autocomplete="off" /></div>
+        <figcaption><code>&lt;Input aria-invalid="true"&gt;</code> → error</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage"><Input id="dev-input-message" element="textarea" label={tPopup.message.label} placeholder={tPopup.message.placeholder} /></div>
+        <figcaption><code>&lt;Input element="textarea"&gt;</code> → the message</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="dev_component" id="ui-checkbox">
+    <h3>Checkbox</h3>
+    <p class="dev_component-meta"><code>src/components/ui/Checkbox.astro</code> — a native checkbox with its label as the control. variant: box (default: the consent; not in Figma — the pills' frame, the blue square when checked) | pill (the subjects; checked = blue; at ≤ 479px an option of the mobile list). Hover = focus: the frame white. Error (<code>aria-invalid="true"</code>, box): red.</p>
+    <div class="dev_variants dev_variants--wide">
+      <figure class="dev_variant">
+        <div class="dev_stage"><Checkbox>{tPopup.consent}</Checkbox></div>
+        <figcaption><code>&lt;Checkbox&gt;</code> → box</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage"><Checkbox checked>{tPopup.consent}</Checkbox></div>
+        <figcaption><code>&lt;Checkbox checked&gt;</code></figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage"><Checkbox aria-invalid="true">{tPopup.consent}</Checkbox></div>
+        <figcaption><code>&lt;Checkbox aria-invalid="true"&gt;</code> → error</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage"><Checkbox variant="pill">{tPopup.subjects.options['brand-videos']}</Checkbox></div>
+        <figcaption><code>&lt;Checkbox variant="pill"&gt;</code></figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage"><Checkbox variant="pill" checked>{tPopup.subjects.options.strategy}</Checkbox></div>
+        <figcaption><code>&lt;Checkbox variant="pill" checked&gt;</code></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="dev_component" id="ui-form">
+    <h3>Form</h3>
+    <p class="dev_component-meta"><code>src/components/ui/Form.astro</code> — the shell of every form: posts to the Worker (<code>worker/index.ts</code>, <code>POST /api/form</code>) through <code>src/scripts/form.ts</code>; hidden <code>form</code>/<code>locale</code>/<code>started</code> fields, a honeypot, the message (<code>form</code> dictionary, role="alert"), the success block (+ the <code>success</code> slot). Live: submit empty → <code>aria-invalid</code> + the message; a valid submission needs <code>pnpm worker</code> running (proxied from <code>/api</code>).</p>
+    <div class="dev_variants dev_variants--wide">
+      <figure class="dev_variant">
+        <div class="dev_stage">
+          <Form name="dev" class="flex-v spacing-lg">
+            <Input id="dev-form-email" type="email" name="email" label={tPopup.email.label} placeholder={tPopup.email.placeholder} autocomplete="email" required />
+            <ul class="flex-h wrap spacing-sm">
+              {SUBJECTS.slice(0, 3).map((subject) => <li><Checkbox variant="pill" name="subject" value={subject}>{tPopup.subjects.options[subject]}</Checkbox></li>)}
+            </ul>
+            <Checkbox name="consent" required>{tPopup.consent}</Checkbox>
+            <Button type="submit" variant="solid">{tPopup.submit}</Button>
+          </Form>
+        </div>
+        <figcaption>live · <code>&lt;Form name="dev"&gt;</code></figcaption>
       </figure>
     </div>
   </section>
@@ -281,4 +369,9 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
   <div class="dev_section-frame"><div class="dev_section-label">SectionNav.astro (the arrow on the right edge of the window slides the panel in — here too; the items are links to the screens' anchors, the jumps and the current mark work on the home page; the last button pauses the background videos)</div><SectionNav /></div>
   <div class="dev_section-frame"><div class="dev_section-label">LandscapePopup.astro (open: in the flow of this page; on the home page fixed over everything and hidden until a phone is held sideways)</div><LandscapePopup open /></div>
   <div class="dev_section-frame"><div class="dev_section-label">SiteFooter.astro (in the layout's footer; the step scroll of tablet / mobile runs on the home page)</div><footer class="footer"><SiteFooter /></footer></div>
+  <div class="dev_section-frame">
+    <div class="dev_section-label">ContactPopup.astro (a modal dialog: the button opens it — the same as every <code>data-popup="contact"</code> CTA; ✕, Esc or a click outside the panel closes it)</div>
+    <div class="dev_stage"><Button variant="solid" data-popup="contact">Open «Get in touch»</Button></div>
+    <ContactPopup />
+  </div>
 </DevShell>

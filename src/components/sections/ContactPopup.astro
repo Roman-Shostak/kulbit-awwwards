@@ -1,0 +1,651 @@
+---
+/**
+ * ContactPopup — «Get in touch» (Figma Bal5wro2NSbQThh828lSi7: desktop 4033:9269, tablet 4033:8371, mobile 4033:6322
+ * and 4033:6368 with the subject list open; the error state 1110:1521, the filled state 1110:1598): the contact form
+ * in a modal <dialog>, opened by every `[data-popup="contact"]` on the page (the hero «Start Pilot», «Start Your
+ * Pilot» on both intro screens, «Let’s discuss» ×2 in the footer) through one delegated click listener.
+ * Desktop: a 1600 × 860 panel of two columns — the rule, the heading, the two sentences and the 3D image on the left,
+ * the form on the right, ✕ in the corner; tablet / mobile: one column (the heading with ✕ over the rule, then the
+ * form), the image behind the panel (tablet: the top-left corner of the screen; mobile: the bottom, faded to black).
+ * The red square of the desktop frame lies under the image, as in Figma.
+ * Subjects: six checkboxes `subject` with the values of SUBJECTS (worker/validate.ts) in a fieldset — pills on
+ * desktop / tablet; on mobile the same inputs in a list under a toggle button (aria-expanded + aria-controls; it shows
+ * the choice: the one label, the first + «+N», or a placeholder) that opens and closes with a transition and closes
+ * on Esc, a click outside or the focus leaving the group. In the error state only frames turn red — the pills, on
+ * mobile the toggle button; the legend and every other text keep their colour (the user's decision).
+ * The form is ui/Form (the Worker, src/scripts/form.ts): name (optional), e-mail (required), subjects, message
+ * (optional), the consent, «Submit message»; its success block gets a Close button here.
+ * Popup (astro-components.md → Popup): showModal + focus on the dialog, `is--open` fades / slides it in with its
+ * backdrop; closed by ✕, Esc (`cancel`), a click outside the panel or the success block's Close; the focus goes back
+ * to the trigger. The dialog is the whole screen and scrolls its own content when it is taller (mobile); while it is
+ * open the step scroll does not react (its Observer is disabled — the keyboard handler already skips a modal dialog —
+ * and enabled again on close unless the landscape popup holds it). Closing it after a successful send resets the form,
+ * so the next opening shows it empty.
+ * Rendered in the page's default slot after the last section (the header strip lets the pointer through).
+ * No JS: the dialog stays closed and the CTAs do nothing.
+ */
+import { Picture } from 'astro:assets';
+import Button from '@/components/ui/Button.astro';
+import Checkbox from '@/components/ui/Checkbox.astro';
+import Form from '@/components/ui/Form.astro';
+import Input from '@/components/ui/Input.astro';
+import Square from '@/components/ui/Square.astro';
+import IconChevron from '@/assets/icons/chevron.svg';
+import IconDismiss from '@/assets/icons/dismiss.svg';
+import torus from '@/assets/contact-popup/contact-popup-torus.png';
+import { useTranslations } from '@/i18n';
+import { MAX_LENGTH, MESSAGE_MAX_LENGTH, SUBJECTS } from '../../../worker/validate';
+
+const t = useTranslations(Astro.currentLocale).contactPopup;
+---
+
+<dialog class="contact-popup" aria-labelledby="contact-popup-title" tabindex="-1" data-contact-popup data-lenis-prevent>
+  <div class="contact-popup_screen">
+    {/* Tablet / mobile: the image behind the panel (decoration) */}
+    <div class="desktop-hide">
+      <div class="contact-popup_backdrop" aria-hidden="true">
+        <div class="contact-popup_torus">
+          <Picture src={torus} formats={['avif', 'webp']} width={839} alt="" class="fill-box" />
+        </div>
+      </div>
+    </div>
+    <div class="contact-popup_panel" data-contact-popup-panel>
+      <button class="contact-popup_dismiss" type="button" data-contact-popup-close>
+        <IconDismiss class="contact-popup_dismiss-icon" aria-hidden="true" />
+        <span class="sr-only">{t.close}</span>
+      </button>
+      <div class="contact-popup_intro">
+        {/* The rule stands over the heading on desktop, under it below (decorative: column-reverse only moves the line) */}
+        <div class="contact-popup_head">
+          <h2 class="contact-popup_title text-size-popup-title text-weight-800" id="contact-popup-title">{t.title}</h2>
+          <span class="contact-popup_rule" aria-hidden="true"></span>
+        </div>
+        <div class="desktop-only text-size-hero text-weight-700">
+          <div class="contact-popup_lead text-style-uppercase">
+            <div class="contact-popup_sentences">
+              {
+                t.intro.map((sentence) => (
+                  <p>
+                    {sentence.map((part, i) => (
+                      <Fragment>
+                        {i > 0 && ' '}
+                        {part.grey ? <span class="text-color-secondary">{part.text}</span> : part.text}
+                      </Fragment>
+                    ))}
+                  </p>
+                ))
+              }
+            </div>
+            <Square color="red" />
+          </div>
+        </div>
+        <div class="desktop-only">
+          <div class="contact-popup_art" aria-hidden="true">
+            <div class="contact-popup_torus">
+              <Picture src={torus} formats={['avif', 'webp']} width={839} alt="" class="fill-box" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-popup_body">
+        <Form name="contact" class="contact-popup_form">
+          <div class="contact-popup_fields">
+            <Input
+              id="contact-popup-name"
+              name="name"
+              label={t.name.label}
+              placeholder={t.name.placeholder}
+              autocomplete="name"
+              maxlength={MAX_LENGTH}
+            />
+            <Input
+              id="contact-popup-email"
+              type="email"
+              name="email"
+              label={t.email.label}
+              placeholder={t.email.placeholder}
+              autocomplete="email"
+              maxlength={MAX_LENGTH}
+              required
+            />
+            <fieldset class="contact-popup_subjects text-weight-700" data-subjects>
+              <legend class="contact-popup_legend text-size-label text-style-uppercase">
+                {t.subjects.legend}<span class="text-color-brand" aria-hidden="true">*</span>
+              </legend>
+              {/* Mobile: the list opens under this button; the form focuses it when the closed list holds the error */}
+              <div class="mobile-only">
+                <button
+                  class="contact-popup_toggle text-size-pill text-style-uppercase"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="contact-popup-subjects"
+                  data-subjects-toggle
+                  data-form-focus
+                >
+                  <span class="contact-popup_choice is--empty" data-subjects-choice data-placeholder={t.subjects.choose}>
+                    {t.subjects.choose}
+                  </span>
+                  <IconChevron class="contact-popup_chevron" aria-hidden="true" />
+                </button>
+              </div>
+              <ul class="contact-popup_options" id="contact-popup-subjects" data-subjects-list>
+                {
+                  SUBJECTS.map((subject) => (
+                    <li>
+                      <Checkbox variant="pill" name="subject" value={subject}>
+                        {t.subjects.options[subject]}
+                      </Checkbox>
+                    </li>
+                  ))
+                }
+              </ul>
+            </fieldset>
+            <div class="contact-popup_end">
+              <Input
+                id="contact-popup-message"
+                element="textarea"
+                name="message"
+                label={t.message.label}
+                placeholder={t.message.placeholder}
+                maxlength={MESSAGE_MAX_LENGTH}
+                class="contact-popup_message"
+              />
+              <div class="flex-v spacing-lg">
+                <Checkbox name="consent" required>{t.consent}</Checkbox>
+                <Button type="submit" variant="solid">{t.submit}</Button>
+              </div>
+            </div>
+          </div>
+          <Button slot="success" variant="solid" data-contact-popup-close>{t.close}</Button>
+        </Form>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  import { app } from '@/scripts/kulbit/app';
+  import { FORM_RESET } from '@/scripts/form';
+
+  const dialog = document.querySelector<HTMLDialogElement>('[data-contact-popup]');
+  const panel = dialog?.querySelector<HTMLElement>('[data-contact-popup-panel]');
+  const form = dialog?.querySelector<HTMLFormElement>('form[data-form]');
+
+  if (dialog && panel && form) {
+    // ---------- Subjects: the mobile list ----------
+    const group = dialog.querySelector<HTMLElement>('[data-subjects]');
+    const toggle = group?.querySelector<HTMLButtonElement>('[data-subjects-toggle]');
+    const choice = group?.querySelector<HTMLElement>('[data-subjects-choice]');
+    const boxes = [...(group?.querySelectorAll<HTMLInputElement>('input[name="subject"]') ?? [])];
+    const labelOf = (box: HTMLInputElement) => box.closest('label')?.textContent?.trim() ?? box.value;
+
+    const isOpen = () => toggle?.getAttribute('aria-expanded') === 'true';
+    const setOpen = (open: boolean) => toggle?.setAttribute('aria-expanded', String(open));
+    // The button shows the choice: nothing → the placeholder, one → its label, more → the first + «+N»
+    const showChoice = () => {
+      if (!choice) return;
+      const checked = boxes.filter((box) => box.checked);
+      choice.textContent = checked.length
+        ? `${labelOf(checked[0])}${checked.length > 1 ? ` +${checked.length - 1}` : ''}`
+        : (choice.dataset.placeholder ?? '');
+      choice.classList.toggle('is--empty', !checked.length);
+    };
+
+    toggle?.addEventListener('click', () => setOpen(!isOpen()));
+    group?.addEventListener('change', showChoice);
+    // Esc closes the list first (the keydown's default would close the dialog: cancelled)
+    group?.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || !isOpen()) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setOpen(false);
+      toggle?.focus();
+    });
+    // The keyboard leaving the group closes it (a press on an option's label first moves the focus to the dialog,
+    // then to its checkbox: not a leave; a press outside is the pointerdown below)
+    group?.addEventListener('focusout', (event) => {
+      const next = event.relatedTarget;
+      if (next instanceof Node && next !== dialog && !group.contains(next)) setOpen(false);
+    });
+    dialog.addEventListener('pointerdown', (event) => {
+      if (isOpen() && event.target instanceof Node && !group?.contains(event.target)) setOpen(false);
+    });
+    // form.reset() fires `reset` before the values change: read them after
+    form.addEventListener('reset', () => setTimeout(showChoice));
+
+    // ---------- The dialog ----------
+    let trigger: HTMLElement | null = null;
+
+    const open = (from: HTMLElement) => {
+      if (dialog.open) return;
+      trigger = from;
+      dialog.showModal();
+      dialog.focus();
+      app.observer?.disable(); // the wheel / touch must not move the sections under the popup
+      dialog.getBoundingClientRect(); // commits the hidden state, so the transition runs
+      dialog.classList.add('is--open');
+    };
+    const close = async () => {
+      if (!dialog.open || !dialog.classList.contains('is--open')) return;
+      dialog.classList.remove('is--open');
+      await Promise.allSettled(dialog.getAnimations({ subtree: true }).map((animation) => animation.finished));
+      if (!dialog.classList.contains('is--open')) dialog.close();
+    };
+
+    document.addEventListener('click', (event) => {
+      const from = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-popup="contact"]') : null;
+      if (!from) return;
+      event.preventDefault();
+      open(from);
+    });
+    dialog.querySelectorAll('[data-contact-popup-close]').forEach((button) => button.addEventListener('click', close));
+    dialog.addEventListener('cancel', (event) => {
+      event.preventDefault();
+      void close();
+    });
+    // A click outside the panel (the screen around it is the backdrop): pressed and released there, so a text
+    // selection that ends outside does not close it
+    let downOutside = false;
+    dialog.addEventListener('pointerdown', (event) => {
+      downOutside = event.target instanceof Node && !panel.contains(event.target);
+    });
+    dialog.addEventListener('click', (event) => {
+      if (downOutside && event.target instanceof Node && !panel.contains(event.target)) void close();
+      downOutside = false;
+    });
+
+    // Closed (by the script or by the browser): the navigation back, the focus back to the trigger, a sent form reset
+    dialog.addEventListener('close', () => {
+      dialog.classList.remove('is--open');
+      setOpen(false);
+      if (!app.landscapeBlocked) app.observer?.enable();
+      trigger?.focus({ preventScroll: true });
+      trigger = null;
+      if (form.classList.contains('is--sent')) form.dispatchEvent(new Event(FORM_RESET));
+    });
+  }
+</script>
+
+<style>
+  /* ---------- The dialog: the whole screen, transparent over the black backdrop; fades and slides in ---------- */
+  .contact-popup {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    margin: auto;
+    padding: 0;
+    border: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: none;
+    color: var(--theme-text);
+    opacity: 0;
+    transform: translateY(var(--size-24));
+    transition:
+      opacity var(--transition-duration) var(--transition-easing),
+      transform var(--transition-duration) var(--transition-easing);
+  }
+  .contact-popup::backdrop {
+    background-color: var(--theme-page-bg);
+    opacity: 0;
+    transition: opacity var(--transition-duration) var(--transition-easing);
+  }
+  .contact-popup.is--open {
+    opacity: 1;
+    transform: none;
+  }
+  .contact-popup.is--open::backdrop {
+    opacity: 1;
+  }
+  /* Focused by the script on open (a container, not a control) */
+  .contact-popup:focus-visible {
+    outline: none;
+  }
+
+  /* The screen: the panel centred with at least 64 / 70 around it (Figma: the 1920 × 1080 frame) */
+  .contact-popup_screen {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    padding: var(--size-64) calc(4.375rem * var(--fluid-scale)); /* 70 */
+  }
+
+  /* ---------- The panel: two 800 columns, 860 high, a 2px frame inside ---------- */
+  .contact-popup_panel {
+    position: relative;
+    display: flex;
+    flex: none;
+    width: calc(100rem * var(--fluid-scale)); /* 1600 */
+    min-height: calc(53.75rem * var(--fluid-scale)); /* 860 */
+    outline: var(--border-width-md) solid var(--theme-frame);
+    outline-offset: calc(var(--border-width-md) * -1);
+    background-color: var(--theme-page-bg);
+  }
+  .contact-popup_dismiss {
+    position: absolute;
+    top: calc(0.9375rem * var(--fluid-scale)); /* 15 */
+    right: calc(1.03rem * var(--fluid-scale)); /* 16.5 */
+    z-index: 1;
+    width: var(--size-40);
+    height: var(--size-40);
+    color: var(--theme-icon);
+    transition: color var(--transition-duration) var(--transition-easing);
+  }
+  /* A 44px touch target around the 28px icon on mobile */
+  .contact-popup_dismiss::before {
+    content: '';
+    position: absolute;
+    inset: calc(var(--size-8) * -1);
+  }
+  .contact-popup_dismiss:hover,
+  .contact-popup_dismiss:focus-visible {
+    color: var(--theme-text-brand);
+  }
+  .contact-popup_dismiss-icon {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* The left column: the rule and the heading, 120 below them the two sentences; the image clipped by the column */
+  .contact-popup_intro {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-120);
+    width: 50%;
+    padding: var(--size-40);
+    overflow: hidden;
+    border-right: var(--border-width-md) solid var(--theme-frame);
+  }
+  .contact-popup_head {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--spacing-xl);
+  }
+  /* PP Monument Wide Black 44 / 1.3, tracking 0.03em (tablet 32 / 1.1, mobile 20 / 1.1): the popup heading */
+  .text-size-popup-title {
+    font-family: var(--font-secondary);
+    font-size: var(--size-44);
+    line-height: 1.3;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .contact-popup_title {
+    text-align: justify;
+  }
+  .contact-popup_rule {
+    display: block;
+    height: var(--border-width-md);
+    background-color: var(--theme-text);
+  }
+  /* The sentences at the left, the red square at the bottom right (under the image) */
+  .contact-popup_lead {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    width: calc(44rem * var(--fluid-scale)); /* 704 */
+  }
+  .contact-popup_sentences {
+    display: flex;
+    flex-direction: column;
+    gap: calc(2.3125rem * var(--fluid-scale)); /* 37 */
+    width: calc(12.0625rem * var(--fluid-scale)); /* 193 */
+  }
+  /* «72»: 745 × 654 at 55.5 / 300 of the column, the torus 839 square in it (Figma's image fill crop) */
+  .contact-popup_art {
+    position: absolute;
+    top: calc(18.75rem * var(--fluid-scale)); /* 300 */
+    left: calc(3.47rem * var(--fluid-scale)); /* 55.5 */
+    width: calc(46.5625rem * var(--fluid-scale)); /* 745 */
+    height: calc(40.875rem * var(--fluid-scale)); /* 654 */
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .contact-popup_torus {
+    position: absolute;
+    top: -6.42%;
+    left: 1.34%;
+    width: 112.62%;
+    height: 128.29%;
+  }
+
+  /* The right column: the form, 48 / 40 inside */
+  .contact-popup_body {
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    padding: var(--size-40) var(--size-48);
+  }
+  .contact-popup_form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+  .contact-popup_fields {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--size-48);
+  }
+
+  /* ---------- Subjects ---------- */
+  .contact-popup_subjects {
+    min-width: 0;
+    border: 0;
+  }
+  /* The legend: grey, 4px in (its Figma chip) */
+  .contact-popup_legend {
+    margin-bottom: var(--spacing-md);
+    padding-inline: var(--size-4);
+    color: var(--theme-text-secondary);
+  }
+  .contact-popup_options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+  }
+
+  /* The message fills the rest of the column (desktop); the consent and the button under it */
+  .contact-popup_end {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+  }
+  .contact-popup_message {
+    flex: 1;
+  }
+
+  /* ---------- Tablet (744): one column, the heading with ✕ over the rule; the image top-left behind the panel ---------- */
+  @media (max-width: 991px) {
+    .contact-popup_screen {
+      align-items: flex-start;
+      padding: var(--size-64) var(--size-32);
+    }
+    .contact-popup_panel {
+      flex-direction: column;
+      gap: var(--size-56);
+      width: 100%;
+      min-height: 0;
+      padding: var(--size-32);
+    }
+    .contact-popup_dismiss {
+      top: var(--size-32);
+      right: var(--size-32);
+    }
+    .contact-popup_intro {
+      display: block;
+      width: auto;
+      padding: 0;
+      overflow: visible;
+      border-right: 0;
+    }
+    .contact-popup_head {
+      flex-direction: column;
+    }
+    .text-size-popup-title {
+      font-size: var(--size-32);
+      line-height: 1.1;
+    }
+    /* The row of ✕: the heading centred on its height, clear of it */
+    .contact-popup_title {
+      display: flex;
+      align-items: center;
+      min-height: var(--size-40);
+      padding-right: var(--size-56);
+    }
+    .contact-popup_body {
+      width: auto;
+      padding: 0;
+    }
+    .contact-popup_fields {
+      gap: var(--size-40);
+    }
+    .contact-popup_legend {
+      margin-bottom: var(--spacing-sm);
+    }
+    .contact-popup_message {
+      flex: none;
+    }
+    /* «72»: 745 square at 0 / −21 of the screen, the torus 839 × 842 in it */
+    .contact-popup_backdrop {
+      position: absolute;
+      top: calc(-1.3125rem * var(--fluid-scale)); /* −21 */
+      left: 0;
+      width: calc(46.5625rem * var(--fluid-scale)); /* 745 */
+      aspect-ratio: 1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .contact-popup_backdrop .contact-popup_torus {
+      top: -5.66%;
+      height: 113.07%;
+    }
+  }
+
+  /* ---------- Mobile (390): the subjects in a list under a button; the image at the bottom, faded ---------- */
+  @media (max-width: 479px) {
+    .contact-popup_screen {
+      padding: var(--spacing-lg) var(--spacing-md);
+    }
+    .contact-popup_panel {
+      gap: var(--size-20);
+      padding: var(--size-20) var(--spacing-md);
+      border-radius: var(--radius-sm);
+    }
+    .contact-popup_dismiss {
+      top: var(--size-20);
+      right: var(--spacing-md);
+      width: var(--size-28);
+      height: var(--size-28);
+    }
+    .contact-popup_head {
+      gap: var(--spacing-lg);
+    }
+    .text-size-popup-title {
+      font-size: var(--size-20);
+    }
+    .contact-popup_title {
+      min-height: var(--size-28);
+      padding-right: var(--size-40);
+    }
+    .contact-popup_subjects {
+      position: relative;
+    }
+    .contact-popup_toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-sm);
+      width: 100%;
+      padding: var(--spacing-md);
+      border-radius: calc(2.875rem * var(--fluid-scale)); /* 46 */
+      box-shadow: inset 0 0 0 var(--border-width-md) var(--theme-frame);
+      text-align: left;
+      transition: box-shadow var(--transition-duration) var(--transition-easing);
+    }
+    .contact-popup_toggle:hover,
+    .contact-popup_toggle:focus-visible {
+      box-shadow: inset 0 0 0 var(--border-width-md) var(--theme-text);
+    }
+    /* Error (no subject chosen): the button's frame red, like the pills' on the larger screens */
+    .contact-popup_subjects:has([aria-invalid='true']) .contact-popup_toggle {
+      box-shadow: inset 0 0 0 var(--border-width-md) var(--theme-error);
+    }
+    .contact-popup_choice {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: color var(--transition-duration) var(--transition-easing);
+    }
+    .contact-popup_choice.is--empty {
+      color: var(--theme-text-placeholder);
+    }
+    .contact-popup_chevron {
+      flex: none;
+      width: var(--size-16);
+      height: var(--size-16);
+      transition:
+        transform var(--transition-duration) var(--transition-easing),
+        color var(--transition-duration) var(--transition-easing);
+    }
+    /* Open: the chevron up and blue (Figma 4033:6368) */
+    .contact-popup_toggle[aria-expanded='true'] .contact-popup_chevron {
+      color: var(--theme-icon-secondary);
+      transform: rotate(180deg);
+    }
+    /* The list: 8 under the button, over the fields below it; fades and slides in */
+    .contact-popup_options {
+      position: absolute;
+      top: calc(100% + var(--spacing-xs));
+      left: 0;
+      right: 0;
+      z-index: 2;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-md) var(--spacing-sm);
+      border-radius: var(--size-6);
+      background-color: var(--theme-dropdown);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(calc(var(--spacing-xs) * -1));
+      transition:
+        opacity var(--transition-duration) var(--transition-easing),
+        transform var(--transition-duration) var(--transition-easing),
+        visibility var(--transition-duration) var(--transition-easing);
+    }
+    .contact-popup_subjects:has([aria-expanded='true']) .contact-popup_options {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+    }
+    /* «72»: 392 × 344 at −2, 46 above the bottom of the screen; its lower 192 fade into black */
+    .contact-popup_backdrop {
+      top: auto;
+      bottom: calc(2.875rem * var(--fluid-scale)); /* 46 */
+      left: calc(-0.125rem * var(--fluid-scale)); /* −2 */
+      width: calc(24.49rem * var(--fluid-scale)); /* 391.9 */
+      height: calc(21.5rem * var(--fluid-scale)); /* 344 */
+      aspect-ratio: auto;
+    }
+    .contact-popup_backdrop .contact-popup_torus {
+      top: -6.42%;
+      height: 128.29%;
+    }
+    .contact-popup_backdrop::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: calc(12rem * var(--fluid-scale)); /* 192 */
+      background-image: linear-gradient(to top, var(--theme-page-bg), var(--theme-fade));
+    }
+  }
+</style>

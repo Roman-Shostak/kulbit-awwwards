@@ -10,6 +10,7 @@ import TraditionalProduction from '@/components/sections/TraditionalProduction.a
 import SectionNav from '@/components/sections/SectionNav.astro';
 import LandscapePopup from '@/components/sections/LandscapePopup.astro';
 import SiteFooter from '@/components/sections/SiteFooter.astro';
+import ContactPopup from '@/components/sections/ContactPopup.astro';
 import { localeStaticPaths, useTranslations } from '@/i18n';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
@@ -35,5 +36,6 @@ const t = useTranslations(Astro.currentLocale);
   <WorkingProcess />
   <IntroScreen id="traditional-production-intro" {...t.traditionalProductionIntro} />
   <TraditionalProduction />
+  <ContactPopup />
   <SiteFooter slot="footer" />
 </BaseLayout>

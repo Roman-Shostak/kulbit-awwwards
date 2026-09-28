@@ -92,8 +92,9 @@ export default defineConfig({
   // },
 
   // The form handler is a Worker (worker/index.ts, `pnpm worker` = wrangler dev on :8787): in `astro dev`
-  // the forms post to it through this proxy. Ignored by `astro build`.
-  vite: { server: { proxy: { '/api': 'http://localhost:8787' } } },
+  // the forms post to it through this proxy. Ignored by `astro build`. `changeOrigin: false` keeps the page's
+  // Host (the string shorthand rewrites it to :8787), so the Worker's Origin check sees the same origin, as in production.
+  vite: { server: { proxy: { '/api': { target: 'http://localhost:8787', changeOrigin: false } } } },
 
   // Every page's CSS inline in its HTML: one render-blocking request less on the first visit (one page + 404,
   // ~12 KB gzip). Kulbit measured FCP/LCP 664 → 384 ms on a throttled mobile together with the lazy images.

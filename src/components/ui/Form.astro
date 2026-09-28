@@ -1,0 +1,130 @@
+---
+/**
+ * Form — the shell of every form that submits to the site's Worker (worker/index.ts, `POST /api/form`): the
+ * hidden `form` and `locale` fields, the honeypot, the fill-time field, the status message, the success block and
+ * the script. The fields and the submit button come from the caller (slot); the state texts come from the `form`
+ * dictionary and reach the script as `data-*`. States set by src/scripts/form.ts: `is--sending` on the form (the
+ * submit button disabled, «Sending…»), `aria-invalid` on the controls that failed the check (+ `aria-describedby` → the
+ * message on those of the field it is about) and the first error's text in the message (`is--visible`, fades in;
+ * role="alert": read out when it appears); on success the form fades out (`is--sent`) and the success block — «Thank you!», the sentence and the `success` slot (the caller's own Close
+ * button, say) — fades in in its place and takes the focus. `form:reset` on the form (src/scripts/form.ts →
+ * FORM_RESET) brings it back empty (the contact popup after a success, when it is closed).
+ * Kulbit: no success state in Figma — the block is composed from the site's text styles (the section heading and the
+ * hero sentence); `keepHeight` keeps the form's height so a section layout does not jump (off in a popup).
+ * The form's layout is the caller's class (a flex column with a gap: the hidden inputs and the honeypot are no flex
+ * items, the message takes its gap only while shown).
+ * Without JS the browser validates `required` and the Worker answers with a plain page.
+ */
+import type { HTMLAttributes } from 'astro/types';
+import { toLocale, useTranslations } from '@/i18n';
+
+interface Props extends HTMLAttributes<'form'> {
+  /** `data-form`: names the form in D1 */
+  name: string;
+  /** The success block keeps the form's height, so a section whose layout depends on it (a photo as tall as the
+   * column) does not jump; off in a popup, where the panel should shrink to the block */
+  keepHeight?: boolean;
+}
+
+const { name, keepHeight = false, class: className, ...rest } = Astro.props;
+const locale = toLocale(Astro.currentLocale);
+const t = useTranslations(locale).form;
+---
+
+<form
+  method="post"
+  action="/api/form"
+  class={className}
+  data-form={name}
+  data-sending={t.sending}
+  data-error={t.error}
+  data-error-email-required={t.errorEmailRequired}
+  data-error-email={t.errorEmail}
+  data-error-subject={t.errorSubject}
+  data-error-consent={t.errorConsent}
+  data-error-length={t.errorLength}
+  data-error-rate={t.errorRate}
+  {...rest}
+>
+  <input type="hidden" name="form" value={name} />
+  <input type="hidden" name="locale" value={locale} />
+  <input type="hidden" name="started" value="" />
+  {/* Honeypot: off screen, out of the tab order and of the accessibility tree; a bot fills it and the Worker drops the submission */}
+  <label class="form_trap" aria-hidden="true">Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+  <slot />
+  <p class="form_message text-size-label" id={`form-${name}-message`} role="alert" hidden data-form-message></p>
+</form>
+{/* Takes the form's place after a successful submit; focused then (tabindex -1: a container, not a Tab stop) */}
+<div class="form_success" role="status" tabindex="-1" hidden data-form-success data-form-keep-height={keepHeight ? '' : undefined}>
+  <div class="flex-v spacing-md text-style-uppercase">
+    <p class="text-size-section-h2 text-weight-800">{t.successTitle}</p>
+    <p class="text-size-hero text-weight-700">{t.success}</p>
+  </div>
+  <slot name="success" />
+</div>
+
+<script>
+  import '@/scripts/form';
+</script>
+
+<style>
+  .form_trap {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* The label style, bold, uppercase, in the text colour: red marks only the lines and frames of the fields */
+  .form_message {
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    color: var(--theme-text);
+    opacity: 0;
+    transition: opacity var(--transition-duration) var(--transition-easing);
+  }
+  .form_message.is--visible {
+    opacity: 1;
+  }
+  /* Sent: the form fades out, the script hides it when the transition has finished and shows the success block */
+  form[data-form] {
+    transition: opacity var(--transition-duration) var(--transition-easing);
+  }
+  form[data-form].is--sent {
+    opacity: 0;
+  }
+  /* The caller's flex / grid classes would beat the UA `[hidden]`; scoped rules are unlayered and win */
+  form[data-form][hidden] {
+    display: none;
+  }
+  /* The success block fills the column it stands in (the contact popup's fixed-height desktop column) and centres its
+   * content; the text over the caller's button */
+  .form_success {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--spacing-2xl);
+    opacity: 0;
+    transform: translateY(var(--size-16));
+    transition:
+      opacity var(--transition-duration-slow) var(--transition-easing),
+      transform var(--transition-duration-slow) var(--transition-easing);
+  }
+  .form_success[hidden] {
+    display: none;
+  }
+  .form_success.is--visible {
+    opacity: 1;
+    transform: none;
+  }
+  /* Focused by the script (a container): no ring */
+  .form_success:focus {
+    outline: none;
+  }
+  /* keepHeight: the script measures the form before it goes and writes `--form-height` on the block */
+  .form_success[data-form-keep-height] {
+    min-height: var(--form-height, auto);
+  }
+</style>

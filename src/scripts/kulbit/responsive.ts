@@ -95,9 +95,13 @@ export const setupLandscape = () => {
       return;
     }
     app.landscapeBlocked = query.matches;
+    // A modal popup (the contact form) would stay above the rotate screen in the top layer: it closes (its own close
+    // handler keeps the navigation off while the rotate screen is up)
+    if (query.matches) document.querySelector<HTMLDialogElement>('dialog:modal')?.close();
     show(query.matches);
     if (query.matches) app.observer?.disable();
-    else app.observer?.enable();
+    // a modal popup open over the page (the contact popup) keeps the navigation off: it enables it when it closes
+    else if (!document.querySelector('dialog:modal')) app.observer?.enable();
     updateVideoVisibility();
   };
   reapplyResponsive = apply;

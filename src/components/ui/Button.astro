@@ -10,14 +10,18 @@
  *   showreel the play icon + label of `outline` centred over a picture that fills the frame (.button.is-footer: the
  *            footer's «Explore» card, the whole width; the label only on tablet / desktop); the picture comes in the
  *            `media` slot
+ *   solid    a white label on the --theme-surface fill, the whole width, no icon (Figma «Get in touch»: «Submit
+ *            message»; the Close of its success block); hover / focus = the Figma filled-state look (a lighter fill
+ *            and a 1px frame)
  * `href` → <a>, otherwise <button type="button">; every other attribute passes through. A hidden label stays the
- * accessible name. The variant is `variant`, not `type` (that is the button's own attribute).
+ * accessible name. The variant is `variant`, not `type` (that is the button's own attribute). The label carries
+ * `data-button-label` (src/scripts/form.ts writes «Sending…» there); `:disabled` (a form sending) takes no clicks.
  */
 import type { HTMLAttributes } from 'astro/types';
 import IconArrow from '@/assets/icons/arrow-pilot.svg';
 import IconPlay from '@/assets/icons/play.svg';
 
-type Variant = { variant: 'outline' | 'arrow' | 'second' | 'second-footer' | 'showreel' };
+type Variant = { variant: 'outline' | 'arrow' | 'second' | 'second-footer' | 'showreel' | 'solid' };
 type Props = Variant & ((HTMLAttributes<'a'> & { href: string }) | (HTMLAttributes<'button'> & { href?: never }));
 
 const { variant, href, class: className, type, ...rest } = Astro.props;
@@ -29,8 +33,10 @@ const textSize = {
   second: 'text-size-button-second',
   'second-footer': 'text-size-button-second',
   showreel: 'text-size-button',
+  solid: 'text-size-button-solid',
 }[variant];
 const withPlay = variant === 'outline' || variant === 'showreel';
+const withArrow = variant === 'arrow' || variant === 'second' || variant === 'second-footer';
 ---
 
 <Tag
@@ -41,8 +47,8 @@ const withPlay = variant === 'outline' || variant === 'showreel';
 >
   {Astro.slots.has('media') && <span class="button_media"><slot name="media" /></span>}
   {withPlay && <IconPlay class="button_icon" aria-hidden="true" />}
-  <span class="button_label"><slot /></span>
-  {!withPlay && <IconArrow class="button_arrow" aria-hidden="true" />}
+  <span class="button_label" data-button-label><slot /></span>
+  {withArrow && <IconArrow class="button_arrow" aria-hidden="true" />}
 </Tag>
 
 <style>
@@ -71,6 +77,15 @@ const withPlay = variant === 'outline' || variant === 'showreel';
   .text-size-button-second {
     font-size: calc(1.13rem * var(--fluid-scale));
     line-height: 1.15;
+  }
+  /* PP Monument Wide Black 18 / 1.15 (tablet 16, mobile 14): «Submit message» */
+  .text-size-button-solid {
+    font-size: var(--size-18);
+    line-height: 1.15;
+  }
+  /* Disabled while a form sends or after it was sent (src/scripts/form.ts): no hover, no clicks, the look stays */
+  .button:disabled {
+    pointer-events: none;
   }
 
   /* ---------- outline: header ---------- */
@@ -170,9 +185,31 @@ const withPlay = variant === 'outline' || variant === 'showreel';
     color: var(--theme-icon-brand);
   }
 
+  /* ---------- solid: «Submit message» of the contact popup (and its Close) ---------- */
+  .button.type--solid {
+    width: 100%;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-radius: var(--radius-sm); /* 9 */
+    background-color: var(--theme-surface);
+    /* the 1px frame of the hover state, inside (the focus outline of base.css stays free) */
+    box-shadow: inset 0 0 0 var(--border-width-sm) transparent;
+    transition:
+      background-color var(--transition-duration) var(--transition-easing),
+      box-shadow var(--transition-duration) var(--transition-easing);
+  }
+  /* Figma's filled state (#1a1a1a + a 1px #272727 frame) ≈ --theme-frame + --theme-border (1–2 levels apart) */
+  .button.type--solid:hover,
+  .button.type--solid:focus-visible {
+    background-color: var(--theme-frame);
+    box-shadow: inset 0 0 0 var(--border-width-sm) var(--theme-border);
+  }
+
   @media (max-width: 991px) {
     .text-size-button {
       font-size: var(--size-14);
+    }
+    .text-size-button-solid {
+      font-size: var(--size-16);
     }
     .button.type--outline {
       width: calc(12.9375rem * var(--fluid-scale)); /* 207 */
@@ -199,6 +236,13 @@ const withPlay = variant === 'outline' || variant === 'showreel';
   @media (max-width: 479px) {
     .text-size-button-second {
       font-size: var(--size-16);
+    }
+    .text-size-button-solid {
+      font-size: var(--size-14);
+    }
+    .button.type--solid {
+      padding: var(--spacing-md) var(--spacing-xl);
+      border-radius: var(--size-6);
     }
     .button.type--second {
       gap: var(--spacing-md);

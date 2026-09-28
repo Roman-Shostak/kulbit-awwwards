@@ -1,0 +1,297 @@
+---
+/**
+ * Input — a text field of the contact popup (Figma «Get in touch», 4033:9269 / 8371 / 6322): the label above in the
+ * label style (Decima Mono X bold, uppercase, grey; a red asterisk on a required field), the text in PP Monument Wide
+ * on a hairline (3px desktop, 2px below). The Figma brackets «[ Your Name ]» are decoration, never part of the value,
+ * and they always frame the field's text: the placeholder while it is empty, what the visitor types after that (the
+ * user's decision; the Figma filled state 1110:1598 had none). They live in an aria-hidden layer over the field: «[»
+ * at the start (in the message it scrolls with the text), then a transparent copy of the value in the same type (the
+ * script below keeps it in sync, the textarea's scroll too), then « ]» — so the closing bracket always stands right
+ * after the last character, while typing too (under a message of two lines or more it hangs below the last line, as
+ * «[» rises above the first); a single line longer than the field keeps it at the right edge. The
+ * field's own placeholder stays for assistive tech (transparent); the text starts after «[ ».
+ *   element  input (default) | textarea (the message: «Example Text» a size smaller than the brackets, the typed text
+ *            smaller still — 18, as in the filled state; one line + 72 high on tablet / mobile, at least two lines on
+ *            desktop, where it fills the height of a caller that stretches the component)
+ * States (hover = focus): the hairline turns white — it is the focus indicator of the field: no outline ring here (the
+ * user's decision; buttons, pills and the checkbox keep the global ring of base.css); error (`aria-invalid="true"`,
+ * src/scripts/form.ts): only the hairline turns red — no text changes colour (the user's decision) — and red wins over
+ * focus until the field is corrected; browser autofill = the filled look.
+ * `id`, `label` and `placeholder` are required; `class` goes to the root (with the caller's style scope, so its scoped
+ * class reaches it), every other attribute (name, type, autocomplete, required, maxlength) to the field.
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'input'> & {
+  id: string;
+  label: string;
+  placeholder: string;
+  element?: 'input' | 'textarea';
+};
+
+const { id, label, placeholder, element = 'input', required, class: className, ...rest } = Astro.props;
+const Field = element;
+const multiline = element === 'textarea';
+// The caller's `data-astro-cid-*` (its scoped styles) on the root too, where its `class` goes
+const scope = Object.fromEntries(Object.entries(rest).filter(([key]) => key.startsWith('data-astro-cid-')));
+---
+
+<div class:list={['input', className]} {...scope} data-input>
+  <label class="input_label text-size-label text-style-uppercase" for={id}>
+    {label}{required && <span class="text-color-brand" aria-hidden="true">*</span>}
+  </label>
+  <div class="input_box text-size-input">
+    <Field
+      id={id}
+      class:list={['input_field', { 'text-size-input-value': multiline }]}
+      placeholder={placeholder}
+      required={required}
+      {...rest}
+    />
+    {!multiline && <span class="input_open" aria-hidden="true">[</span>}
+    <span class="input_hint" aria-hidden="true" data-input-hint>
+      {multiline && <span class="input_open">[</span>}<span class="input_copy" data-input-copy></span><span class:list={['input_placeholder', { 'text-size-input-small': multiline }]}>{placeholder}</span><span class="input_close">&nbsp;]</span>
+    </span>
+  </div>
+</div>
+
+<style>
+  /* The field text: PP Monument Wide Regular 32 / 1.3, tracking 0.01em (tablet 28, mobile 18); the brackets too.
+   * The sizes are rem-based lengths, so the indent means the same px in the textarea */
+  .input {
+    --input-size: var(--size-32);
+    --input-size-small: var(--size-24); /* «Example Text»: 24 (tablet 20, mobile 16) */
+    --input-size-value: var(--size-18); /* the typed message: 18 (tablet, mobile 16) — Figma 1110:1598 */
+    --input-indent: calc(var(--input-size) * 0.886); /* «[ »: the bracket and its space (28.4 of 32) */
+    --input-line-width: calc(var(--border-width-sm) * 3); /* the hairline: 3 (tablet, mobile 2) */
+    --input-line: calc(var(--input-size) * 1.3);
+    /* the message's first line on the brackets' baseline: the size difference × 1.01 (the baseline in a 1.3 line) */
+    --input-first-line: calc((var(--input-size) - var(--input-size-value)) * 1.01);
+    /* under its last line: room for « ]» hanging below it — a bracket line instead of a text line */
+    --input-last-line: calc((var(--input-size) - var(--input-size-value)) * 1.3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+  .text-size-input {
+    font-family: var(--font-secondary);
+    font-size: var(--input-size);
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+  }
+  .text-size-input-small {
+    font-size: var(--input-size-small);
+  }
+  .text-size-input-value {
+    font-size: var(--input-size-value);
+  }
+
+  /* Figma: 4px inside its black chip; grey, red in the error state */
+  .input_label {
+    align-self: flex-start;
+    padding-inline: var(--size-4);
+    font-weight: var(--font-weight-bold);
+    color: var(--theme-text-secondary);
+  }
+
+  .input_box {
+    position: relative;
+    display: flex;
+    flex: 1;
+    /* Figma draws the hairline inside the 16 under the text */
+    padding-bottom: calc(var(--spacing-md) - var(--input-line-width));
+    border-bottom: var(--input-line-width) solid var(--theme-frame);
+    color: var(--theme-text);
+    transition: border-color var(--transition-duration) var(--transition-easing);
+  }
+  .input_box:hover,
+  .input_box:has(.input_field:focus) {
+    border-color: var(--theme-text);
+  }
+  /* Error: the hairline red; after the focus rule and more specific, so it stays while focused */
+  .input:has(.input_field[aria-invalid='true']) .input_box {
+    border-color: var(--theme-error);
+  }
+
+  .input_field {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    caret-color: var(--theme-text);
+  }
+  /* The hairline under the field shows the focus (above), not the global ring */
+  .input_field:focus-visible {
+    outline: none;
+  }
+  .input_field::placeholder {
+    color: transparent;
+    opacity: 1;
+  }
+  /* A line: the text between «[ » and « ]» (the padding stays put while a long value scrolls) */
+  input.input_field {
+    padding-inline: var(--input-indent);
+  }
+  /* The message: its first line starts after «[ » and on the brackets' baseline (the font's baseline is 1.01em under
+   * the top of a 1.3 line); the next lines from the left edge; the lines end before the width of « ]» and leave room
+   * under the last one (the bracket never wraps alone, hangs below — the layer below); resized by the layout only;
+   * no scrollbar (it would narrow the text against its bracket layer). Desktop: at least two lines — the popup's
+   * column stretches it */
+  textarea.input_field {
+    min-height: calc(var(--input-line) * 2);
+    padding: var(--input-first-line) var(--input-indent) var(--input-last-line) 0;
+    text-indent: var(--input-indent);
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    resize: none;
+    scrollbar-width: none;
+  }
+  /* Browser autofill = the filled state: the page background over the browser's, the value in the field colour.
+   * One selector (an unknown pseudo-class in a list drops the rule); before :focus so the focus colour wins */
+  .input_field:autofill {
+    box-shadow: inset 0 0 0 100vmax var(--theme-page-bg);
+    -webkit-text-fill-color: var(--theme-text);
+    caret-color: var(--theme-text);
+  }
+
+  /* The bracket layer: «[» at the start of the field; «copy of the value | placeholder» + « ]» after it */
+  .input_open,
+  .input_hint {
+    position: absolute;
+    top: 0;
+    pointer-events: none;
+  }
+  .input_open {
+    left: 0;
+  }
+  /* A line: one row after «[ »; a long value shrinks its (clipped) copy, so « ]» stays at the right edge */
+  .input_hint {
+    left: var(--input-indent);
+    right: 0;
+    display: flex;
+    white-space: pre;
+  }
+  .input_copy {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: transparent;
+  }
+  .input_close {
+    flex: none;
+  }
+  .input_open,
+  .input_close {
+    transition: color var(--transition-duration) var(--transition-easing);
+  }
+  /* Filled: the brackets step back to the label grey, the typed text stays white (the user's decision) */
+  .input_field:not(:placeholder-shown) ~ .input_open,
+  .input_field:not(:placeholder-shown) ~ .input_hint .input_open,
+  .input_field:not(:placeholder-shown) ~ .input_hint .input_close {
+    color: var(--theme-text-secondary);
+  }
+  /* The message: the same box, indent, wrapping and scroll as the textarea; the big brackets and the placeholder add
+   * no height to a line (line-height 0), so the copy wraps exactly like the typed text */
+  textarea.input_field ~ .input_hint {
+    left: 0;
+    bottom: calc(var(--spacing-md) - var(--input-line-width));
+    display: block;
+    padding: var(--input-first-line) var(--input-indent) var(--input-last-line) 0;
+    overflow: hidden;
+    font-size: var(--input-size-value);
+    text-indent: var(--input-indent);
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+  }
+  /* «[» of the message lives in its layer, so it scrolls away with the first line */
+  textarea.input_field ~ .input_hint .input_open {
+    font-size: var(--input-size);
+    text-indent: 0;
+  }
+  textarea.input_field ~ .input_hint .input_placeholder,
+  textarea.input_field ~ .input_hint .input_close {
+    line-height: 0;
+  }
+  /* « ]» takes no width in the line: it never wraps alone (a full last line keeps it in the padding on the right) */
+  textarea.input_field ~ .input_hint .input_close {
+    display: inline-block;
+    width: 0;
+    font-size: var(--input-size);
+    text-indent: 0;
+    white-space: pre;
+  }
+  /* Two lines or more: « ]» hangs below the last line as «[» rises above the first — the brackets are larger than the
+   * typed text and would cut into the line above */
+  textarea.input_field ~ .input_hint.is--multiline .input_close {
+    position: relative;
+    top: var(--input-first-line);
+  }
+  /* The placeholder only while the field is empty (or shows an autofill preview) */
+  .input_placeholder {
+    color: var(--theme-text-placeholder);
+  }
+  .input_field:not(:placeholder-shown) ~ .input_hint .input_placeholder {
+    display: none;
+  }
+  /* One selector per rule: an unknown pseudo-class in a list would drop the whole rule */
+  .input_field:autofill ~ .input_hint .input_placeholder {
+    display: none;
+  }
+
+  @media (max-width: 991px) {
+    .input {
+      --input-size: var(--size-28);
+      --input-size-small: var(--size-20);
+      --input-size-value: var(--size-16);
+      --input-line-width: var(--border-width-md);
+      gap: var(--size-4);
+    }
+    /* Figma: one line of the brackets + 72 (the field 124 / 111 with its hairline) */
+    textarea.input_field {
+      min-height: calc(var(--input-line) + var(--size-72));
+    }
+  }
+  /* Mobile: 18 and 16 — never below 16px on a phone (iOS Safari zooms the page into a smaller field) */
+  @media (max-width: 479px) {
+    .input {
+      --input-size: max(1rem, var(--size-18));
+      --input-size-small: max(1rem, var(--size-16));
+      --input-size-value: max(1rem, var(--size-16));
+    }
+  }
+</style>
+
+<script>
+  // The bracket layer follows the value: the transparent copy gets the text (typing, a reset, a restored value), the
+  // message's layer scrolls with its textarea and knows when the text takes more than one line (« ]» then hangs)
+  document.querySelectorAll<HTMLElement>('[data-input]').forEach((root) => {
+    const field = root.querySelector<HTMLInputElement | HTMLTextAreaElement>('input, textarea');
+    const copy = root.querySelector<HTMLElement>('[data-input-copy]');
+    const layer = root.querySelector<HTMLElement>('[data-input-hint]');
+    if (!field || !copy || !layer) return;
+    const multiline = field instanceof HTMLTextAreaElement;
+    const sync = () => {
+      copy.textContent = field.value;
+      if (multiline) {
+        const lines = copy.getClientRects();
+        const wrapped = lines.length > 1 && lines[lines.length - 1].top > lines[0].top;
+        layer.classList.toggle('is--multiline', wrapped || field.value.includes('\n'));
+      }
+      layer.scrollTop = field.scrollTop;
+    };
+    field.addEventListener('input', () => {
+      // typing at the end of the message: its end in view with the hanging « ]» (the browser shows the caret line only)
+      if (multiline && field.selectionEnd === field.value.length) field.scrollTop = field.scrollHeight;
+      sync();
+    });
+    field.addEventListener('scroll', () => {
+      layer.scrollTop = field.scrollTop;
+    });
+    // `reset` fires before the form clears its fields
+    field.form?.addEventListener('reset', () => requestAnimationFrame(sync));
+    // the message wraps anew when its width changes (the popup opens, the screen turns)
+    if (multiline) new ResizeObserver(sync).observe(field);
+    sync();
+  });
+</script>

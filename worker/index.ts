@@ -10,13 +10,13 @@
  * A failed notification never fails the submission: the row stays in D1 with an empty `notified`.
  * Stage submissions carry `[stage]` in the notification (`env.ENVIRONMENT`); outside production the static files are
  * served with `X-Robots-Tag: noindex` and a closed robots.txt (`serveAssets`).
- * The Telegram message ends with an inline button «Обработано»: Telegram posts the press to `POST /api/telegram`
+ * The Telegram message ends with an inline button «Опрацьовано»: Telegram posts the press to `POST /api/telegram`
  * (the bot's webhook, secret TELEGRAM_WEBHOOK_SECRET checked in the header), the Worker rewrites the message
  * (title struck through, a «processed by … at …» line, no button) and marks the row in D1. One bot has one webhook,
  * so the callback carries `ENVIRONMENT:id`: the message is edited from any environment, D1 only from the matching one.
  * Per project: the texts of the notification and of the no-JS page (`texts` below), NOTIFY / EMAIL_* in wrangler.jsonc.
  */
-import { MAX_LENGTH, validate, type Fields, type Invalid } from './validate';
+import { MAX_LENGTH, MESSAGE_MAX_LENGTH, isSubject, validate, type Fields, type Invalid, type Subject } from './validate';
 
 /** Secrets are not part of the generated Env (set with `wrangler secret put`, locally in .dev.vars); the e-mail binding
  * and vars exist only when the project enables the channel in wrangler.jsonc; D1 and the rate limit only once
@@ -37,28 +37,39 @@ const hasForms = (env: Bindings): env is FormBindings => !!env.DB && !!env.FORM_
 
 type Locale = 'ru' | 'uk' | 'en';
 const LOCALES: Locale[] = ['ru', 'uk', 'en'];
-const DEFAULT_LOCALE: Locale = 'ru';
+const DEFAULT_LOCALE: Locale = 'en';
 
 /** A submission sent faster than this after the page loaded (ms) is a bot */
 const MIN_FILL_TIME = 3000;
 
-/** Texts of the notification (the client's language) and of the page shown without JS (the site languages) */
+/** Texts of the notification (the client's language: Ukrainian) and of the page shown without JS (the site language) */
 const texts = {
-  /** Notification: `Новая заявка [DD.MM.YYYY]`, the site language, a blank line, then only the fields the visitor filled */
-  subject: 'Новая заявка',
-  sentFrom: 'Отправлено с языка сайта',
-  languages: { ru: 'Русский', uk: 'Украинский', en: 'Английский' } satisfies Record<Locale, string>,
-  labels: { name: 'Имя', phone: 'Телефон', email: 'Email' },
+  /** Notification: `Нова заявка [DD.MM.YYYY]`, the site language, a blank line, then only the fields the visitor filled */
+  subject: 'Нова заявка',
+  sentFrom: 'Мова сайту',
+  languages: { ru: 'російська', uk: 'українська', en: 'англійська' } satisfies Record<Locale, string>,
+  /** In the order of the message: the Telegram rewrite (`parseFields`) relies on it */
+  labels: { name: 'Ім’я', email: 'Email', subjects: 'Тема', message: 'Повідомлення' },
+  /** The subjects by their names on the site (the popup's checkboxes) */
+  subjects: {
+    strategy: 'Strategy & Pre-Visualization',
+    'brand-videos': 'Brand Videos',
+    'product-videos': 'Product Videos',
+    'global-campaigns': 'Global campaigns',
+    'social-media': 'Social Media',
+    other: 'Other',
+  } satisfies Record<Subject, string>,
   /** The inline button under the Telegram message and the first line after it was pressed */
-  processButton: '✅ Обработано',
-  processed: '✅ Обработано',
-  processedToast: 'Заявка отмечена как обработанная',
-  /** The client's time zone for the date in the notification */
-  timeZone: 'Europe/Madrid',
+  processButton: '✅ Опрацьовано',
+  processed: '✅ Опрацьовано',
+  processedToast: 'Заявку позначено як опрацьовану',
+  /** The client's locale and time zone for the dates in the notification */
+  dateLocale: 'uk',
+  timeZone: 'Europe/Kyiv',
   page: {
     ru: { title: 'Заявка', sent: 'Заявка отправлена. Я свяжусь с вами в ближайшее время.', failed: 'Не удалось отправить заявку. Попробуйте ещё раз.', back: 'Вернуться на сайт' },
     uk: { title: 'Заявка', sent: 'Заявку надіслано. Я зв’яжуся з вами найближчим часом.', failed: 'Не вдалося надіслати заявку. Спробуйте ще раз.', back: 'Повернутися на сайт' },
-    en: { title: 'Request', sent: 'Your request has been sent. I will get back to you soon.', failed: 'The request could not be sent. Please try again.', back: 'Back to the site' },
+    en: { title: 'Request', sent: 'Your message has been sent. We’ll get back to you soon.', failed: 'The message could not be sent. Please try again.', back: 'Back to the site' },
   } satisfies Record<Locale, { title: string; sent: string; failed: string; back: string }>,
 };
 
@@ -68,8 +79,8 @@ interface Submission extends Fields {
   locale: Locale;
 }
 
-/** What the script receives; `code` picks the dictionary message, `fields` get `aria-invalid` */
-type Result = { ok: true } | { ok: false; code: Invalid['code'] | 'rate' | 'error'; fields?: Invalid['fields'] };
+/** What the script receives; `code` picks the dictionary message, `fields` get `aria-invalid`, `errors` pair each with its code */
+type Result = { ok: true } | { ok: false; code: Invalid['code'] | 'rate' | 'error'; fields?: Invalid['fields']; errors?: Invalid['errors'] };
 
 export default {
   async fetch(request, env) {
@@ -145,10 +156,11 @@ const handleForm = async (request: Request, env: FormBindings): Promise<Response
     return new Response('Bad Request', { status: 400 });
   }
 
-  // Control characters out, trimmed, capped — every text field goes through here
+  // Control characters out, trimmed, capped one character past the limit (so validate() reports an over-long name or
+  // e-mail instead of the value being stored cut) — every one-line text field goes through here
   const field = (name: string) => {
     const value = data.get(name);
-    return typeof value === 'string' ? value.replace(/[\p{Cc}]/gu, ' ').trim().slice(0, MAX_LENGTH) : '';
+    return typeof value === 'string' ? value.replace(/[\p{Cc}]/gu, ' ').trim().slice(0, MAX_LENGTH + 1) : '';
   };
   const localeValue = field('locale');
   const locale = LOCALES.find((known) => known === localeValue) ?? DEFAULT_LOCALE;
@@ -161,13 +173,21 @@ const handleForm = async (request: Request, env: FormBindings): Promise<Response
   if (field('website') || (started > 0 && Date.now() - started < MIN_FILL_TIME)) return respond({ ok: true });
 
   const pageValue = field('page') || new URL(backUrl, url.origin).pathname;
+  // The message keeps its line breaks: CRLF / CR → LF, the other control characters out, trimmed, capped like field()
+  const messageValue = data.get('message');
+  const message =
+    typeof messageValue === 'string'
+      ? messageValue.replace(/\r\n?/g, '\n').replace(/[^\P{Cc}\n]/gu, ' ').trim().slice(0, MESSAGE_MAX_LENGTH + 1)
+      : '';
   const submission: Submission = {
     form: field('form').replace(/[^a-z0-9-]/gi, '').slice(0, 40) || 'form',
     page: /^\/[\w\-./]*$/.test(pageValue) ? pageValue : '/',
     locale,
     name: field('name'),
-    phone: field('phone'),
     email: field('email'),
+    // every checked subject (the checkboxes share the name), each once
+    subjects: [...new Set(data.getAll('subject').filter((value): value is string => typeof value === 'string'))],
+    message,
     consent: data.get('consent') !== null,
   };
   const invalid = validate(submission);
@@ -181,9 +201,18 @@ const handleForm = async (request: Request, env: FormBindings): Promise<Response
   let id: number;
   try {
     const row = await env.DB.prepare(
-      'INSERT INTO submissions (form, page, locale, name, phone, email, consent_at) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id',
+      'INSERT INTO submissions (form, page, locale, name, email, subjects, message, consent_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id',
     )
-      .bind(submission.form, submission.page, submission.locale, submission.name, submission.phone, submission.email, new Date().toISOString())
+      .bind(
+        submission.form,
+        submission.page,
+        submission.locale,
+        submission.name,
+        submission.email,
+        submission.subjects.join(','),
+        submission.message,
+        new Date().toISOString(),
+      )
       .first<{ id: number }>();
     if (!row) throw new Error('INSERT returned no row');
     id = row.id;
@@ -226,15 +255,16 @@ interface Message {
 }
 
 const formatMessage = (submission: Submission, env: Bindings): Message => {
-  const date = new Intl.DateTimeFormat('ru', { timeZone: texts.timeZone, day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date());
+  const date = new Intl.DateTimeFormat(texts.dateLocale, { timeZone: texts.timeZone, day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date());
   const stage = env.ENVIRONMENT === 'production' ? '' : ` [${env.ENVIRONMENT}]`;
   return {
     title: `${texts.subject} [${date}]${stage}`,
     meta: `${texts.sentFrom}: ${texts.languages[submission.locale]}`,
     fields: [
       { label: texts.labels.name, value: submission.name },
-      { label: texts.labels.phone, value: submission.phone },
       { label: texts.labels.email, value: submission.email },
+      { label: texts.labels.subjects, value: submission.subjects.filter(isSubject).map((subject) => texts.subjects[subject]).join(', ') },
+      { label: texts.labels.message, value: submission.message },
     ].filter((field) => field.value),
   };
 };
@@ -252,8 +282,10 @@ const telegram = async (method: string, payload: Record<string, unknown>, env: B
   if (!response.ok) throw new Error(`Telegram ${method} ${response.status}: ${await response.text()}`);
 };
 
-/** `<b>Label:</b> value` — the value stays plain so Telegram turns the phone and the e-mail into links */
-const fieldLines = (fields: Message['fields']) => fields.map((f) => `<b>${escapeHtml(f.label)}:</b> ${escapeHtml(f.value)}`);
+/** `<b>Label:</b> value` — the value stays plain so Telegram turns the e-mail into a link; the message keeps its line
+ * breaks. A field without a label (`parseFields`) is its escaped text */
+const fieldLines = (fields: Message['fields']) =>
+  fields.map((f) => (f.label ? `<b>${escapeHtml(f.label)}:</b> ${escapeHtml(f.value)}` : escapeHtml(f.value)));
 
 const sendTelegram = async ({ title, meta, fields }: Message, id: number, env: Bindings) => {
   if (!env.TELEGRAM_CHAT_ID) throw new Error('TELEGRAM_CHAT_ID secret is not set');
@@ -270,7 +302,26 @@ const sendTelegram = async ({ title, meta, fields }: Message, id: number, env: B
   );
 };
 
-/** Telegram webhook: the «Обработано» button. Always 200, otherwise Telegram keeps retrying the update */
+/** The fields of a sent message read back from its plain text: `Label: value` lines in the order of `texts.labels`.
+ * A line that does not start the next field continues the previous value — the message keeps its line breaks, and a line
+ * of it that looks like `Email: …` is not taken for a field (the labels only go forward). A line before any known label
+ * (a message sent with other labels) stays as it is, without a label */
+const parseFields = (lines: string[]): Message['fields'] => {
+  const labels: string[] = Object.values(texts.labels);
+  const fields: Message['fields'] = [];
+  let next = 0;
+  for (const line of lines) {
+    const index = labels.findIndex((label, i) => i >= next && line.startsWith(`${label}: `));
+    if (index >= 0) {
+      fields.push({ label: labels[index], value: line.slice(labels[index].length + 2) });
+      next = index + 1;
+    } else if (fields.length) fields[fields.length - 1].value += `\n${line}`;
+    else fields.push({ label: '', value: line });
+  }
+  return fields;
+};
+
+/** Telegram webhook: the «Опрацьовано» button. Always 200, otherwise Telegram keeps retrying the update */
 interface CallbackUpdate {
   callback_query?: {
     id: string;
@@ -296,13 +347,10 @@ const handleTelegram = async (request: Request, env: FormBindings): Promise<Resp
 
   const [, environment, id] = match;
   const who = [query.from.first_name, query.from.last_name].filter(Boolean).join(' ');
-  const when = new Intl.DateTimeFormat('ru', { timeZone: texts.timeZone, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date());
-  // The message came as plain text: the title, the language line, a blank line, `Label: value` lines
+  const when = new Intl.DateTimeFormat(texts.dateLocale, { timeZone: texts.timeZone, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date());
+  // The message came as plain text: the title, the language line, a blank line, then the fields
   const [title, meta, , ...rest] = query.message.text.split('\n');
-  const fields = rest.map((line) => {
-    const [label, ...value] = line.split(': ');
-    return { label, value: value.join(': ') };
-  });
+  const fields = parseFields(rest);
   try {
     await telegram(
       'editMessageText',

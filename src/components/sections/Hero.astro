@@ -43,8 +43,7 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
         <span class="hero_deliver"><span class="text-color-secondary">{s.deliver}</span> {s.quality} <span class="text-color-secondary">{s.videos}</span></span>
         <Square class="hero_square" />
       </p>
-      {/* TODO: where «Start Pilot» leads (the popup with the form?) — ported with that section */}
-      <Button variant="arrow" class="hero_pilot" data-kulbit-y="300" data-kulbit-fade="0">{t.pilot}</Button>
+      <Button variant="arrow" class="hero_pilot" data-kulbit-y="300" data-kulbit-fade="0" data-popup="contact">{t.pilot}</Button>
     </div>
   </div>
 

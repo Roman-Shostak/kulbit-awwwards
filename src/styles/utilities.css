@@ -347,6 +347,16 @@ html:has([data-menu-toggle][aria-expanded='true']) {
   line-height: var(--line-height-hero);
   letter-spacing: var(--letter-spacing-hero);
 }
+.text-size-pill {
+  font-size: var(--font-pill);
+  line-height: var(--line-height-pill);
+  letter-spacing: var(--letter-spacing-pill);
+}
+.text-size-label {
+  font-size: var(--font-label);
+  line-height: var(--line-height-label);
+  letter-spacing: var(--letter-spacing-label);
+}
 
 /* ---------- Typography: weight, case, alignment, colour ---------- */
 .text-weight-400 {

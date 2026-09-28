@@ -1,8 +1,9 @@
 ---
 /**
  * Logo — the Kulbit logo linking home (the Webflow build: .logo — the header and .logo.is-footer — the footer). On the
- * home page it is the current page's own item: <a aria-current="page"> without href. The accessible name is sr-only
- * text; the square turns red on hover / focus of a real link (Webflow .logo: blue → red).
+ * home page it is the current page's own item and no link: <span aria-current="page"> (an <a> without href is flagged
+ * by the dev toolbar's audit). The accessible name is sr-only text; the square turns red on hover / focus of a real link
+ * (Webflow .logo: blue → red).
  *   size     150/150/125 (default, the header) · 108 (the footer, every breakpoint) · 125 (every breakpoint: the
  *            landscape popup, .logo.is-landscape-popup)
  *   element  a (default): the link home · span: the plain mark, aria-hidden, where a link has no use (the landscape
@@ -23,7 +24,7 @@ const t = useTranslations(Astro.currentLocale).logo;
 const home = localePath('/', Astro.currentLocale);
 const isHome = Astro.url.pathname === home;
 const isLink = element === 'a';
-const Tag = element;
+const Tag = isLink && !isHome ? 'a' : 'span';
 ---
 
 <Tag

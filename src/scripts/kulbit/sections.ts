@@ -33,17 +33,23 @@ import { hideOtherVideos, showCurrentVideo, updateVideoVisibility } from './vide
 const ANIM_SELECTOR = '[data-kulbit-y],[data-kulbit-scale],[data-kulbit-fade]';
 
 /**
- * Every `[data-kulbit-section]` in DOM order; the index comes from the DOM (reorder-safe). Each one is a focus anchor
- * (tabindex="-1": focusable by script, never a Tab stop): the keyboard focus moves to the current section when the
- * screen changes (./app → persistSection)
+ * Every `[data-kulbit-section]` in DOM order; the index comes from the DOM (reorder-safe). Each one has a focus anchor
+ * (tabindex="-1": focusable by script, never a Tab stop, marked data-kulbit-anchor): the keyboard focus moves to the
+ * current screen's anchor when the screen changes (./app → persistSection). The anchor is the section's first div —
+ * the .container, which every section starts with — not the <section> / <footer> itself: a tabindex on a landmark is
+ * flagged by the dev toolbar's audit; a section without a leading div gets an empty one
  */
 export const registerSections = () => {
   const elements = document.querySelectorAll<HTMLElement>('[data-kulbit-section]');
   app.sections = Array.from(elements, (el, index) => {
     el.setAttribute('data-section-index', String(index));
-    el.tabIndex = -1;
+    const first = el.firstElementChild;
+    const anchor = first instanceof HTMLDivElement ? first : el.insertBefore(document.createElement('div'), el.firstChild);
+    anchor.tabIndex = -1;
+    anchor.setAttribute('data-kulbit-anchor', '');
     return {
       el,
+      anchor,
       index,
       isFooter: el.matches('footer, .footer'),
       steps: [],
@@ -218,10 +224,37 @@ export const buildDesktopAnimations = () => {
 };
 
 /**
+ * Faded out = inert. The engine fades `data-kulbit-fade` elements with opacity, not autoAlpha: its visibility: hidden
+ * empties their innerText, and the dev toolbar's audit then reports the hidden headings and links as without content.
+ * An element at opacity 0 gets `inert` instead — out of the Tab order, the pointer and the accessibility tree, as
+ * visibility: hidden kept it — through one observer of their style, so every path (tweens, jumps, sets, a breakpoint's
+ * revert) is covered. While the landscape popup is up it owns `inert` (./responsive): the observer waits and
+ * `syncFadeInert` catches up when the popup goes.
+ */
+const FADED = '[data-kulbit-fade],[data-kulbit-fade-tablet]';
+const syncFade = (el: HTMLElement) => {
+  el.inert = el.style.opacity === '0';
+};
+export const syncFadeInert = () => {
+  document.querySelectorAll<HTMLElement>(FADED).forEach(syncFade);
+};
+export const watchFades = () => {
+  const observer = new MutationObserver((records) => {
+    if (app.landscapeBlocked) return;
+    records.forEach(({ target }) => {
+      if (target instanceof HTMLElement) syncFade(target);
+    });
+  });
+  document.querySelectorAll<HTMLElement>(FADED).forEach((el) => {
+    observer.observe(el, { attributes: true, attributeFilter: ['style'] });
+  });
+};
+
+/**
  * Step 0 = the start state (gsap.set), step 1 = the end of the timeline.
  *   data-kulbit-y="<n>"           target yPercent
  *   data-kulbit-scale="<n>"       target scale; data-kulbit-scale-from="<n>" its start (default 1)
- *   data-kulbit-fade="<n>"        target autoAlpha
+ *   data-kulbit-fade="<n>"        target opacity (0 = inert, see watchFades)
  *   data-kulbit-order="<0|1|…>"   phase: 0 first, the next ones one after another; one phase plays together
  */
 const buildSectionTimeline = (elements: HTMLElement[]) => {
@@ -232,7 +265,7 @@ const buildSectionTimeline = (elements: HTMLElement[]) => {
       start.scale = num(el, 'data-kulbit-scale-from', 1);
       start.transformOrigin = '50% 50%';
     }
-    if (el.hasAttribute('data-kulbit-fade')) start.autoAlpha = 1;
+    if (el.hasAttribute('data-kulbit-fade')) start.opacity = 1;
     gsap.set(el, start);
   });
 
@@ -257,7 +290,7 @@ const buildSectionTimeline = (elements: HTMLElement[]) => {
         const to: gsap.TweenVars = {};
         if (el.hasAttribute('data-kulbit-y')) to.yPercent = num(el, 'data-kulbit-y', 0);
         if (el.hasAttribute('data-kulbit-scale')) to.scale = num(el, 'data-kulbit-scale', 1);
-        if (el.hasAttribute('data-kulbit-fade')) to.autoAlpha = num(el, 'data-kulbit-fade', 0);
+        if (el.hasAttribute('data-kulbit-fade')) to.opacity = num(el, 'data-kulbit-fade', 0);
         timeline.to(el, to, i === 0 ? (phase === 0 ? 0 : '>') : '<');
       });
   });

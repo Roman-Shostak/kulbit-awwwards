@@ -102,7 +102,8 @@ export const setupNavigation = () => {
   document.addEventListener('focusin', (event) => {
     if (app.landscapeBlocked) return;
     const target = event.target instanceof HTMLElement ? event.target : null;
-    if (!target?.matches(':focus-visible')) return;
+    // a screen's focus anchor is focused by the engine itself (./app → keepFocusOnScreen): nothing to show
+    if (!target?.matches(':focus-visible') || target.hasAttribute('data-kulbit-anchor')) return;
     const section = app.sections.find((s) => s.el !== target && s.el.contains(target));
     if (!section) return;
     const previous = event.relatedTarget instanceof Node ? event.relatedTarget : null;

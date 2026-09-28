@@ -38,7 +38,7 @@ import { setupNavigation } from './navigation';
 import { setupKeyboard, setupObserver } from './observer';
 import { registerAnimations, setupLandscape } from './responsive';
 import { setupScramble } from './scramble';
-import { handleResize, registerSections, registerSteps, setupStacking } from './sections';
+import { handleResize, registerSections, registerSteps, setupStacking, watchFades } from './sections';
 import { setupVideos } from './video';
 
 export { registerSectionBuilder, type SectionController } from './app';
@@ -56,6 +56,7 @@ const init = () => {
 
   registerSections();
   if (!app.sections.length) return;
+  watchFades(); // before the first fade: an element faded to 0 is inert
   setupStacking();
   registerSteps();
   setupVideos(); // before the breakpoints: resetHeroState starts the hero video

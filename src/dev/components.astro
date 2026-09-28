@@ -223,7 +223,7 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
 
   <section class="dev_component" id="ui-logo">
     <h3>Logo</h3>
-    <p class="dev_component-meta"><code>src/components/ui/Logo.astro</code> — the logo linking home (on the home page: aria-current="page", no href); the square turns red on hover of a real link. size: 150/150/125 (default, the header) | 108 (the footer) | 125 (every breakpoint: the landscape popup); element: a (default) | span (the plain mark, aria-hidden: the landscape popup).</p>
+    <p class="dev_component-meta"><code>src/components/ui/Logo.astro</code> — the logo linking home (on the home page: a span with aria-current="page", no link); the square turns red on hover of a real link. size: 150/150/125 (default, the header) | 108 (the footer) | 125 (every breakpoint: the landscape popup); element: a (default) | span (the plain mark, aria-hidden: the landscape popup).</p>
     <div class="dev_variants">
       <figure class="dev_variant">
         <div class="dev_stage"><Logo /></div>

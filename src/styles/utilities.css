@@ -480,9 +480,9 @@ html[data-steps] [data-scenes] {
 html[data-steps] [data-kulbit-section] {
   background-color: var(--theme-page-bg);
 }
-/* Every section is a focus anchor (tabindex="-1"): the script moves the focus to the current screen. A container
- * focused by script, not a control: no ring */
-html[data-steps] [data-kulbit-section]:focus {
+/* Every section has a focus anchor (its first div, the .container: tabindex="-1", data-kulbit-anchor): the script
+ * moves the focus to the current screen's one. A container focused by script, not a control: no ring */
+html[data-steps] [data-kulbit-anchor]:focus {
   outline: none;
 }
 

@@ -18,7 +18,8 @@
  * the screen. The Showreel picture is lazy (the step engine starts the images of the current and the next section);
  * sizes = the picture as drawn: desktop 26vw (the card is 21vw, the cover crop draws the 16:9 frame 25.2vw wide),
  * 92vw from 991px down (the card, the frame covers it by its width).
- * The contacts are empty in site.ts (TODO): the links render without href until the client gives them.
+ * The contacts are empty in site.ts (TODO): «Support team» and «partnership» are a <span> in their place (no link)
+ * until the client gives them; the social icons lead to LinkedIn and Gmail themselves (the user's decision).
  */
 import { Picture } from 'astro:assets';
 import FooterMark from '@/assets/icons/site-footer-label.svg';
@@ -33,7 +34,8 @@ import { useTranslations } from '@/i18n';
 
 const t = useTranslations(Astro.currentLocale).siteFooter;
 
-// A link that leaves the site opens in a new tab; an empty one stays without href (TODO: the addresses in site.ts)
+// A link that leaves the site opens in a new tab; without an address it is a <span> in its place, not a link (TODO: the
+// addresses in site.ts)
 const link = (href: string) => ({
   href: href || undefined,
   ...(href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {}),
@@ -42,9 +44,12 @@ const contacts = [
   { text: t.contact.support, ...link(site.contactLinks.support) },
   { text: t.contact.partnership, ...link(site.contactLinks.partnership) },
 ];
+// The social icons lead to the networks themselves while the client's own addresses are empty in site.ts (the user's
+// decision: no client profiles on this site); an address in site.ts would win
+const PLATFORMS = { linkedin: 'https://www.linkedin.com/', gmail: 'https://mail.google.com/' };
 const socials = [
-  { name: t.contact.linkedin, Icon: IconLinkedin, ...link(site.socials.linkedin ?? '') },
-  { name: t.contact.email, Icon: IconGmail, ...link(site.email ? `mailto:${site.email}` : '') },
+  { name: t.contact.linkedin, Icon: IconLinkedin, ...link(site.socials.linkedin || PLATFORMS.linkedin) },
+  { name: t.contact.email, Icon: IconGmail, ...link(site.email ? `mailto:${site.email}` : PLATFORMS.gmail) },
 ];
 // The columns in DOM order; «explore» with the visibility of its place
 const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contact', 'explore desktop-hide mobile-hide'];
@@ -122,23 +127,29 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
                 <h2 class="site-footer_title text-size-footer-label text-weight-800">{t.contact.title}</h2>
                 <address class="site-footer_contacts flex-v text-size-footer">
                   <ul class="flex-v align-start spacing-16/16/24">
-                    {contacts.map(({ text, ...attrs }) => (
-                      <li>
-                        <a class="site-footer_link" {...attrs}>
-                          {text}
-                        </a>
-                      </li>
-                    ))}
+                    {contacts.map(({ text, ...attrs }) => {
+                      const Item = attrs.href ? 'a' : 'span';
+                      return (
+                        <li>
+                          <Item class="site-footer_link" {...attrs}>
+                            {text}
+                          </Item>
+                        </li>
+                      );
+                    })}
                   </ul>
                   <ul class="flex-h align-start spacing-lg">
-                    {socials.map(({ name, Icon, ...attrs }) => (
-                      <li>
-                        <a class="site-footer_social" {...attrs}>
-                          <span class="sr-only">{name}</span>
-                          <Icon aria-hidden="true" />
-                        </a>
-                      </li>
-                    ))}
+                    {socials.map(({ name, Icon, ...attrs }) => {
+                      const Item = attrs.href ? 'a' : 'span';
+                      return (
+                        <li>
+                          <Item class="site-footer_social" {...attrs}>
+                            <span class="sr-only">{name}</span>
+                            <Icon aria-hidden="true" />
+                          </Item>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </address>
               </div>
@@ -265,9 +276,10 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
     aspect-ratio: 1;
     transition: transform var(--transition-duration) var(--transition-easing);
   }
+  /* The live site's .footer-social-link:hover (kulbit.webflow.io): scale 1.3 in 0.3 s */
   .site-footer_social[href]:hover,
   .site-footer_social[href]:focus-visible {
-    transform: scale(1.1);
+    transform: scale(1.3);
   }
   .site-footer_social svg {
     display: block;

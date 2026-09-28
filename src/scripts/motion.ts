@@ -68,8 +68,10 @@ document.addEventListener('click', (event) => {
   event.preventDefault();
   history.pushState(null, '', url.hash);
   if (link.classList.contains('skip-link')) {
-    // Keyboard users skip the header: land at once and move the focus like the native jump would
+    // Keyboard users skip the header: land at once and move the focus like the native jump would (<main> has no
+    // tabindex in the markup — the dev toolbar's audit flags one on a landmark — so it gets one here)
     lenis.scrollTo(target, { immediate: true });
+    if (!target.hasAttribute('tabindex')) target.tabIndex = -1;
     target.focus();
   }
 });

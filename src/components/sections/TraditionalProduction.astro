@@ -20,6 +20,7 @@
  * The background is a file per breakpoint (209–224 KB each: too heavy to inline) in one <picture>: each device
  * downloads only its own; lazy, the engine turns it eager when the section is warmed (src/scripts/kulbit/video.ts).
  */
+import { Image } from 'astro:assets';
 import radarBg from '@/assets/traditional-production/radar-bg.svg';
 import radarBgTablet from '@/assets/traditional-production/radar-bg-tablet.svg';
 import radarBgMobile from '@/assets/traditional-production/radar-bg-mobile.svg';
@@ -70,24 +71,16 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
       <div class="flex-h/v/v justify-space-between spacing-xl">
         <div class="traditional-production_chart" aria-hidden="true" data-traditional-left>
           {
-            /* The documented exception to «always astro:assets» (images.md): an art-directed SVG background. <source
-               media> lets each device download only the file of its breakpoint (three slots hidden by display: none
-               loaded all three), and a vector needs no srcset (<Image> copied the SVG into identical srcset files);
-               <Picture> has no media per source. The files still come from src/assets through their imports (.src) */
+            /* An art-directed SVG background (images.md): <source media> lets each device download only the file of
+               its breakpoint (three slots hidden by display: none loaded all three); <Picture> has no media per
+               source. The fallback is <Image layout="none">: a vector needs no srcset (a responsive layout copied the
+               SVG into identical srcset files). The sources come from src/assets through their imports (.src) */
           }
           <div class="background-slot">
             <picture>
               <source media="(max-width: 479px)" srcset={radarBgMobile.src} />
               <source media="(max-width: 991px)" srcset={radarBgTablet.src} />
-              <img
-                src={radarBg.src}
-                width={radarBg.width}
-                height={radarBg.height}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                class="fill-box"
-              />
+              <Image src={radarBg} alt="" layout="none" loading="lazy" decoding="async" class="fill-box" />
             </picture>
           </div>
           <svg class="traditional-production_radar" viewBox="0 0 489 412" fill="none">

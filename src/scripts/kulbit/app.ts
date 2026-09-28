@@ -37,6 +37,8 @@ export interface SectionController {
 
 export interface KulbitSection {
   el: HTMLElement;
+  /** The screen's focus anchor (tabindex="-1", data-kulbit-anchor): its first div, the .container (see registerSections) */
+  anchor: HTMLElement;
   index: number;
   isFooter: boolean;
   /** Reveal steps: `[data-kulbit-step]` elements in DOM order */
@@ -168,14 +170,14 @@ export const realViewportHeight = () => window.visualViewport?.height || window.
 /** The visible height of the fixed viewport (not 100vh: on mobile the address bar makes them differ) */
 export const visibleHeight = () => app.wrapper?.clientHeight ?? window.innerHeight;
 
-// Keyboard focus follows the screen: focus left inside another section moves to the current one (every section is a
-// focus anchor, tabindex="-1", see registerSections), so the next Tab starts on the visible screen. Focus in the
-// header or the menu is never moved.
+// Keyboard focus follows the screen: focus left inside another section moves to the current one's focus anchor
+// (tabindex="-1", see registerSections), so the next Tab starts on the visible screen. Focus in the header or the menu
+// is never moved.
 const keepFocusOnScreen = () => {
   const active = document.activeElement;
   const owner = active instanceof Element ? active.closest('[data-kulbit-section]') : null;
-  const current = app.sections[app.currentSectionIndex]?.el;
-  if (owner && current && owner !== current) current.focus({ preventScroll: true });
+  const current = app.sections[app.currentSectionIndex];
+  if (owner && current && owner !== current.el) current.anchor.focus({ preventScroll: true });
 };
 
 // Position persistence (sessionStorage): a reload or a breakpoint change keeps the current section. Every change of

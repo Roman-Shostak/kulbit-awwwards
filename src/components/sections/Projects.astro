@@ -179,7 +179,7 @@ const videos = [
   // of the window. A step shrinks the top card of the window (or the bottom one, going back) and grows the new one;
   // the leaving card goes back to its poster. The line: (state + 1) / (maxState + 1).
   // The closed cards are inert (the Tab order and the accessibility tree = the window); the focus in a card that closes
-  // goes to the start button of the card that opens (the end card has none: to the section, the engine's focus anchor).
+  // goes to the start button of the card that opens (the end card has none: to the section's focus anchor, its .container).
   // The engine calls prepare (slide-in start: the line empty), enter (covered: the line fills its first part),
   // collapse (slides away: the line empties), reset(toEnd) (instant state; revealed from above = the last window),
   // resize (the same breakpoint, a new size: the heights and the shift again, no animation).
@@ -307,8 +307,10 @@ const videos = [
         app.isAnimating = true;
         setInert(state);
         resetProjectVideo(leaving);
-        // The focus was in the closing card: the opening one's start button (the end card has none: the section)
-        if (hadFocus) (entering.querySelector<HTMLElement>('[data-kulbit-play]') ?? section.el).focus({ preventScroll: true });
+        // The focus was in the closing card: the opening one's start button (the end card has none: the section's anchor)
+        if (hadFocus) {
+          (entering.querySelector<HTMLElement>('[data-kulbit-play]') ?? section.anchor).focus({ preventScroll: true });
+        }
         setHeights(state, true); // the top card shrinks, the new one grows, the ones between stay
         moveColumn(state, true);
         setFill(state, true);

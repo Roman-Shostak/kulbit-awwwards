@@ -522,7 +522,7 @@ const cards = await Promise.all(
         else scramble?.in();
       });
       if (isMobile) {
-        const vars = { autoAlpha: collapse ? 0 : 1 };
+        const vars = { opacity: collapse ? 0 : 1 }; // opacity, not autoAlpha: the head keeps its text (nothing to focus)
         const y = collapse ? -liftOf() : 0;
         if (animate) {
           gsap.to(tops, { ...vars, duration: STEP, ease: EASE });
@@ -547,9 +547,11 @@ const cards = await Promise.all(
       if (animate) gsap.to(group, { x, duration: STEP, ease: EASE });
       else gsap.set(group, { x });
     };
+    // Opacity, not autoAlpha (the source's): hidden, the cards stay in the accessibility tree (every screen does) and
+    // their headings keep their text (the dev toolbar's audit reads innerText); nothing in them is focusable or hoverable
     const showCards = () =>
-      gsap.fromTo(group, { y: RISE, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: STEP, ease: EASE });
-    const hideCards = () => gsap.set(group, { autoAlpha: 0, y: RISE });
+      gsap.fromTo(group, { y: RISE, opacity: 0 }, { y: 0, opacity: 1, duration: STEP, ease: EASE });
+    const hideCards = () => gsap.set(group, { opacity: 0, y: RISE });
     // The card in view plays, the others stop
     const showVideo = (s: number) => {
       active = swapIndexOf(s);
@@ -611,7 +613,7 @@ const cards = await Promise.all(
       reset(toEnd) {
         state = toEnd ? maxState : 0;
         gsap.killTweensOf(group);
-        gsap.set(group, { autoAlpha: 1, y: 0 });
+        gsap.set(group, { opacity: 1, y: 0 });
         moveX(state, false);
         setTitle(state >= 1, false);
         line.to((state + 1) / (maxState + 1), false);

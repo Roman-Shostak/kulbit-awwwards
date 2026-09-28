@@ -60,7 +60,7 @@ export const buildTabletHero = () => {
       start.scale = value(el, 'scale-from', 1);
       start.transformOrigin = '50% 50%';
     }
-    if (has(el, 'fade')) start.autoAlpha = 1;
+    if (has(el, 'fade')) start.opacity = 1; // opacity, not autoAlpha: 0 = inert (./sections → watchFades)
     gsap.set(el, start);
   });
   // The video's full height comes from the REAL viewport: after a rotation this runs before the hero height
@@ -92,7 +92,7 @@ export const buildTabletHero = () => {
     const to: gsap.TweenVars = { duration: STEP, ease: EASE };
     if (has(el, 'y')) to.yPercent = value(el, 'y', 0);
     if (has(el, 'scale')) to.scale = value(el, 'scale', 1);
-    if (has(el, 'fade')) to.autoAlpha = value(el, 'fade', 0);
+    if (has(el, 'fade')) to.opacity = value(el, 'fade', 0);
     timeline.to(el, to, 0);
   });
   if (button) timeline.to(button, { y: buttonYScreen, duration: STEP, ease: EASE }, 0);

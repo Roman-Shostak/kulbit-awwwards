@@ -21,7 +21,7 @@
 import { gsap } from 'gsap';
 import { app, config, sectionBuilders, type Breakpoint } from './app';
 import { buildTabletHero } from './hero';
-import { buildDesktopAnimations, resetHeroState, restoreSection, teardownHero } from './sections';
+import { buildDesktopAnimations, resetHeroState, restoreSection, syncFadeInert, teardownHero } from './sections';
 import { updateVideoVisibility } from './video';
 
 const attempt = (what: string, run: () => void) => {
@@ -85,6 +85,7 @@ export const setupLandscape = () => {
         el.inert = false;
       });
       inerted = [];
+      syncFadeInert(); // a faded element stays inert (./sections → watchFades waited while the popup was up)
     }
   };
   const apply = () => {

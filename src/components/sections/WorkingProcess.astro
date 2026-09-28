@@ -801,10 +801,12 @@ const heads = ['max-width--400/456/235', 'max-width--320/320/248', 'max-width--3
       });
     }
 
-    // The HTML blocks hidden at the start; the cards stacked under the first one
+    // The HTML blocks hidden at the start; the cards stacked under the first one. The cards by opacity, not autoAlpha
+    // (the source's): hidden, they stay in the accessibility tree and their headings keep their text (the dev
+    // toolbar's audit reads innerText); nothing in them is focusable or hoverable
     const htmlEls = [labelKulbit, labelTraditional, ...weeks].filter((el): el is HTMLElement => !!el);
     if (htmlEls.length) gsap.set(htmlEls, { autoAlpha: 0, y: 40 });
-    gsap.set(cardsWrapper, { autoAlpha: 0, y: 40 });
+    gsap.set(cardsWrapper, { opacity: 0, y: 40 });
 
     let state = 0;
 
@@ -948,8 +950,8 @@ const heads = ['max-width--400/456/235', 'max-width--320/320/248', 'max-width--3
 
     revealTL.fromTo(
       cardsWrapper,
-      { autoAlpha: 0, y: 40 },
-      { autoAlpha: 1, y: 0, duration: DUR_CARDSWRAP, ease: 'power2.out' },
+      { opacity: 0, y: 40 },
+      { opacity: 1, y: 0, duration: DUR_CARDSWRAP, ease: 'power2.out' },
       whiteEnd,
     );
     const slideAt = whiteEnd + 0.3;

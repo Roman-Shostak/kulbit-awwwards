@@ -26,8 +26,8 @@ const { size = '30/24/24', color = 'blue', class: className, ...rest } = Astro.p
     display: block;
     width: calc(1.88rem * var(--fluid-scale)); /* 30 */
     aspect-ratio: 1;
-    background-color: #62b0ff;
-    transition: transform 0.3s ease;
+    background-color: var(--theme-icon-secondary);
+    transition: transform var(--transition-duration) var(--transition-easing);
   }
   .square:hover {
     transform: rotate(90deg);
@@ -39,7 +39,7 @@ const { size = '30/24/24', color = 'blue', class: className, ...rest } = Astro.p
     width: var(--size-12);
   }
   .square.color--red {
-    background-color: #ff4444;
+    background-color: var(--theme-icon-brand);
   }
 
   @media (max-width: 991px) {

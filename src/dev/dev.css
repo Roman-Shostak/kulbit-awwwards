@@ -374,8 +374,8 @@
   /* a component wider than a narrow screen scrolls inside its stage instead of widening the page */
   overflow-x: auto;
 }
-/* unlayered rule: must not touch a theme--dark stage, whose background comes from the utility */
-.dev_stage:not(.theme--dark) {
+/* unlayered rule: the stage is the page background the components sit on */
+.dev_stage {
   background: var(--theme-page-bg);
 }
 /* A player fills its box: a 16:9 box on the showcase */

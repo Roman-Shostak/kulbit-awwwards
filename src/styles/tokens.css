@@ -2,14 +2,16 @@
  * Design tokens — single source of truth for every visual value.
  * Ported from the Webflow "Ambi" framework: same structure, clean names.
  *
- *   fluid scale  →  --size-N (primitives)  →  semantic tokens (--spacing-md, --font-h1 …)
+ *   fluid scale  →  --size-N (primitives)  →  semantic tokens (--spacing-md, --font-section-h2 …)
  *
  * Semantic tokens are re-mapped per breakpoint at the bottom of this file
- * (desktop-first, Webflow breakpoints: 991 / 767 / 479).
+ * (desktop-first, Webflow breakpoints: 991 / 479).
  * Never hardcode a size or colour in a component when a token exists here.
  *
- * Values below are template placeholders. `/sync-tokens` fills them from the three Figma frames
- * (desktop → :root, tablet → @media 991, mobile → @media 479) before the first section is built.
+ * Kulbit (systemized from the finished site, src/dev/inventory.md): frames 1920 / 744 / 390, the values of the
+ * approved Webflow build (kulbit-gsap export, 1rem = 16px on each frame), names from its classes and colour
+ * variables. Webflow rounds rem to two decimals (18px → 1.13rem = 18.08px): those values are kept exactly, so the
+ * site stays identical to the build.
  */
 
 :root {
@@ -39,7 +41,6 @@
   --size-16: calc(1rem * var(--fluid-scale));
   --size-18: calc(1.125rem * var(--fluid-scale));
   --size-20: calc(1.25rem * var(--fluid-scale));
-  --size-22: calc(1.375rem * var(--fluid-scale));
   --size-24: calc(1.5rem * var(--fluid-scale));
   --size-26: calc(1.625rem * var(--fluid-scale));
   --size-28: calc(1.75rem * var(--fluid-scale));
@@ -59,28 +60,31 @@
   --size-120: calc(7.5rem * var(--fluid-scale));
   --size-160: calc(10rem * var(--fluid-scale));
 
-  /* ---------- Spacing (spacing-* classes, padding, margin) — Figma gap/<name> → --spacing-<name> ---------- */
-  --spacing-tiny: var(--size-10);
-  --spacing-xs: var(--size-12);
-  --spacing-sm: var(--size-20);
-  --spacing-md: var(--size-36);
-  --spacing-lg: var(--size-48);
-  --spacing-xl: var(--size-56);
-  --spacing-2xl: var(--size-64);
-  --spacing-3xl: var(--size-72);
-  --spacing-4xl: var(--size-80);
+  /* ---------- Spacing (spacing-* classes, padding, margin): the gaps the site repeats ---------- */
+  --spacing-xs: var(--size-8); /* 5 uses */
+  --spacing-sm: var(--size-12); /* 2 uses */
+  --spacing-md: var(--size-16); /* 5 uses */
+  --spacing-lg: var(--size-24); /* 3 uses */
+  --spacing-xl: var(--size-32); /* 4 uses */
+  --spacing-2xl: var(--size-48); /* 48 / 48 / 24 · 4 uses */
+  --spacing-3xl: var(--size-64); /* 2 uses */
+  /* The head row of a section (the label + the statement, .flex-h-v-v): space-between on desktop, stacked below */
+  --spacing-head: var(--size-48); /* 48 / 64 / 24 · 3 uses */
 
-  /* ---------- Section, container, header ----------
-   * --header-height = the tallest header item (usually the logo) + header padding × 2.
-   * `.section--hero` uses it as the offset of the first section under the fixed header;
-   * sync-tokens updates the logo height per frame.
+  /* ---------- Section, container, header, footer ----------
+   * --header-height = the tallest header item (the Projects button) + header padding × 2.
+   * `.section--hero` uses it as the offset of the first section under the fixed header.
    */
-  --section-padding-sm: var(--size-52);
-  --section-padding-md: var(--size-80);
-  --section-padding-lg: var(--size-160);
+  --section-padding-md: var(--size-64); /* .section: 4rem / 3rem / 1.5rem · 7 uses */
   --container-padding: calc(5.3125rem * var(--fluid-scale)); /* 85 */
-  --header-padding: var(--size-24);
-  --header-height: calc(var(--size-64) + var(--header-padding) * 2); /* Showreel button 64 */
+  --header-padding: var(--size-24); /* .header: inset 1.5rem (mobile 1rem) */
+  --header-height: calc(var(--size-64) + var(--header-padding) * 2); /* Projects button 64 */
+  /* .section.footer: 5rem (tablet 1rem · 6.25rem, mobile 2rem · 4rem); SiteFooter's content fills the screen minus these */
+  --footer-padding-top: var(--size-80);
+  --footer-padding-bottom: var(--size-80);
+
+  /* ---------- Widths the site repeats ---------- */
+  --width-statement: calc(43.44rem * var(--fluid-scale)); /* .width-695-557-a: 695 / 557 / auto · 2 uses */
 
   /* ---------- 12-column grid: --col-N (desktop of 12), --t-col-N (tablet of 6), --m-col-N (mobile of 2) ----------
    * --column-gap comes from the Figma `container width/Ncol` variables:
@@ -107,10 +111,7 @@
   --col-11: calc((var(--column-size) * 11) + (var(--column-gap) * 10));
   --col-12: calc((var(--column-size) * 12) + (var(--column-gap) * 11));
   /* Tablet has 6 columns, mobile 2 — same formula, --column-size is re-computed below.
-   * Used by responsive width classes declared in components: .col-6\/3\/1 { width: var(--col-6) } …
-   * When the tablet Figma frame defines its own `container width/Ncol` variables (fixed column
-   * widths that do not follow the 6-column formula), sync-tokens overrides --t-col-N in the
-   * tablet media block with those values, e.g. --t-col-5: calc(36.25rem * var(--fluid-scale)). */
+   * Used by responsive width classes declared in components: .col-6\/3\/1 { width: var(--col-6) } … */
   --t-col-1: var(--column-size);
   --t-col-2: calc((var(--column-size) * 2) + var(--column-gap));
   --t-col-3: calc((var(--column-size) * 3) + (var(--column-gap) * 2));
@@ -122,168 +123,111 @@
 
   /* ---------- Typography: families ----------
    * Client fonts are loaded with the Astro Fonts API (see astro.config.mjs) under the
-   * variables --font-primary-custom / --font-secondary-custom. Until they are configured,
-   * the system stacks below are used.
+   * variables --font-primary-custom / --font-secondary-custom; the system stacks are the fallback.
    */
   --font-primary: var(--font-primary-custom, ui-monospace, 'SF Mono', Menlo, Consolas, monospace); /* Decima Mono X */
   --font-secondary: var(--font-secondary-custom, 'Arial Black', Arial, sans-serif); /* PP Monument Wide */
 
   /* ---------- Typography: text styles (text-size-<name>) ----------
-   * One Figma text style desktop/<name> = three tokens: --font-<name>, --line-height-<name>,
-   * --letter-spacing-<name> (+ a mobile value below). Names mirror the Figma style names in
-   * kebab-case (`body md (sb)` → body-md-sb, `h2 stix` → h2-stix). `sync-tokens` adds new ones.
+   * One Webflow text class = three tokens: --font-<name>, --line-height-<name>, --letter-spacing-<name>
+   * (+ tablet/mobile values below). Styles of the secondary font set the family in their utility.
+   * One-off styles (one element) keep their Webflow name as a class declared in their component.
    */
-  /* Page default (body in base.css): the client's most used body style. sync-tokens points these
-   * three at that style — the style keeps its Figma name, no alias is needed. */
-  --font-default: var(--font-body-md);
-  --line-height-default: var(--line-height-body-md);
-  --letter-spacing-default: var(--letter-spacing-body-md);
-  --font-h1: var(--size-64);
-  --font-h2: var(--size-56);
-  --font-h3: var(--size-30);
-  --font-h4: var(--size-26);
-  --font-h5: var(--size-24);
-  --font-subheading-md: var(--size-32);
-  --font-subheading-sm: var(--size-26);
-  --font-body-lg: var(--size-20);
-  --font-body-md: var(--size-18);
-  --font-body-sm: var(--size-16);
-  --font-caption: var(--size-12);
-  /* roles: navigation links, buttons, form placeholders */
-  --font-link: var(--size-16);
-  --font-button: var(--size-16);
-  --font-placeholder: var(--size-16);
+  /* Page default (body in base.css): the Webflow body — Decima Mono X 16 / 1.1 */
+  --font-default: var(--size-16);
+  --line-height-default: 1.1;
+  --letter-spacing-default: normal;
+  /* h1 — PP Monument Wide 66 / 1.3, tracking 0.03em (tablet 60, mobile 40 / 1.2): .text-size-h1 · the hero heading */
+  --font-h1: calc(4.13rem * var(--fluid-scale));
+  --line-height-h1: 1.3;
+  --letter-spacing-h1: 0.03em;
+  /* h3 — PP Monument Wide 28 / 1.3, tracking 0.03em (tablet 32, mobile 20): .text-size-h3 · the stages of the process */
+  --font-h3: var(--size-28);
+  --line-height-h3: 1.3;
+  --letter-spacing-h3: 0.03em;
+  /* section-h2 — PP Monument Wide 32 / 1.3, tracking 0.03em (tablet 28, mobile 23): .text-size-section-h2 · 4 uses */
+  --font-section-h2: var(--size-32);
+  --line-height-section-h2: 1.3;
+  --letter-spacing-section-h2: 0.03em;
+  /* section-label — Decima Mono X 16 / 1.1, tracking 0.03em (mobile 13): .text-size-section-label · 6 uses */
+  --font-section-label: var(--size-16);
+  --line-height-section-label: 1.1;
+  --letter-spacing-section-label: 0.03em;
+  /* hero — Decima Mono X 16 / 1.37: .text-size-hero · 3 uses */
+  --font-hero: var(--size-16);
+  --line-height-hero: 1.37;
+  --letter-spacing-hero: normal;
 
-  /* ---------- Typography: weight, leading, tracking ---------- */
-  --font-weight-light: 300;
+  /* ---------- Typography: weight (only the weights that have a font file) ---------- */
   --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  --font-weight-extra-bold: 800;
-  --font-weight-black: 900;
-
-  --line-height-tiny: 0.8;
-  --line-height-xs: 0.9;
-  --line-height-sm: 1;
-  --line-height-md: 1.2;
-  --line-height-lg: 1.4;
-  --line-height-xl: 1.6;
-
-  --letter-spacing-normal: 0em;
-  --letter-spacing-wide: 0.01em;
-  --letter-spacing-tight-sm: -0.01em;
-  --letter-spacing-tight-md: -0.02em;
-  --letter-spacing-tight-lg: -0.03em;
-
-  /* per text style (placeholders until synced from Figma) */
-  --line-height-h1: var(--line-height-md);
-  --line-height-h2: var(--line-height-md);
-  --line-height-h3: var(--line-height-md);
-  --line-height-h4: var(--line-height-md);
-  --line-height-h5: var(--line-height-md);
-  --line-height-subheading-md: var(--line-height-md);
-  --line-height-subheading-sm: var(--line-height-md);
-  --line-height-body-lg: var(--line-height-md);
-  --line-height-body-md: var(--line-height-md);
-  --line-height-body-sm: var(--line-height-md);
-  --line-height-caption: var(--line-height-md);
-  --line-height-link: var(--line-height-md);
-  --line-height-button: var(--line-height-md);
-  --line-height-placeholder: var(--line-height-md);
-
-  --letter-spacing-h1: var(--letter-spacing-normal);
-  --letter-spacing-h2: var(--letter-spacing-normal);
-  --letter-spacing-h3: var(--letter-spacing-normal);
-  --letter-spacing-h4: var(--letter-spacing-normal);
-  --letter-spacing-h5: var(--letter-spacing-normal);
-  --letter-spacing-subheading-md: var(--letter-spacing-normal);
-  --letter-spacing-subheading-sm: var(--letter-spacing-normal);
-  --letter-spacing-body-lg: var(--letter-spacing-normal);
-  --letter-spacing-body-md: var(--letter-spacing-normal);
-  --letter-spacing-body-sm: var(--letter-spacing-normal);
-  --letter-spacing-caption: var(--letter-spacing-normal);
-  --letter-spacing-link: var(--letter-spacing-normal);
-  --letter-spacing-button: var(--letter-spacing-normal);
-  --letter-spacing-placeholder: var(--letter-spacing-normal);
-
-  /* ---------- Buttons (Figma component button/primary) ---------- */
-  --button-padding-block: var(--size-14);
-  --button-padding-inline: var(--size-24);
+  --font-weight-extra-bold: 800; /* PP Monument Wide Black: the file's weight class is 800 */
 
   /* ---------- Motion: every transition/animation uses exactly these four ----------
-   * duration + easing: hover, focus, menus.  slow: reveal on scroll, hero intro.
-   * stagger: the delay step between staggered reveals (data-reveal="stagger", data-reveal-delay).
+   * The Webflow build: `color .3s` (ease) on its buttons, the custom code 0.3s / 0.6s ease.
+   * The step scroll (src/scripts/kulbit/app.ts → config) keeps the Webflow build's own numbers.
    */
   --transition-duration: 0.3s;
-  --transition-easing: cubic-bezier(0.33, 1, 0.68, 1); /* ease-out cubic */
-  --transition-duration-slow: 0.8s;
+  --transition-easing: ease;
+  --transition-duration-slow: 0.6s; /* the logo sets of Our Clients cross-fading */
   --transition-stagger: 0.1s;
 
-  /* ---------- Icons (icon-*) ---------- */
-  --icon-height-tiny: var(--size-8);
-  --icon-height-xs: var(--size-14);
-  --icon-height-sm: var(--size-20);
-  --icon-height-md: var(--size-30);
-  --icon-height-lg: var(--size-40);
-  --icon-height-xl: var(--size-48);
-  --icon-height-2xl: var(--size-56);
-  --icon-height-3xl: var(--size-72);
+  /* ---------- Icons ---------- */
+  --icon-arrow: var(--size-56); /* .icon-56-56-40: the arrow square of the cards · 2 uses */
 
   /* ---------- Shape ---------- */
-  --radius-xs: var(--size-4);
-  --radius-sm: var(--size-8);
-  --radius-md: var(--size-12);
-  --radius-lg: var(--size-14);
-  --radius-xl: var(--size-20);
-  --radius-full: 999px; /* pills: "as round as possible", never a size that scales */
+  --radius-sm: calc(0.56rem * var(--fluid-scale)); /* 9 — cards, frames, buttons · 17 uses (8.96 and 9 merged) */
+  --radius-md: calc(0.63rem * var(--fluid-scale)); /* 10 — the player's lines · 5 uses */
+  --border-width-sm: var(--size-1); /* the player's rings */
+  --border-width-md: var(--size-2); /* every border and frame */
 
-  --border-width-sm: var(--size-1);
-  --border-width-md: var(--size-2);
-  --border-width-lg: var(--size-4);
-
-  /* ---------- Colours: swatches (raw palette, replace per client) ----------
-   * sync-tokens writes one --swatch-* per Figma colour variable with the Figma name in a comment.
+  /* ---------- Colours: swatches (raw palette) ----------
+   * The Webflow build's colour variables (--colors--*: white-10, black, blue, red, white, black-20, black-30) and the
+   * raw colours of its classes; -aNN = the same colour at NN % opacity.
    */
-  --swatch-black: #000000;
-  --swatch-white: #fdfcfc; /* text, logo */
-  --swatch-grey: #858585;
-  --swatch-grey-light: #cccccc;
-  --swatch-blue: #62b0ff; /* accent: AI Dimension, logo square */
-  --swatch-orange: #ffb700;
-  --swatch-red: #ff4444; /* brand: Start Your Pilot, Contact Us */
-  --swatch-deep-moss-green: #005e33;
-  --swatch-white-10: rgb(255 255 255 / 0.1);
-  --swatch-transparent: transparent;
+  --swatch-black: #000000; /* colors/black */
+  --swatch-black-a0: rgb(0 0 0 / 0);
+  --swatch-black-a65: rgb(0 0 0 / 0.651);
+  --swatch-white: #ffffff; /* colors/white */
+  --swatch-white-10: #fdfcfc; /* colors/white-10 */
+  --swatch-white-10-a5: rgb(253 252 252 / 0.05);
+  --swatch-white-10-a7: rgb(253 252 252 / 0.07);
+  --swatch-white-10-a10: rgb(253 252 252 / 0.1);
+  --swatch-white-10-a12: rgb(253 252 252 / 0.12);
+  --swatch-white-10-a15: rgb(253 252 252 / 0.15);
+  --swatch-black-20: #404040; /* colors/black-20 */
+  --swatch-black-30: #252525; /* colors/black-30 */
+  --swatch-graphite: #171717; /* no variable: the frames of the buttons and tiles */
+  --swatch-ink-a0: rgb(15 15 15 / 0); /* #0f0f0f: the player's shade */
+  --swatch-ink-a85: rgb(15 15 15 / 0.851);
+  --swatch-ink-a95: rgb(15 15 15 / 0.949);
+  --swatch-blue: #62b0ff; /* colors/blue */
+  --swatch-red: #ff4444; /* colors/red */
 
   /* ---------- Colours: theme (semantic — use these in components) ----------
-   * Names follow the Figma variable groups: text/*, icon/*, bg/card/*, bg/section/*, button/*,
-   * input/*, illustration/*. Variables prefixed `alw` (always) keep their value on dark sections.
-   * Dark sections: `.theme--dark` and `.footer` in utilities.css re-assign the same --theme-* names
-   * with the values Figma shows on the dark background, so components never switch colours themselves.
+   * The whole site is dark: one set of roles, no dark-section overrides.
    */
   --theme-page-bg: var(--swatch-black); /* the only page background; sections have none */
-  --theme-text: var(--swatch-white); /* text/default/primary */
-  --theme-text-secondary: var(--swatch-grey); /* text/default/secondary */
-  --theme-text-brand: var(--swatch-red); /* text/default/brand */
-  --theme-text-alw-brand: var(--swatch-blue); /* text/default/alw-brand — the same on dark sections */
-  --theme-text-inverse: var(--swatch-white); /* text/inverse/primary — text on brand cards/buttons */
-  --theme-text-error: var(--swatch-red); /* input/text/error */
-  --theme-icon: var(--swatch-white); /* icon/default/primary — logo, monochrome icons */
-  --theme-icon-secondary: var(--swatch-blue); /* icon/default/secondary — the square of the logo */
-  --theme-section-bg-light: var(--swatch-white);
-  --theme-section-bg-dark: var(--swatch-black); /* bg/section of dark sections and the footer */
-  --theme-section-bg-brand: var(--swatch-blue);
-  --theme-card-bg: var(--swatch-white); /* bg/card/default */
-  --theme-card-bg-alw-white: var(--swatch-white); /* bg/card/alw-white — tags stay white on dark sections */
-  --theme-card-bg-brand: var(--swatch-blue); /* bg/card/brand */
-  --theme-button-primary-bg: var(--swatch-black); /* button/primary/bg-default */
-  --theme-button-primary-text: var(--swatch-white); /* button/primary/text-default */
-  --theme-button-primary-bg-hover: var(--swatch-blue); /* TODO: not in Figma */
-  --theme-input-bg: var(--swatch-white); /* input/bg/default */
-  --theme-input-border: var(--swatch-grey-light); /* input/border/default */
-  --theme-input-text: var(--swatch-grey); /* input/text/default — placeholder colour */
-  --theme-illustration: var(--swatch-grey-light); /* illustration/default — decorative vectors */
+  --theme-fade: var(--swatch-black-a0); /* the transparent end of the black fades */
+  --theme-vignette: var(--swatch-black-a65); /* the middle of the hero video's vignette */
+  --theme-text: var(--swatch-white-10); /* text, fills of lines and bars */
+  --theme-text-secondary: var(--swatch-black-20); /* .text-color-black-20: the grey half of the statements */
+  --theme-text-brand: var(--swatch-red); /* .text-color-red: Start Pilot, the accents in red */
+  --theme-text-accent: var(--swatch-blue); /* .text-color-blue: AI Dimension, the accents in blue */
+  --theme-text-inverse: var(--swatch-black); /* text on a white chip */
+  --theme-icon: var(--swatch-white-10); /* logo, monochrome icons */
+  --theme-icon-secondary: var(--swatch-blue); /* the square of the logo, the blue squares, arrows */
+  --theme-icon-brand: var(--swatch-red); /* the red squares */
+  --theme-border: var(--swatch-black-30); /* card borders, chart lines */
+  --theme-frame: var(--swatch-graphite); /* the frames of the buttons and tiles */
+  --theme-track: var(--swatch-white-10-a15); /* the empty part of a progress line, the player's buffer and rings */
+  --theme-illustration: var(--swatch-white); /* radar and chart strokes */
+  --theme-ring-outer: var(--swatch-white-10-a5); /* the hero sound button, from the outside in */
+  --theme-ring-middle: var(--swatch-white-10-a7);
+  --theme-ring-inner: var(--swatch-white-10-a10);
+  --theme-player-seek: var(--swatch-white-10-a12); /* the player's seek line */
+  --theme-player-volume: var(--swatch-white-10-a10); /* the player's volume line */
+  --theme-player-shade: linear-gradient(var(--swatch-ink-a0), var(--swatch-ink-a85) 85%, var(--swatch-ink-a95));
 }
 
 /* ---------- Tablet (≤ 991px): 6 columns, reference frame 744 (Hero 744 × 1133) ---------- */
@@ -291,49 +235,44 @@
   :root {
     --reference: 744;
     --container-padding: var(--size-32);
-    --header-padding: var(--size-16);
-    --header-height: calc(var(--size-56) + var(--header-padding) * 2); /* Showreel button 56 */
+    --header-height: calc(var(--size-56) + var(--header-padding) * 2); /* Projects button 56 */
+    --footer-padding-top: var(--size-16);
+    --footer-padding-bottom: var(--size-100);
     --column-size: calc((100vw - (var(--container-padding) * 2) - (var(--column-gap) * 5)) / 6);
 
-    --spacing-xl: var(--size-64);
-    --section-padding-lg: var(--size-100);
+    --spacing-head: var(--size-64);
+    --section-padding-md: var(--size-48);
+    --width-statement: calc(34.81rem * var(--fluid-scale)); /* 557 */
+
+    --font-h1: calc(3.75rem * var(--fluid-scale));
+    --font-h3: var(--size-32);
+    --font-section-h2: var(--size-28);
   }
 }
 
-/* ---------- Mobile landscape (≤ 767px) ----------
- * Same values as tablet. The Webflow source set --section-padding-lg to size-160 here,
- * which was larger than on tablet; normalised to size-100 (160 → 100 → 100 → 80).
- */
-
-/* ---------- Mobile portrait (≤ 479px): 2 columns, reference frame 390 ----------
- * Only tokens that differ from desktop/tablet. sync-tokens fills this block from the mobile frame:
- * text styles, gaps, section paddings, radii, header padding/height.
- */
+/* ---------- Mobile portrait (≤ 479px): 2 columns, reference frame 390 ---------- */
 @media (max-width: 479px) {
   :root {
     --reference: 390;
     --column-size: calc((100vw - (var(--container-padding) * 2) - var(--column-gap)) / 2);
 
     --container-padding: var(--size-16);
-    --header-height: calc(var(--size-48) + var(--header-padding) * 2); /* Showreel button 48 */
+    --header-padding: var(--size-16);
+    --header-height: calc(var(--size-40) + var(--header-padding) * 2); /* Projects button 40 */
+    --footer-padding-top: var(--size-32);
+    --footer-padding-bottom: var(--size-64);
 
-    --spacing-tiny: var(--size-6);
-    --spacing-xs: var(--size-8);
-    --spacing-sm: var(--size-16);
-    --spacing-md: var(--size-28);
-    --spacing-lg: var(--size-32);
-    --spacing-xl: var(--size-60);
-    --spacing-4xl: var(--size-64);
+    --spacing-2xl: var(--size-24);
+    --spacing-head: var(--size-24);
+    --section-padding-md: var(--size-24);
+    --width-statement: auto;
 
-    --section-padding-lg: var(--size-80);
+    --font-h1: calc(2.5rem * var(--fluid-scale));
+    --line-height-h1: 1.2;
+    --font-h3: var(--size-20);
+    --font-section-h2: calc(1.44rem * var(--fluid-scale)); /* 23 */
+    --font-section-label: calc(0.81rem * var(--fluid-scale)); /* 13 */
 
-    --font-h1: var(--size-44);
-    --font-h2: var(--size-40);
-    --font-h3: var(--size-26);
-    --font-h4: var(--size-26);
-    --font-h5: var(--size-20);
-    --font-body-lg: var(--size-18);
-    --font-body-md: var(--size-16);
-    --font-body-sm: var(--size-14);
+    --icon-arrow: var(--size-40);
   }
 }

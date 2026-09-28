@@ -13,6 +13,7 @@
  * The page passes the texts of one dictionary key (workingProcessIntro, traditionalProductionIntro).
  */
 import Button from '@/components/ui/Button.astro';
+import ProgressLine from '@/components/ui/ProgressLine.astro';
 
 interface Props {
   title: string;
@@ -25,29 +26,29 @@ interface Props {
 const { title, accent, statement, pilot } = Astro.props;
 ---
 
-<section class="section padding-64/48/24" data-kulbit-section>
+<section class="section padding-md" data-kulbit-section>
   <div class="container">
-    <div class="flex-v spacing-48/48/24 text-style-uppercase">
-      <div class="intro-screen_progress" aria-hidden="true"></div>
-      <div class="intro-screen_head flex-h/v/v spacing-0/64/24">
-        <h2 class="text-size-16/16/13" data-kulbit-scramble>
-          {title}{accent && ' '}{accent && <span class="intro-screen_accent">{accent}</span>}
+    <div class="flex-v spacing-2xl text-style-uppercase">
+      <ProgressLine start="full" />
+      <div class="intro-screen_head flex-h/v/v spacing-head">
+        <h2 class="text-size-section-label" data-kulbit-scramble>
+          {title}{accent && ' '}{accent && <span class="text-color-accent">{accent}</span>}
         </h2>
         <div class="intro-screen_body flex-v spacing-120/160/64">
           <div class="intro-screen_lead">
-            <p class="intro-screen_statement text-size-32/28/23" data-kulbit-typewriter>
+            <p class="intro-screen_statement text-size-section-h2" data-kulbit-typewriter>
               {
                 statement.map((part, i) => (
                   <Fragment>
                     {i > 0 && ' '}
-                    {part.grey ? <span class="intro-screen_grey">{part.text}</span> : part.text}
+                    {part.grey ? <span class="text-color-secondary">{part.text}</span> : part.text}
                   </Fragment>
                 ))
               }
             </p>
           </div>
           {/* TODO: where «Start Your Pilot» leads (the same question as the hero's «Start Pilot») */}
-          <Button variant="second" data-kulbit-border>{pilot}</Button>
+          <Button variant="second" data-kulbit-border="">{pilot}</Button>
         </div>
       </div>
     </div>
@@ -55,41 +56,10 @@ const { title, accent, statement, pilot } = Astro.props;
 </section>
 
 <style>
-  /* .section: 4rem top and bottom (tablet 3, mobile 1.5) */
-  .padding-64\/48\/24 {
-    padding-block: var(--size-64);
-  }
-  /* .gap-48-32-24: the Webflow CSS keeps 48 on tablet */
-  .spacing-48\/48\/24 {
-    gap: var(--size-48);
-  }
-  .spacing-0\/64\/24 {
-    gap: 0;
-  }
   .spacing-120\/160\/64 {
     gap: var(--size-120);
   }
 
-  /* Decima Mono 16 / 1.1, tracking 0.03em (mobile 13): .text-size-section-label */
-  .text-size-16\/16\/13 {
-    font-size: var(--size-16);
-    line-height: 1.1;
-    letter-spacing: 0.03em;
-  }
-  /* PP Monument Wide 32 / 1.3, tracking 0.03em (tablet 28, mobile 23): .text-size-section-h2 */
-  .text-size-32\/28\/23 {
-    font-family: var(--font-secondary);
-    font-size: var(--size-32);
-    line-height: 1.3;
-    letter-spacing: 0.03em;
-  }
-
-  /* .section-progresbar: nothing fills it here, the line stays full */
-  .intro-screen_progress {
-    flex: none;
-    height: var(--size-2);
-    background-color: var(--theme-text);
-  }
   /* .flex-h-v-v.is-working-process-screen */
   .intro-screen_head {
     position: relative;
@@ -102,62 +72,25 @@ const { title, accent, statement, pilot } = Astro.props;
   }
   /* .width-695-557-a */
   .intro-screen_lead {
-    width: calc(43.44rem * var(--fluid-scale)); /* 695 */
+    width: var(--width-statement);
   }
   .intro-screen_statement {
     text-align: justify;
   }
-  .intro-screen_grey {
-    color: #404040;
-  }
-  /* .text-color-blue */
-  .intro-screen_accent {
-    color: #62b0ff;
-  }
 
   @media (max-width: 991px) {
-    .padding-64\/48\/24 {
-      padding-block: var(--size-48);
-    }
-    .spacing-0\/64\/24 {
-      gap: var(--size-64);
-    }
     .spacing-120\/160\/64 {
       gap: var(--size-160);
-    }
-    .text-size-32\/28\/23 {
-      font-size: var(--size-28);
     }
     .intro-screen_head {
       align-items: stretch;
       justify-content: flex-start;
     }
-    .intro-screen_lead {
-      width: calc(34.81rem * var(--fluid-scale)); /* 557 */
-    }
   }
 
   @media (max-width: 479px) {
-    .padding-64\/48\/24 {
-      padding-block: var(--size-24);
-    }
-    .spacing-48\/48\/24 {
-      gap: var(--size-24);
-    }
-    .spacing-0\/64\/24 {
-      gap: var(--size-24);
-    }
     .spacing-120\/160\/64 {
       gap: var(--size-64);
-    }
-    .text-size-16\/16\/13 {
-      font-size: calc(0.81rem * var(--fluid-scale));
-    }
-    .text-size-32\/28\/23 {
-      font-size: calc(1.44rem * var(--fluid-scale));
-    }
-    .intro-screen_lead {
-      width: auto;
     }
   }
 </style>

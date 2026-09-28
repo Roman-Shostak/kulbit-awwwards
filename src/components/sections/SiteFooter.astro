@@ -49,11 +49,11 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
 ---
 
 <div class="container">
-  <div class="site-footer_layout flex-v" data-footer-content>
+  <div class="site-footer_layout flex-v spacing-3xl" data-footer-content>
     <div class="site-footer_top">
       <div class="desktop-only"><FooterMark class="site-footer_mark" aria-hidden="true" /></div>
       <div class="desktop-hide"><FooterMarkSmall class="site-footer_mark" aria-hidden="true" /></div>
-      <div class="site-footer_row text-size-16/16/13 text-style-uppercase">
+      <div class="site-footer_row text-size-section-label text-style-uppercase">
         <Logo size="108" />
         <p>© {site.copyrightYear} {t.rights}</p>
       </div>
@@ -67,9 +67,9 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
             return (
               <div class:list={['site-footer_explore', visibility]}>
                 <div class="flex-v spacing-32/24/24 height-100">
-                  <h2 class="site-footer_title text-size-18/16/16 text-weight-800">{t.explore.title}</h2>
+                  <h2 class="site-footer_title text-size-footer-label text-weight-800">{t.explore.title}</h2>
                   {/* The hero is always section 0 (the engine's contract): no data-section-name needed on it */}
-                  <Button variant="showreel" data-kulbit-border data-target-section="0">
+                  <Button variant="showreel" data-kulbit-border="" data-target-section="0">
                     <Picture
                       slot="media"
                       src={showreel}
@@ -90,22 +90,22 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
             return (
               <div class="site-footer_card">
                 <div class="flex-v spacing-32/24/24 height-100">
-                  <h2 class="site-footer_title text-size-18/16/16 text-weight-800">{t.about.title}</h2>
-                  <div class="site-footer_grow flex-v">
-                    <div class="flex-v spacing-32">
-                      <p class="site-footer_tagline text-size-18/16/16 text-weight-800">{t.about.tagline}</p>
-                      <p class="site-footer_text text-size-16 text-weight-700">
+                  <h2 class="site-footer_title text-size-footer-label text-weight-800">{t.about.title}</h2>
+                  <div class="site-footer_grow flex-v spacing-xl">
+                    <div class="flex-v spacing-xl">
+                      <p class="site-footer_tagline text-size-footer-label text-weight-800">{t.about.tagline}</p>
+                      <p class="site-footer_text text-size-footer text-weight-700">
                         {t.about.text.map((part, i) => (
                           <Fragment>
                             {i > 0 && ' '}
-                            {part.grey ? <span class="site-footer_grey">{part.text}</span> : part.text}
+                            {part.grey ? <span class="text-color-secondary">{part.text}</span> : part.text}
                           </Fragment>
                         ))}
                       </p>
                     </div>
                     <div class="flex-v mobile-hide">
                       {/* TODO: where «Let’s discuss» leads (the same question as «Start Your Pilot») */}
-                      <Button variant="second-footer" data-kulbit-border>
+                      <Button variant="second-footer" data-kulbit-border="">
                         {t.about.discuss}
                       </Button>
                     </div>
@@ -117,8 +117,8 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
           return (
             <div class="site-footer_card">
               <div class="flex-v spacing-32/24/24 height-100">
-                <h2 class="site-footer_title text-size-18/16/16 text-weight-800">{t.contact.title}</h2>
-                <address class="site-footer_contacts flex-v text-size-16">
+                <h2 class="site-footer_title text-size-footer-label text-weight-800">{t.contact.title}</h2>
+                <address class="site-footer_contacts flex-v text-size-footer">
                   <ul class="flex-v align-start spacing-16/16/24">
                     {contacts.map(({ text, ...attrs }) => (
                       <li>
@@ -128,7 +128,7 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
                       </li>
                     ))}
                   </ul>
-                  <ul class="flex-h align-start spacing-24">
+                  <ul class="flex-h align-start spacing-lg">
                     {socials.map(({ name, Icon, ...attrs }) => (
                       <li>
                         <a class="site-footer_social" {...attrs}>
@@ -146,7 +146,7 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
       }
       <div class="flex-v mobile-only">
         {/* TODO: where «Let’s discuss» leads (the same question as «Start Your Pilot») */}
-        <Button variant="second-footer" data-kulbit-border>
+        <Button variant="second-footer" data-kulbit-border="">
           {t.about.discuss}
         </Button>
       </div>
@@ -155,21 +155,15 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
 </div>
 
 <style>
-  /* Decima Mono 16 / 1.1, tracking 0.03em (mobile 13): .text-size-section-label */
-  .text-size-16\/16\/13 {
-    font-size: var(--size-16);
-    line-height: 1.1;
-    letter-spacing: 0.03em;
-  }
   /* PP Monument Wide Black 18 / 1.3, tracking 0.03em (tablet 16): .text-size-footer-label, .text-size-footer-heading */
-  .text-size-18\/16\/16 {
+  .text-size-footer-label {
     font-family: var(--font-secondary);
     font-size: calc(1.13rem * var(--fluid-scale));
     line-height: 1.3;
     letter-spacing: 0.03em;
   }
   /* Decima Mono 16 / 1.1, tracking 0.03em: .text-size-footer (the body's size and line height) */
-  .text-size-16 {
+  .text-size-footer {
     font-size: var(--size-16);
     line-height: 1.1;
     letter-spacing: 0.03em;
@@ -178,24 +172,15 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
   .spacing-32\/24\/24 {
     gap: var(--size-32);
   }
-  /* .flex-v.gap-32 */
-  .spacing-32 {
-    gap: var(--size-32);
-  }
   /* .flex-v.align-start.gap-16-16-24 */
   .spacing-16\/16\/24 {
     gap: var(--size-16);
-  }
-  /* .flex-h.align-start.gap-24 */
-  .spacing-24 {
-    gap: var(--size-24);
   }
 
   /* .container.is-footer (min-height 100 %): the content fills the footer — the screen (the stacked sections are
      100vh) minus the .footer padding (utilities.css) — and grows past it; 4rem between top and bottom */
   .site-footer_layout {
-    gap: var(--size-64);
-    min-height: calc(100vh - var(--size-80) * 2);
+    min-height: calc(100vh - var(--footer-padding-top) - var(--footer-padding-bottom));
   }
 
   /* ---------- Top (.footer-top): the mark over the logo row, at the bottom of a fixed-height block ---------- */
@@ -222,9 +207,9 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--size-16); /* min gap, not in the design (space-between) */
+    gap: var(--spacing-md); /* min gap, not in the design (space-between) */
     padding-top: var(--size-20);
-    border-top: var(--size-2) solid var(--theme-text);
+    border-top: var(--border-width-md) solid var(--theme-text);
   }
 
   /* ---------- Bottom (.footer-bottom): three columns at the bottom of the footer ---------- */
@@ -237,14 +222,13 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
   }
   /* .text-size-footer-label: the line under the title */
   .site-footer_title {
-    padding-bottom: var(--size-12);
-    border-bottom: var(--size-2) solid #252525;
+    padding-bottom: var(--spacing-sm);
+    border-bottom: var(--border-width-md) solid var(--theme-border);
   }
   /* .flex-v.justify-space-between.is-grow: the button at the bottom of the column («Let’s discuss»: margin-top 2rem) */
   .site-footer_grow {
     flex: 1;
     justify-content: space-between;
-    gap: var(--size-32);
   }
   /* .width-230 */
   .site-footer_tagline {
@@ -255,14 +239,11 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
     width: calc(18.69rem * var(--fluid-scale)); /* 299 */
     text-align: justify;
   }
-  /* .text-color-black-20 */
-  .site-footer_grey {
-    color: #404040;
-  }
   /* .footer-social-wrapper: the links at the top, the icons at the bottom */
   .site-footer_contacts {
     align-items: flex-start;
     justify-content: space-between;
+    gap: var(--spacing-xs); /* min gap, not in the design (space-between) */
     height: calc(9.5rem * var(--fluid-scale)); /* 152 */
   }
   /* A block, as the Webflow link (a flex item there); TODO: not in the design — the site's defaults for a text link
@@ -293,11 +274,8 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
   }
 
   @media (max-width: 991px) {
-    .text-size-18\/16\/16 {
+    .text-size-footer-label {
       font-size: var(--size-16);
-    }
-    .site-footer_layout {
-      min-height: calc(100vh - var(--size-16) - var(--size-100));
     }
     .spacing-32\/24\/24 {
       gap: var(--size-24);
@@ -311,7 +289,7 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
       padding-top: 0;
       padding-bottom: var(--size-20);
       border-top: none;
-      border-bottom: var(--size-2) solid var(--theme-text);
+      border-bottom: var(--border-width-md) solid var(--theme-text);
     }
     /* Two columns in a row, «Explore» below them over the whole width (it wraps) and down at the bottom */
     .site-footer_bottom {
@@ -338,17 +316,11 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
   }
 
   @media (max-width: 479px) {
-    .text-size-16\/16\/13 {
-      font-size: calc(0.81rem * var(--fluid-scale));
-    }
-    .site-footer_layout {
-      min-height: calc(100vh - var(--size-32) - var(--size-64));
-    }
     .spacing-16\/16\/24 {
       gap: var(--size-24);
     }
     .site-footer_top {
-      height: calc(10rem * var(--fluid-scale)); /* 160 (the tablet min-height 184 stays, as in Webflow) */
+      height: var(--size-160); /* 160 (the tablet min-height 184 stays, as in Webflow) */
     }
     /* One column: about, Explore, contact us, «Let’s discuss» */
     .site-footer_bottom {

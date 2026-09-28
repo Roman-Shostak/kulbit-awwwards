@@ -11,9 +11,10 @@
  */
 import type { ImageMetadata } from 'astro';
 import type { Localized } from '@/i18n';
+import logo from '@/assets/shared/logo-kulbit.png';
 
 export const site = {
-  /** Client or brand name: og:site_name, Schema.org name; a string or one per language. TODO */
+  /** Client or brand name: og:site_name, Schema.org name; a string or one per language */
   name: 'Kulbit' as Localized,
   /** Legal entity as written on the site (the footer copyright: "Brand Inc."); Schema.org legalName. Empty = `name` */
   legalName: '',
@@ -30,6 +31,8 @@ export const site = {
   socials: {} as Partial<Record<'telegram' | 'whatsapp' | 'viber' | 'instagram' | 'facebook' | 'linkedin' | 'youtube', string>>,
   /** The footer's «Support team» and «partnership» links: a `mailto:…` or `https://…` address each. TODO */
   contactLinks: { support: '', partnership: '' },
+  /** The browser UI colour (<meta name="theme-color">): the page background, --swatch-black in tokens.css */
+  themeColor: '#000000',
   /** The build year; set a fixed number if the client wants one */
   copyrightYear: new Date().getFullYear(),
   /** Schema.org entity behind the site (src/data/schema.ts) */
@@ -38,8 +41,9 @@ export const site = {
     /** Person only, as written on the site (e.g. the hero tagline); a string or one per language */
     jobTitle: '' as Localized,
     /** One paragraph that is visible on the site (e.g. the "about" lead); a string or one per language */
-    description: '' as Localized,
-    /** Portrait (Person) or logo (Organization): `import portrait from '@/assets/hero/portrait.jpg'` and set it here */
-    image: undefined as ImageMetadata | undefined,
+    description: 'We blend human creative direction with advanced AI to deliver high-end, brand-aligned videos.' as Localized,
+    /** Portrait (Person) or logo (Organization): `import portrait from '@/assets/hero/portrait.jpg'` and set it here.
+     * Kulbit: the webclip of the Webflow build (the mark on white; a transparent SVG would turn black as a JPG) */
+    image: logo as ImageMetadata | undefined,
   },
 };

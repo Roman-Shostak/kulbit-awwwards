@@ -36,7 +36,7 @@ const t = useTranslations(Astro.currentLocale).projectVideo;
 const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
 ---
 
-<Tag class:list={['project-video', className]} data-kulbit-project-video {...rest}>
+<Tag class:list={['project-video', className]} data-kulbit-project-video="" {...rest}>
   <video class="project-video_video" playsinline preload="none">
     <source src={srcSmall} type="video/mp4" media="(max-width: 991px)" />
     <source src={src} type="video/mp4" />
@@ -60,7 +60,7 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
         <span class="sr-only">{t.play}</span>
       </span>
     </button>
-    <div class="project-video_time text-size-16/12/12 text-weight-700">
+    <div class="project-video_time text-size-player text-weight-700">
       <span data-kulbit-time-current>0:00</span>
       <div
         class="project-video_line"
@@ -113,7 +113,7 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
     width: 100%;
     height: 100%;
     overflow: hidden;
-    border-radius: calc(0.56rem * var(--fluid-scale)); /* 9 */
+    border-radius: var(--radius-sm);
   }
   /* cover the box, as the source's cover maths did for the Vimeo iframe */
   .project-video_video {
@@ -166,9 +166,9 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--size-16);
-    padding: var(--size-16);
-    background-image: linear-gradient(rgb(15 15 15 / 0), rgb(15 15 15 / 0.851) 85%, rgb(15 15 15 / 0.949));
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-image: var(--theme-player-shade);
     opacity: 0;
     visibility: hidden;
   }
@@ -179,11 +179,11 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
     flex: none;
     align-items: center;
     justify-content: center;
-    width: calc(3.5rem * var(--fluid-scale)); /* 56 */
+    width: var(--size-56);
     aspect-ratio: 1;
     border-radius: 50%;
-    background-color: #000;
-    box-shadow: inset 0 0 0 1px rgb(253 252 252 / 0.15);
+    background-color: var(--theme-page-bg);
+    box-shadow: inset 0 0 0 var(--border-width-sm) var(--theme-track);
     color: var(--theme-text);
   }
   .project-video_toggle-icon {
@@ -211,7 +211,7 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
     gap: calc(0.63rem * var(--fluid-scale)); /* 10 */
   }
   /* Decima Mono Bold 16 / 1 (12 from tablet down) */
-  .text-size-16\/12\/12 {
+  .text-size-player {
     font-size: var(--size-16);
     line-height: 1;
   }
@@ -223,8 +223,8 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
     flex: 1;
     height: calc(0.38rem * var(--fluid-scale)); /* 6 */
     overflow: hidden;
-    border-radius: calc(0.63rem * var(--fluid-scale));
-    background-color: rgb(253 252 252 / 0.12);
+    border-radius: var(--radius-md);
+    background-color: var(--theme-player-seek);
     cursor: pointer;
     touch-action: none;
   }
@@ -233,16 +233,16 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
     inset: 0 auto 0 0;
     z-index: 25;
     width: 0;
-    border-radius: calc(0.63rem * var(--fluid-scale));
-    background-color: rgb(253 252 252 / 0.15);
+    border-radius: var(--radius-md);
+    background-color: var(--theme-track);
   }
   .project-video_fill {
     position: absolute;
     inset: 0 auto 0 0;
     z-index: 50;
     width: 0;
-    border-radius: calc(0.63rem * var(--fluid-scale));
-    background-color: #62b0ff;
+    border-radius: var(--radius-md);
+    background-color: var(--theme-icon-secondary);
   }
 
   /* ---------- Volume + fullscreen (.icon-32-24.is-controls) ---------- */
@@ -287,10 +287,10 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
     justify-content: center;
     width: var(--size-48);
     height: calc(9.13rem * var(--fluid-scale)); /* 146 */
-    padding-block: calc(0.75rem * var(--fluid-scale));
-    border-radius: calc(0.75rem * var(--fluid-scale));
-    background-color: #000;
-    box-shadow: inset 0 0 0 1px rgb(253 252 252 / 0.15);
+    padding-block: var(--spacing-sm);
+    border-radius: var(--size-12);
+    background-color: var(--theme-page-bg);
+    box-shadow: inset 0 0 0 var(--border-width-sm) var(--theme-track);
     opacity: 0;
     visibility: hidden;
   }
@@ -300,8 +300,8 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
     align-self: stretch;
     justify-content: center;
     width: calc(0.38rem * var(--fluid-scale));
-    border-radius: calc(0.63rem * var(--fluid-scale));
-    background-color: rgb(253 252 252 / 0.1);
+    border-radius: var(--radius-md);
+    background-color: var(--theme-player-volume);
     cursor: pointer;
     touch-action: none;
   }
@@ -312,8 +312,8 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
     justify-content: center;
     width: calc(0.38rem * var(--fluid-scale));
     height: 100%;
-    border-radius: calc(0.63rem * var(--fluid-scale));
-    background-color: #62b0ff;
+    border-radius: var(--radius-md);
+    background-color: var(--theme-icon-secondary);
   }
   .project-video_knob {
     position: absolute;
@@ -321,7 +321,7 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
     width: var(--size-12);
     aspect-ratio: 1;
     border-radius: 50%;
-    background-color: #62b0ff;
+    background-color: var(--theme-icon-secondary);
   }
 
   @media (max-width: 991px) {
@@ -329,8 +329,8 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
       width: var(--size-48);
     }
     .project-video_controls {
-      gap: var(--size-8);
-      padding: var(--size-8);
+      gap: var(--spacing-xs);
+      padding: var(--spacing-xs);
     }
     .project-video_toggle {
       width: var(--size-32);
@@ -338,7 +338,7 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
     .project-video_toggle-icon {
       width: var(--size-12);
     }
-    .text-size-16\/12\/12 {
+    .text-size-player {
       font-size: var(--size-12);
     }
     .project-video_icon {
@@ -346,7 +346,7 @@ const popupId = `volume-${Math.random().toString(36).slice(2, 10)}`;
     }
     .project-video_popup {
       height: calc(8rem * var(--fluid-scale)); /* 128 */
-      padding-top: var(--size-8);
+      padding-top: var(--spacing-xs);
     }
   }
 

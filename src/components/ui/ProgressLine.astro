@@ -1,0 +1,50 @@
+---
+/**
+ * ProgressLine — the progress line of a section (Webflow .section-progresbar): a 2px track and the fill the section's
+ * script drives ([data-progress-fill] → its width; src/scripts/kulbit/progress-line.ts). Decorative: aria-hidden.
+ *   start  the width of the fill before the script takes over: `0` (default) · `third` · `sixth` · `full` (no fill:
+ *          the whole line is white, the intro screens)
+ * A section changes the start width per breakpoint through `--progress-start` on its own element class.
+ * Every other attribute passes through.
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'div'> & {
+  start?: '0' | 'third' | 'sixth' | 'full';
+};
+
+const { start = '0', class: className, ...rest } = Astro.props;
+---
+
+<div
+  class:list={['progress-line', { 'start--third': start === 'third', 'start--sixth': start === 'sixth', 'start--full': start === 'full' }, className]}
+  aria-hidden="true"
+  {...rest}>
+  {start !== 'full' && <div class="progress-line_fill" data-progress-fill />}
+</div>
+
+<style>
+  .progress-line {
+    position: relative;
+    flex: none;
+    height: var(--border-width-md);
+    background-color: var(--theme-track);
+  }
+  .progress-line.start--full {
+    background-color: var(--theme-text);
+  }
+  .progress-line.start--third {
+    --progress-start: calc(100% / 3);
+  }
+  .progress-line.start--sixth {
+    --progress-start: calc(100% / 6);
+  }
+  .progress-line_fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--progress-start, 0);
+    height: 100%;
+    background-color: var(--theme-text);
+  }
+</style>

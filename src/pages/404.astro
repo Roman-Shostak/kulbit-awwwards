@@ -1,0 +1,40 @@
+---
+/**
+ * 404 — what an unknown URL shows (wrangler.jsonc → assets.not_found_handling "404-page" serves dist/404.html with the
+ * 404 status). Not in the design: the site's own parts — the logo in the header (a link home here), the hero's text
+ * styles and the «second» button — on a plain page: no step scroll (nothing to navigate), noindex.
+ */
+import Button from '@/components/ui/Button.astro';
+import Logo from '@/components/ui/Logo.astro';
+import { localePath, useTranslations } from '@/i18n';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+const t = useTranslations(Astro.currentLocale).pages.notFound;
+---
+
+<BaseLayout title={t.title} description={t.description} noindex>
+  <div class="container" slot="header"><Logo /></div>
+  <section class="section section--hero not-found">
+    <div class="container">
+      <div class="flex-v align-start spacing-2xl">
+        <div class="flex-v spacing-lg text-style-uppercase">
+          <p class="text-size-section-label">{t.label}</p>
+          <h1 class="text-size-h1 text-weight-800">{t.heading}</h1>
+          <p class="text-size-hero text-weight-700 text-color-secondary">{t.text}</p>
+        </div>
+        <Button variant="second" href={localePath('/', Astro.currentLocale)}>{t.home}</Button>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* The hero's frame: the screen high, the content at the bottom above the section padding */
+  .not-found {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 100dvh;
+    padding-bottom: var(--section-padding-md);
+  }
+</style>

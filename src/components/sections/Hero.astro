@@ -27,16 +27,15 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
   <div class="container">
     <div class="hero_content text-style-uppercase" data-kulbit-y-tablet="300" data-kulbit-fade-tablet="0">
       <div class="hero_heading text-weight-800" data-kulbit-y="300" data-kulbit-fade="0">
-        <h1 class="hero_title text-size-66/60/40">{t.title.lead} <span class="hero_blue">{t.title.accent}</span></h1>
+        <h1 class="hero_title text-size-h1">{t.title.lead} <span class="text-color-accent">{t.title.accent}</span></h1>
         <div class="hero_blur desktop-only" aria-hidden="true"></div>
       </div>
-      <div class="hero_divider desktop-hide" aria-hidden="true"></div>
       {/* TODO: where «Start Pilot» leads (the popup with the form?) — ported with that section */}
       <Button variant="arrow" class="hero_pilot" data-kulbit-y="300" data-kulbit-fade="0">{t.pilot}</Button>
-      <div class="hero_text text-size-16 text-weight-700" data-kulbit-y="-300" data-kulbit-fade="0">
-        <p class="hero_blend"><span class="hero_grey">{s.blend}</span> {s.human}</p>
-        <p class="hero_ai">{s.ai}</p>
-        <p class="hero_deliver"><span class="hero_grey">{s.deliver}</span> {s.quality} <span class="hero_grey">{s.videos}</span></p>
+      <div class="hero_text text-size-hero text-weight-700" data-kulbit-y="-300" data-kulbit-fade="0">
+        <p class="hero_blend"><span class="text-color-secondary">{s.blend}</span> {s.human}</p>
+        <p class="hero_ai text-color-accent">{s.ai}</p>
+        <p class="hero_deliver"><span class="text-color-secondary">{s.deliver}</span> {s.quality} <span class="text-color-secondary">{s.videos}</span></p>
         <Square class="hero_square" />
       </div>
     </div>
@@ -53,7 +52,7 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
         data-kulbit-scale-tablet="1"
         data-kulbit-scale-from-tablet="1.2"
       >
-        <video class="hero_video-el" muted loop playsinline preload="auto" poster={poster.src}>
+        <video class="fill-box" muted loop playsinline preload="auto" poster={poster.src}>
           <source src="/video/hero-720.mp4" type="video/mp4" media="(max-width: 991px)" />
           <source src="/video/hero-1080.mp4" type="video/mp4" />
         </video>
@@ -75,41 +74,30 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
 </section>
 
 <style>
-  /* .section.is-hero: content at the bottom, 4rem below it */
+  /* .section.is-hero: content at the bottom, 4rem below it (.section: tablet 3rem, mobile 1.5rem) */
   .hero {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     height: 100dvh;
-    padding-bottom: var(--size-64);
+    padding-bottom: var(--section-padding-md);
     overflow: hidden;
   }
 
   /* ---------- Content (.flex-h-v-v.is-hero) ---------- */
+  /* gap: the minimum, not in the design (space-between) */
   .hero_content {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
+    gap: var(--spacing-xs);
   }
   .hero_heading {
     position: relative;
     width: calc(36.88rem * var(--fluid-scale)); /* 590 */
   }
-  /* PP Monument Wide Black 66 / 1.3, tracking 0.03em (tablet 60, mobile 40 / 1.2) */
-  .text-size-66\/60\/40 {
-    font-family: var(--font-secondary);
-    font-size: calc(4.13rem * var(--fluid-scale));
-    line-height: 1.3;
-    letter-spacing: 0.03em;
-  }
   .hero_title {
     text-align: justify;
-  }
-  .hero_blue {
-    color: #62b0ff;
-  }
-  .hero_grey {
-    color: #404040;
   }
   /* .hero-h1-blur: the left fade over the first letters */
   .hero_blur {
@@ -118,20 +106,10 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
     left: calc(-5.31rem * var(--fluid-scale));
     width: calc(18.31rem * var(--fluid-scale));
     height: calc(19.56rem * var(--fluid-scale));
-    background-image: linear-gradient(90deg, #000, rgb(0 0 0 / 0));
+    background-image: linear-gradient(90deg, var(--theme-page-bg), var(--theme-fade));
     pointer-events: none;
   }
-  .hero_divider {
-    height: var(--size-2);
-    margin-inline: calc(var(--container-padding) * -1);
-    background-color: rgb(253 252 252 / 0.15);
-  }
 
-  /* Decima Mono X Bold 16 / 1.37 */
-  .text-size-16 {
-    font-size: var(--size-16);
-    line-height: 1.37;
-  }
   /* .hero-text-wrapper: 9.25rem below the top of the hero, at the container edge. Its containing block is the
    * container (bottom of the hero), so the top is counted back from the hero height: 100% = container height. */
   .hero_text {
@@ -148,8 +126,7 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
   .hero_ai {
     align-self: flex-end;
     width: calc(7.81rem * var(--fluid-scale));
-    margin-bottom: var(--size-16);
-    color: #62b0ff;
+    margin-bottom: var(--spacing-md);
     text-align: right;
   }
   .hero_deliver {
@@ -171,7 +148,7 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
     position: absolute;
     inset: 0;
     z-index: 2;
-    background-image: radial-gradient(circle closest-side at 50% 50%, rgb(0 0 0 / 0) 50%, rgb(0 0 0 / 0.651) 80%, #000);
+    background-image: radial-gradient(circle closest-side at 50% 50%, var(--theme-fade) 50%, var(--theme-vignette) 80%, var(--theme-page-bg));
     pointer-events: none;
   }
   .hero_video {
@@ -186,13 +163,6 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
     width: 100%;
     height: 100%;
     transform: scale(1.2);
-  }
-  .hero_video-el {
-    display: block;
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    object-fit: cover;
   }
 
   /* ---------- Sound button (.hero-video-button > .hero-button-circle > .is-second) ---------- */
@@ -213,7 +183,7 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
     justify-content: center;
     width: 100%;
     height: 100%;
-    border: 2px solid rgb(253 252 252 / 0.05);
+    border: var(--border-width-md) solid var(--theme-ring-outer);
     border-radius: 50%;
   }
   .hero_sound-ring {
@@ -222,22 +192,17 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
     justify-content: center;
     width: calc(10.5rem * var(--fluid-scale));
     aspect-ratio: 1;
-    border: 2px solid rgb(253 252 252 / 0.07);
+    border: var(--border-width-md) solid var(--theme-ring-middle);
     border-radius: 50%;
   }
   .hero_sound-core {
     display: grid;
     place-items: center;
-    width: calc(4.5rem * var(--fluid-scale));
+    width: var(--size-72);
     aspect-ratio: 1;
-    border: 2px solid rgb(253 252 252 / 0.1);
+    border: var(--border-width-md) solid var(--theme-ring-inner);
     border-radius: 50%;
     backdrop-filter: blur(36px);
-    transition: border-color var(--transition-duration) var(--transition-easing);
-  }
-  .hero_sound:hover .hero_sound-core,
-  .hero_sound:focus-visible .hero_sound-core {
-    border-color: rgb(253 252 252 / 0.3); /* TODO: not in the design */
   }
   .hero_sound-icon {
     grid-area: 1 / 1;
@@ -256,13 +221,7 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
       position: relative;
       flex-direction: column;
       align-items: stretch;
-      gap: var(--size-24);
-    }
-    .hero_heading {
-      width: auto;
-    }
-    .text-size-66\/60\/40 {
-      font-size: calc(3.75rem * var(--fluid-scale));
+      gap: var(--spacing-lg);
     }
     .hero_pilot {
       position: absolute;
@@ -296,7 +255,7 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
       left: 0;
     }
     .hero_mask {
-      background-image: radial-gradient(circle closest-corner at 50% 30%, rgb(0 0 0 / 0) 25%, rgb(0 0 0 / 0.651) 50%, #000 75%);
+      background-image: radial-gradient(circle closest-corner at 50% 30%, var(--theme-fade) 25%, var(--theme-vignette) 50%, var(--theme-page-bg) 75%);
     }
     .hero_sound {
       inset: 25vh 0 auto;
@@ -307,17 +266,17 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
       width: calc(8.5rem * var(--fluid-scale));
     }
     .hero_sound-core {
-      width: calc(3.5rem * var(--fluid-scale));
+      width: var(--size-56);
     }
   }
 
   @media (max-width: 479px) {
     .hero_content {
-      gap: var(--size-16);
+      gap: var(--spacing-md);
     }
-    .text-size-66\/60\/40 {
-      font-size: calc(2.5rem * var(--fluid-scale));
-      line-height: 1.2;
+    /* .width-590-a-a: auto only here */
+    .hero_heading {
+      width: auto;
     }
     .hero_text {
       width: auto;
@@ -328,7 +287,7 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
     .hero_ai {
       align-self: flex-end;
       width: calc(6.88rem * var(--fluid-scale));
-      margin: calc(1.25rem * var(--fluid-scale)) calc(6.25rem * var(--fluid-scale)) calc(1.25rem * var(--fluid-scale)) 0;
+      margin: var(--size-20) var(--size-100) var(--size-20) 0;
     }
     .hero_deliver {
       margin-left: 0;
@@ -341,13 +300,13 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
     }
     .hero_sound {
       top: 25vh;
-      width: calc(7.5rem * var(--fluid-scale)); /* 120 */
+      width: var(--size-120); /* 120 */
     }
     .hero_sound-ring {
-      width: calc(4.5rem * var(--fluid-scale));
+      width: var(--size-72);
     }
     .hero_sound-core {
-      width: calc(2rem * var(--fluid-scale));
+      width: var(--size-32);
     }
     .hero_sound-icon {
       width: var(--size-16);

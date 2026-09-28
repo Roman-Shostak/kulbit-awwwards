@@ -1,7 +1,7 @@
 ---
 /**
- * /dev/components — every component the site uses, with every variant, on a light and a dark
- * background. Maintained by hand: when a ui component, a variant or a section is added, add it
+ * /dev/components — every component the site uses, with every variant, on the page background
+ * (the whole site is dark: Kulbit has no light or dark section variants). Maintained by hand: when a ui component, a variant or a section is added, add it
  * here in the matching block (rules: .claude/rules/astro-components.md → Dev pages).
  * The page compares its registry with src/components/ui/ and src/components/sections/ and shows
  * a red notice for anything not showcased yet, so a missing entry is never silent.
@@ -10,8 +10,7 @@
  * How to add:
  *   ui component  → import it, push its name to `showcasedUi`, add a <section class="dev_component">
  *                   with one <figure class="dev_variant"> per prop combination (type × size × element,
- *                   link vs button, with/without icon …), each on <div class="dev_stage"> and, when
- *                   colours differ on dark sections, also on <div class="dev_stage theme--dark">.
+ *                   link vs button, with/without icon …), each on <div class="dev_stage">.
  *                   Components wider than ~20rem (buttons, tags, logos: white-space: nowrap) go into
  *                   <div class="dev_variants dev_variants--wide"> so they fit their stage.
  *                   The commented block below shows a Button with its variants, the first component
@@ -23,6 +22,7 @@
 import { Picture } from 'astro:assets';
 import Button from '@/components/ui/Button.astro';
 import Logo from '@/components/ui/Logo.astro';
+import ProgressLine from '@/components/ui/ProgressLine.astro';
 import ProjectVideo from '@/components/ui/ProjectVideo.astro';
 import Square from '@/components/ui/Square.astro';
 import Hero from '@/components/sections/Hero.astro';
@@ -47,7 +47,7 @@ const uiFiles = Object.keys(import.meta.glob('../components/ui/*.astro')).map(fi
 const sectionFiles = Object.keys(import.meta.glob('../components/sections/*.astro')).map(fileName);
 
 // Registry of what this page renders — keep in sync with the blocks below
-const showcasedUi: string[] = ['Button', 'Square', 'ProjectVideo', 'Logo'];
+const showcasedUi: string[] = ['Button', 'Square', 'ProgressLine', 'ProjectVideo', 'Logo'];
 const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients', 'Projects', 'OurServices', 'IntroScreen', 'WorkingProcess', 'TraditionalProduction', 'SectionNav', 'SiteFooter'];
 
 const missingUi = uiFiles.filter((name) => !showcasedUi.includes(name));
@@ -92,35 +92,35 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
     <p class="dev_component-meta"><code>src/components/ui/Button.astro</code> — variant: outline | arrow | second | second-footer | showreel; href → a, otherwise button[type=button]. The labels hide on mobile (outline, showreel) and ≤ 991px (arrow) and stay the accessible name; second / second-footer: the square turns red on hover; second-footer: the whole width with the square at the end ≤ 991px, centred ≤ 479px; showreel: the picture comes in the <code>media</code> slot and fills the frame (the whole width).</p>
     <div class="dev_variants dev_variants--wide">
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark"><Button variant="outline">Showreel</Button></div>
+        <div class="dev_stage"><Button variant="outline">Showreel</Button></div>
         <figcaption><code>&lt;Button variant="outline"&gt;</code> → button</figcaption>
       </figure>
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark"><Button variant="outline" href="/">Showreel</Button></div>
+        <div class="dev_stage"><Button variant="outline" href="/">Showreel</Button></div>
         <figcaption><code>&lt;Button variant="outline" href="/"&gt;</code> → a</figcaption>
       </figure>
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark"><Button variant="arrow">Start Your Pilot</Button></div>
+        <div class="dev_stage"><Button variant="arrow">Start Your Pilot</Button></div>
         <figcaption><code>&lt;Button variant="arrow"&gt;</code> → button</figcaption>
       </figure>
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark"><Button variant="arrow" href="/">Start Your Pilot</Button></div>
+        <div class="dev_stage"><Button variant="arrow" href="/">Start Your Pilot</Button></div>
         <figcaption><code>&lt;Button variant="arrow" href="/"&gt;</code> → a</figcaption>
       </figure>
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark"><Button variant="second">Start Your Pilot</Button></div>
+        <div class="dev_stage"><Button variant="second">Start Your Pilot</Button></div>
         <figcaption><code>&lt;Button variant="second"&gt;</code> → button</figcaption>
       </figure>
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark"><Button variant="second" href="/">Start Your Pilot</Button></div>
+        <div class="dev_stage"><Button variant="second" href="/">Start Your Pilot</Button></div>
         <figcaption><code>&lt;Button variant="second" href="/"&gt;</code> → a</figcaption>
       </figure>
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark"><Button variant="second-footer">Let’s discuss</Button></div>
+        <div class="dev_stage"><Button variant="second-footer">Let’s discuss</Button></div>
         <figcaption><code>&lt;Button variant="second-footer"&gt;</code> → button</figcaption>
       </figure>
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark">
+        <div class="dev_stage">
           <Button variant="showreel">
             <Picture slot="media" src={footerShowreel} formats={['avif', 'webp']} fallbackFormat="jpg" width={680} alt="" class="fill-box" />
             Showreel
@@ -136,11 +136,11 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
     <p class="dev_component-meta"><code>src/components/ui/Logo.astro</code> — the logo linking home (on the home page: aria-current="page", no href); the square turns red on hover of a real link. size: 150/150/125 (default, the header) | 108 (the footer).</p>
     <div class="dev_variants">
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark"><Logo /></div>
+        <div class="dev_stage"><Logo /></div>
         <figcaption><code>&lt;Logo /&gt;</code> → a, 150/150/125</figcaption>
       </figure>
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark"><Logo size="108" /></div>
+        <div class="dev_stage"><Logo size="108" /></div>
         <figcaption><code>&lt;Logo size="108" /&gt;</code></figcaption>
       </figure>
     </div>
@@ -151,24 +151,47 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
     <p class="dev_component-meta"><code>src/components/ui/Square.astro</code> — the decorative square, turns a quarter on hover; aria-hidden. size: 30/24/24 (default) | 30/24/16 | 24/24/16 | 12, color: blue (default) | red. The caller positions it with its own class.</p>
     <div class="dev_variants">
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark"><Square /></div>
+        <div class="dev_stage"><Square /></div>
         <figcaption><code>&lt;Square class="…"&gt;</code> → span, 30/24/24 blue</figcaption>
       </figure>
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark"><Square size="30/24/16" color="red" /></div>
+        <div class="dev_stage"><Square size="30/24/16" color="red" /></div>
         <figcaption><code>&lt;Square size="30/24/16" color="red"&gt;</code></figcaption>
       </figure>
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark"><Square size="24/24/16" /></div>
+        <div class="dev_stage"><Square size="24/24/16" /></div>
         <figcaption><code>&lt;Square size="24/24/16"&gt;</code></figcaption>
       </figure>
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark"><Square size="12" /></div>
+        <div class="dev_stage"><Square size="12" /></div>
         <figcaption><code>&lt;Square size="12"&gt;</code></figcaption>
       </figure>
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark"><Square size="12" color="red" /></div>
+        <div class="dev_stage"><Square size="12" color="red" /></div>
         <figcaption><code>&lt;Square size="12" color="red"&gt;</code></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="dev_component" id="ui-progressline">
+    <h3>ProgressLine</h3>
+    <p class="dev_component-meta"><code>src/components/ui/ProgressLine.astro</code> — the progress line of a section (Webflow .section-progresbar): the 2px track and the fill the section's script drives ([data-progress-fill], src/scripts/kulbit/progress-line.ts); aria-hidden. start: 0 (default) | third | sixth | full (no fill: the intro screens); a section sets another start width per breakpoint with <code>--progress-start</code> on its own class.</p>
+    <div class="dev_variants dev_variants--wide">
+      <figure class="dev_variant">
+        <div class="dev_stage"><ProgressLine /></div>
+        <figcaption><code>&lt;ProgressLine /&gt;</code> → empty (TraditionalProduction)</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage"><ProgressLine start="third" /></div>
+        <figcaption><code>&lt;ProgressLine start="third" /&gt;</code> (OurClients)</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage"><ProgressLine start="sixth" /></div>
+        <figcaption><code>&lt;ProgressLine start="sixth" /&gt;</code> (OurServices)</figcaption>
+      </figure>
+      <figure class="dev_variant">
+        <div class="dev_stage"><ProgressLine start="full" /></div>
+        <figcaption><code>&lt;ProgressLine start="full" /&gt;</code> (IntroScreen)</figcaption>
       </figure>
     </div>
   </section>
@@ -178,7 +201,7 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
     <p class="dev_component-meta"><code>src/components/ui/ProjectVideo.astro</code> — the project video player: poster + start button, then play / pause, time, seek with buffer, volume (a vertical slider; ≤ 991px a mute toggle), fullscreen. src (1080p) + srcSmall (720p, ≤ 991px), poster + alt; element: div | li (li in Projects). Fills its box: the caller sizes it.</p>
     <div class="dev_variants dev_variants--wide">
       <figure class="dev_variant">
-        <div class="dev_stage theme--dark">
+        <div class="dev_stage">
           <div class="dev_player">
             <ProjectVideo src="/video/project-rush-core-1080.mp4" srcSmall="/video/project-rush-core-720.mp4" poster={posterRushCore} alt={tProjects.posters[0]} />
           </div>
@@ -209,10 +232,6 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
           <div class="dev_stage"><Button type="submit">Submit</Button></div>
           <figcaption><code>&lt;Button type="submit"&gt;</code></figcaption>
         </figure>
-        <figure class="dev_variant">
-          <div class="dev_stage theme--dark"><Button href="/">On a dark section</Button></div>
-          <figcaption><code>theme--dark</code></figcaption>
-        </figure>
       </div>
     </section>
   */}
@@ -233,10 +252,6 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
             <figcaption><code>&lt;Card type="{type}" size="{size}"&gt;</code></figcaption>
           </figure>
         )))}
-        <figure class="dev_variant">
-          <div class="dev_stage theme--dark"><Card><p class="text-size-body-sm">on a dark section</p></Card></div>
-          <figcaption><code>theme--dark</code></figcaption>
-        </figure>
       </div>
     </section>
   */}

@@ -97,7 +97,8 @@ export default defineConfig({
 
   // dev-only pages (/dev/tokens, /dev/components) + robots.txt, sitemap.xml, llms.txt, llms-full.txt
   // generated into dist/ on every build (options: scripts/seo-files.mjs)
-  integrations: [devPages(), seoFiles()],
+  // kulbit.site is closed from search for good (public/_headers): robots.txt only, no sitemap or llms files
+  integrations: [devPages(), seoFiles({ indexable: false })],
 
   // Languages: the default language at /, every other at /<lang>/, chosen by hand (no browser detection).
   // Keep `locales` / `defaultLocale` identical to src/i18n/index.ts; a language gets pages only when its

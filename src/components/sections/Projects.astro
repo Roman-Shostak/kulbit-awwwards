@@ -15,6 +15,7 @@
  * eagerly: lazy ones in the stacked (clipped) sections start loading only once they are on the screen.
  */
 import { Picture } from 'astro:assets';
+import ProgressLine from '@/components/ui/ProgressLine.astro';
 import ProjectVideo from '@/components/ui/ProjectVideo.astro';
 import { useTranslations } from '@/i18n';
 import posterRushCore from '@/assets/projects/project-rush-core-poster.avif';
@@ -30,23 +31,23 @@ const videos = [
 ].map((video, i) => ({ ...video, alt: t.posters[i] }));
 ---
 
-<section class="section padding-64/48/24 projects" data-kulbit-section data-section-name="projects">
+<section class="section padding-md projects" data-kulbit-section data-section-name="projects">
   <div class="container">
     <div class="projects_layout spacing-64/48/32 text-style-uppercase">
-      <div class="projects_progress" aria-hidden="true"><div class="projects_fill" data-projects-fill></div></div>
-      <div class="projects_body flex-v spacing-32">
-        <div class="projects_head justify-space-between spacing-16">
-          <h2 class="text-size-32/28/23" data-kulbit-scramble>{t.title}</h2>
-          <p class="projects_label text-size-16/16/13" data-kulbit-scramble>{t.label}</p>
+      <ProgressLine class="projects_progress" />
+      <div class="projects_body flex-v spacing-xl">
+        <div class="align-start justify-space-between spacing-md">
+          <h2 class="text-size-section-h2" data-kulbit-scramble>{t.title}</h2>
+          <p class="text-size-section-label text-color-accent" data-kulbit-scramble>{t.label}</p>
         </div>
         <ul class="projects_cards" data-kulbit-project-group>
           {videos.map((video) => <ProjectVideo element="li" class="projects_item" {...video} />)}
-          <li class="projects_item projects_soon" data-kulbit-project-end>
+          <li class="projects_item projects_soon border-radius-sm" data-kulbit-project-end>
             <div class="projects_soon-media">
               <Picture src={moreSoon} formats={['avif', 'webp']} fallbackFormat="jpg" width={1750} alt={t.soonAlt} loading="eager" class="fill-box" />
             </div>
             <div class="projects_soon-text">
-              <p class="text-size-32/24/16 text-weight-800">{t.soon.lead} <span class="text-color-brand">{t.soon.accent}</span></p>
+              <p class="text-size-more-soon text-weight-800">{t.soon.lead} <span class="text-color-brand">{t.soon.accent}</span></p>
             </div>
           </li>
         </ul>
@@ -62,10 +63,6 @@ const videos = [
     grid-template-rows: minmax(0, 1fr);
     height: 100vh;
   }
-  /* .section: 4rem top and bottom (tablet 3, mobile 1.5) */
-  .padding-64\/48\/24 {
-    padding-block: var(--size-64);
-  }
   .projects_layout {
     display: flex;
     flex-direction: column;
@@ -74,59 +71,22 @@ const videos = [
   .spacing-64\/48\/32 {
     gap: var(--size-64);
   }
-  .spacing-32 {
-    gap: var(--size-32);
-  }
-  /* min gap, not in the design (space-between) */
-  .spacing-16 {
-    gap: var(--size-16);
-  }
 
-  /* PP Monument Wide 32 / 1.3, tracking 0.03em (tablet 28, mobile 23): .text-size-section-h2 */
-  .text-size-32\/28\/23 {
-    font-family: var(--font-secondary);
-    font-size: var(--size-32);
-    line-height: 1.3;
-    letter-spacing: 0.03em;
-  }
-  /* Decima Mono 16 / 1.1, tracking 0.03em (mobile 13): .text-size-section-label */
-  .text-size-16\/16\/13 {
-    font-size: var(--size-16);
-    line-height: 1.1;
-    letter-spacing: 0.03em;
-  }
   /* PP Monument Wide Black 32 / 1.3, tracking 0.03em (tablet 24, mobile 16): .text-size-projects-more-soon */
-  .text-size-32\/24\/16 {
+  .text-size-more-soon {
     font-family: var(--font-secondary);
     font-size: var(--size-32);
     line-height: 1.3;
     letter-spacing: 0.03em;
   }
 
-  /* ---------- Progress line (.section-progresbar + the fill kulbit-webflow adds): the track at 15 % ---------- */
+  /* ---------- Progress line (ui/ProgressLine, .section-progresbar): the fill starts at the first of 3 cards; the script drives it ---------- */
   .projects_progress {
-    position: relative;
-    flex: none;
-    height: var(--size-2);
-    background-color: rgb(253 252 252 / 0.15);
-  }
-  .projects_fill {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: calc(100% / 3); /* the first of 3 cards; the script drives it */
-    height: 100%;
-    background-color: var(--theme-text);
+    --progress-start: calc(100% / 3);
   }
 
   .projects_body {
     flex: 1;
-  }
-  .projects_head {
-    align-items: flex-start;
-  }
-  .projects_label {
-    color: #62b0ff;
   }
 
   /* ---------- Cards (.projects-cards-wrapper > .projects-video-wrapper) ---------- */
@@ -145,7 +105,6 @@ const videos = [
   .projects_soon {
     position: relative;
     overflow: hidden;
-    border-radius: calc(0.56rem * var(--fluid-scale)); /* 9 */
   }
   /* out of the flow, as .projects-tumb: its own height must not stretch the column */
   .projects_soon-media {
@@ -164,24 +123,18 @@ const videos = [
     .projects {
       height: 100svh;
     }
-    .padding-64\/48\/24 {
-      padding-block: var(--size-48);
-    }
     .spacing-64\/48\/32 {
       gap: var(--size-48);
     }
-    .text-size-32\/28\/23 {
-      font-size: var(--size-28);
-    }
-    .text-size-32\/24\/16 {
+    .text-size-more-soon {
       font-size: var(--size-24);
     }
     /* 3 cards share the column */
-    .projects_fill {
-      width: 100%;
+    .projects_progress {
+      --progress-start: 100%;
     }
     .projects_cards {
-      gap: var(--size-24);
+      gap: var(--spacing-lg);
     }
     .projects_item {
       flex: 1;
@@ -189,19 +142,10 @@ const videos = [
   }
 
   @media (max-width: 479px) {
-    .padding-64\/48\/24 {
-      padding-block: var(--size-24);
-    }
     .spacing-64\/48\/32 {
       gap: var(--size-32);
     }
-    .text-size-32\/28\/23 {
-      font-size: calc(1.44rem * var(--fluid-scale));
-    }
-    .text-size-16\/16\/13 {
-      font-size: calc(0.81rem * var(--fluid-scale));
-    }
-    .text-size-32\/24\/16 {
+    .text-size-more-soon {
       font-size: var(--size-16);
     }
   }
@@ -218,6 +162,7 @@ const videos = [
   // collapse (slides away: the line empties), reset(toEnd) (instant state; revealed from above = the last window).
   import { gsap } from 'gsap';
   import { app, config, registerSectionBuilder, visibleHeight, type SectionController } from '@/scripts/kulbit/app';
+  import { progressLine } from '@/scripts/kulbit/progress-line';
   import { resetProjectVideo } from '@/scripts/kulbit/project-video';
 
   const group = document.querySelector<HTMLElement>('[data-kulbit-project-group]');
@@ -229,9 +174,9 @@ const videos = [
     const items = [...group.querySelectorAll<HTMLElement>(':scope > :not(script, template)')];
     const total = items.length;
     if (total < 2) return;
-    const fill = section.el.querySelector<HTMLElement>('[data-projects-fill]');
     const STEP = config.scrollDuration;
     const EASE = config.ease;
+    const line = progressLine(section.el, STEP, EASE);
     const isDesktop = mode === 'desktop';
     const WIN = isDesktop ? 1 : Math.min(3, total);
     const maxState = total - WIN;
@@ -251,26 +196,7 @@ const videos = [
 
     // Progress line by the window position; empty at once while sliding in, 0 → its first part once covered,
     // empties while sliding away
-    const setFill = (state: number, animate: boolean) => {
-      if (!fill) return;
-      const width = `${((state + 1) / (maxState + 1)) * 100}%`;
-      if (animate) gsap.to(fill, { width, duration: STEP, ease: EASE });
-      else gsap.set(fill, { width });
-    };
-    const prepareLine = () => {
-      if (!fill) return;
-      gsap.killTweensOf(fill);
-      gsap.set(fill, { width: '0%' });
-    };
-    const enterLine = () => {
-      prepareLine();
-      setFill(0, true);
-    };
-    const collapseLine = () => {
-      if (!fill) return;
-      gsap.killTweensOf(fill);
-      gsap.to(fill, { width: '0%', duration: STEP, ease: EASE });
-    };
+    const setFill = (s: number, animate: boolean) => line.to((s + 1) / (maxState + 1), animate);
 
     // A video card back to its poster (pause, time 0, controls away); the end card has nothing to reset
     const resetOthers = (active: number) =>
@@ -300,7 +226,7 @@ const videos = [
     let state = 0;
     applyState(0);
     resetOthers(0);
-    prepareLine(); // hidden start until the section appears
+    line.prepare(); // hidden start until the section appears
 
     const controller: SectionController = {
       get state() {
@@ -310,15 +236,15 @@ const videos = [
         state = 0;
         applyState(0);
         resetOthers(0);
-        prepareLine();
+        line.prepare();
       },
       enter() {
         state = 0;
         applyState(0);
         resetOthers(0);
-        enterLine();
+        line.enter(1 / (maxState + 1));
       },
-      collapse: collapseLine,
+      collapse: line.collapse,
       reset(toEnd) {
         state = toEnd ? maxState : 0;
         applyState(state);
@@ -329,10 +255,7 @@ const videos = [
       dispose() {
         gsap.killTweensOf(items);
         gsap.set(items, { clearProps: 'height,transform,flex' });
-        if (fill) {
-          gsap.killTweensOf(fill);
-          gsap.set(fill, { clearProps: 'width' });
-        }
+        line.dispose();
       },
       step(dir) {
         const next = Math.max(0, Math.min(maxState, state + dir));

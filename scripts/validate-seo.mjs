@@ -9,7 +9,8 @@
 // <html lang>; canonical / og:url / og:image never on a placeholder host (example.com, localhost,
 // .test, .invalid: `site` is a stub and link previews will not work); noindex pages are
 // listed and skipped for the content checks; robots.txt / sitemap.xml / llms.txt present in dist/,
-// every indexable page in the sitemap and no noindex page in it, robots.txt with a Sitemap line.
+// every indexable page in the sitemap and no noindex page in it, robots.txt with a Sitemap line; a site closed from
+// search for good (X-Robots-Tag: noindex for /* in dist/_headers) has robots.txt only.
 // JSON-LD: exactly one <script type="application/ld+json"> with `@context` schema.org and a
 // non-empty `@graph`; every node has `@type` and an absolute `@id`; ids unique per page; every
 // `{ "@id": … }` reference resolves in the same graph; no empty strings or "TODO" values;
@@ -202,6 +203,27 @@ for (const file of files) {
   const bad = lines.filter((l) => l.startsWith('    ✗')).length;
   console.log(`${bad === 0 ? '✓' : '✗'} ${file}${bad ? ` — ${bad} error(s)` : ''}`);
   for (const line of lines) console.log(line);
+}
+// A site closed from search for good: `X-Robots-Tag: noindex` for every path in dist/_headers (public/_headers) and
+// seoFiles({ indexable: false }) — then robots.txt only: no sitemap, no Sitemap line, no llms files
+const headers = await readFile(join(DIST, '_headers'), 'utf8').catch(() => '');
+const closed = /^\/\*\s*$[\s\S]*?^\s+X-Robots-Tag:\s*noindex/im.test(headers.split(/\n(?=\S)/).find((block) => block.startsWith('/*')) ?? '');
+if (closed) {
+  console.log('\n! the whole site is noindex (dist/_headers): sitemap.xml and the llms files must not exist');
+  try {
+    await access(join(DIST, 'robots.txt'));
+  } catch {
+    errors++;
+    console.log(`✗ ${join(DIST, 'robots.txt')} is missing`);
+  }
+  for (const name of ['sitemap.xml', 'llms.txt', 'llms-full.txt']) {
+    const exists = await access(join(DIST, name)).then(() => true, () => false);
+    if (exists) (errors++, console.log(`✗ ${name} is published for a site closed from search (seoFiles({ indexable: false }))`));
+  }
+  const robots = await readFile(join(DIST, 'robots.txt'), 'utf8').catch(() => '');
+  if (/^Sitemap:/m.test(robots)) (errors++, console.log('✗ robots.txt announces a sitemap for a site closed from search'));
+  console.log(`\n[seo] ${files.length} page(s), ${errors} error(s), ${warnings} warning(s)`);
+  process.exit(errors === 0 ? 0 : 1);
 }
 // Generated files (scripts/seo-files.mjs) and the sitemap ↔ pages cross-check
 for (const name of ['robots.txt', 'sitemap.xml', 'llms.txt']) {

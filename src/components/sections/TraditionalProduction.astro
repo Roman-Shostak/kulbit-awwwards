@@ -28,6 +28,7 @@ import IconChartGrowth from '@/assets/icons/chart-growth.svg';
 import IconShieldKeyhole from '@/assets/icons/shield-keyhole.svg';
 import IconDiamondUser from '@/assets/icons/diamond-user.svg';
 import Square from '@/components/ui/Square.astro';
+import ProgressLine from '@/components/ui/ProgressLine.astro';
 import { useTranslations } from '@/i18n';
 
 const t = useTranslations(Astro.currentLocale).traditionalProduction;
@@ -48,16 +49,14 @@ const advantages = t.advantages.map((card, i) => ({
 const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity', 'axis--flexibility'];
 ---
 
-<div class="section padding-top-64/24/24 padding-bottom-64/48/24" data-kulbit-section data-traditional>
+<div class="section padding-top-64/24/24 padding-bottom-md" data-kulbit-section data-traditional>
   <div class="container">
-    <div class="flex-v spacing-48/48/24">
+    <div class="flex-v spacing-2xl">
       <div class="desktop-only">
-        <div class="traditional-production_progress" aria-hidden="true" data-traditional-line>
-          <div class="traditional-production_fill" data-traditional-fill></div>
-        </div>
+        <ProgressLine data-traditional-line="" />
       </div>
 
-      <div class="flex-h/v/v justify-space-between spacing-0/32/32">
+      <div class="flex-h/v/v justify-space-between spacing-xl">
         <div class="traditional-production_chart" aria-hidden="true" data-traditional-left>
           <div class="background-slot desktop-only">
             <Image src={radarBg} alt="" loading="eager" class="fill-box" />
@@ -130,28 +129,28 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
               </radialGradient>
             </defs>
           </svg>
-          <ul class="text-size-16/13/8 text-weight-700 text-style-uppercase">
+          <ul class="text-size-production-label text-weight-700 text-style-uppercase">
             {t.axes.map((axis, i) => <li class:list={['traditional-production_axis', axisPlaces[i]]}>{axis}</li>)}
           </ul>
         </div>
 
         <div class="traditional-production_table" data-traditional-right>
           <div class="traditional-production_head text-weight-700 text-style-uppercase">
-            <h3 class="traditional-production_title text-size-16/16/14" data-traditional-head>
+            <h3 class="traditional-production_title text-size-production-head" data-traditional-head>
               <span class="traditional-production_accent">{t.head.traditional.accent}</span> {t.head.traditional.text}
             </h3>
             <template data-traditional-head-next>
-              <span class="traditional-production_accent accent--blue">{t.head.kulbit.accent}</span> {t.head.kulbit.text}
+              <span class="traditional-production_accent text-color-accent">{t.head.kulbit.accent}</span> {t.head.kulbit.text}
             </template>
-            <Square size="30/24/16" color="red" data-traditional-square />
+            <Square size="30/24/16" color="red" data-traditional-square="" />
           </div>
-          <dl class="text-size-16/16/13 text-weight-700">
+          <dl class="text-size-production-card text-weight-700">
             {
               barCards.map((card, i) => (
                 <div class:list={['traditional-production_card', { 'card--last': i % 4 === 3 }]} data-traditional-card>
-                  <dt class="traditional-production_term text-style-uppercase">{card.label}</dt>
-                  <dd class:list={['width--306 flex-v', i === 0 ? 'spacing-32/24/16' : 'spacing-32']}>
-                    <p class="text-size-18/18/15 text-weight-400">
+                  <dt class="text-color-secondary text-style-uppercase">{card.label}</dt>
+                  <dd class:list={['width--306 flex-v', i === 0 ? 'spacing-32/24/16' : 'spacing-xl']}>
+                    <p class="text-size-production-text text-weight-400">
                       {card.lead ? (
                         <>
                           <span class="traditional-production_line">{card.lead}</span> {card.text[0]}
@@ -176,12 +175,12 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
             {
               advantages.map((card, i) => (
                 <div class:list={['traditional-production_card', { 'card--last': i === advantages.length - 1 }]} data-traditional-card>
-                  <dt class:list={['traditional-production_term', { 'width--150/150/auto': card.narrow }, 'text-style-uppercase']}>
+                  <dt class:list={['text-color-secondary', { 'width--150/150/auto': card.narrow }, 'text-style-uppercase']}>
                     {card.label}
                   </dt>
-                  <dd class="width--306 flex-v spacing-8">
+                  <dd class="width--306 flex-v spacing-xs">
                     <card.Icon class="traditional-production_icon" aria-hidden="true" />
-                    <p class="text-size-18/18/15 text-weight-400">{card.text}</p>
+                    <p class="text-size-production-text text-weight-400">{card.text}</p>
                   </dd>
                 </div>
               ))
@@ -195,51 +194,35 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
 
 <style>
   /* .section.is-traditional-production: 4rem on top on desktop, 1.5rem from the tablet on (the .is-traditional-
-     production rule beats the tablet .section 3rem); the bottom of .section 4 / 3 / 1.5rem */
+     production rule beats the tablet .section 3rem); the bottom is .section's (padding-bottom-md) */
   .padding-top-64\/24\/24 {
     padding-top: var(--size-64);
   }
-  .padding-bottom-64\/48\/24 {
-    padding-bottom: var(--size-64);
-  }
-  /* .flex-v.gap-48-32-24 (no tablet rule: 48) */
-  .spacing-48\/48\/24 {
-    gap: var(--size-48);
-  }
-  /* .flex-h-v-v.is-wrapper-traditional-production: no gap on desktop, 2rem when stacked */
-  .spacing-0\/32\/32 {
-    gap: 0;
-  }
-  /* The first card: .flex-v.gap-32-24 (tablet 24, mobile 16); the others .flex-v.gap-32; the third group .gap-8 */
+  /* The first card: .flex-v.gap-32-24 (tablet 24, mobile 16); the others .flex-v.gap-32 (spacing-xl); the third group
+     .gap-8 (spacing-xs) */
   .spacing-32\/24\/16 {
     gap: var(--size-32);
   }
-  .spacing-32 {
-    gap: var(--size-32);
-  }
-  .spacing-8 {
-    gap: var(--size-8);
-  }
 
   /* Decima Mono Bold 16 / 1.3, tracking 0.03em (tablet 13, mobile 8): .traditional-production-label */
-  .text-size-16\/13\/8 {
+  .text-size-production-label {
     font-size: var(--size-16);
     line-height: 1.3;
     letter-spacing: 0.03em;
   }
   /* Decima Mono Bold 16 / 1.3 (mobile 14): .text-size-production-head */
-  .text-size-16\/16\/14 {
+  .text-size-production-head {
     font-size: var(--size-16);
     line-height: 1.3;
   }
   /* Decima Mono Bold 16 / 1.3, tracking 0.03em (mobile 13): .traditional-production-label.is-card */
-  .text-size-16\/16\/13 {
+  .text-size-production-card {
     font-size: var(--size-16);
     line-height: 1.3;
     letter-spacing: 0.03em;
   }
   /* PP Monument Wide 18 / 1.3, tracking 0.03em (mobile 15): .text-size-production-text */
-  .text-size-18\/18\/15 {
+  .text-size-production-text {
     font-family: var(--font-secondary);
     font-size: calc(1.13rem * var(--fluid-scale));
     line-height: 1.3;
@@ -254,13 +237,7 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
     width: calc(9.38rem * var(--fluid-scale));
   }
 
-  /* ---------- Progress line (.section-progresbar, desktop only): the track + the fill the script sets ---------- */
-  .traditional-production_progress {
-    position: relative;
-    height: var(--size-2);
-    background-color: rgb(253 252 252 / 0.15);
-  }
-  /* The fill of the line and of every bar (the source injected it): empty at the start */
+  /* The fill of every bar (the source injected it): empty at the start */
   .traditional-production_fill {
     position: absolute;
     top: 0;
@@ -293,11 +270,11 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
     width: calc(27.06rem * var(--fluid-scale)); /* 433 */
     height: calc(27.06rem * var(--fluid-scale));
   }
-  /* The styles the Webflow SVGs carried in their own (page-global) <style>, the colour variables here raw: the
+  /* The styles the Webflow SVGs carried in their own (page-global) <style>, the colour variables as tokens: the
      outline dashed white, the gradient stops red / blue, the dots and the centre white */
   .traditional-production_radar [data-kulbit-svg-edge] {
     fill: none;
-    stroke: #ffffff;
+    stroke: var(--theme-illustration);
     stroke-width: 2;
     stroke-dasharray: 2 4;
   }
@@ -305,20 +282,20 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
     stroke: none;
   }
   .traditional-production_radar [data-kulbit-svg-grad='red'] stop {
-    stop-color: #ff4444;
+    stop-color: var(--theme-icon-brand);
   }
   .traditional-production_radar [data-kulbit-svg-grad='blue'] stop {
-    stop-color: #62b0ff;
+    stop-color: var(--theme-icon-secondary);
   }
   .traditional-production_radar [data-kulbit-svg-dot],
   .traditional-production_radar [data-kulbit-svg-center] {
-    fill: #ffffff;
+    fill: var(--theme-illustration);
   }
   /* .traditional-production-label: Timeline at the top; the others by their modifiers */
   .traditional-production_axis {
     position: absolute;
     inset: 0 auto auto calc(27.81rem * var(--fluid-scale)); /* 445 */
-    color: #404040;
+    color: var(--theme-text-secondary);
   }
   .traditional-production_axis.axis--budget {
     inset: calc(24.19rem * var(--fluid-scale)) auto auto 0; /* 387 */
@@ -339,20 +316,22 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
     flex-direction: column;
     width: calc(37.13rem * var(--fluid-scale)); /* 594 */
   }
+  /* The minimum gap of space-between: the title and the square are far apart on every breakpoint */
   .traditional-production_head {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
+    gap: var(--spacing-xs);
     padding: var(--size-24) var(--size-32);
-    border: var(--size-2) solid #252525;
-    border-top-left-radius: calc(0.56rem * var(--fluid-scale)); /* 9 */
-    border-top-right-radius: calc(0.56rem * var(--fluid-scale));
+    border: var(--border-width-md) solid var(--theme-border);
+    border-top-left-radius: var(--radius-sm); /* 9 */
+    border-top-right-radius: var(--radius-sm);
   }
   /* The head: red (Traditional); the script sets is--kulbit when the KULBIT group starts (the source toggled
-     .text-color-red): the base colour, the accent blue */
+     .text-color-red): the base colour, the accent blue (text-color-accent) */
   .traditional-production_title {
     width: calc(14.38rem * var(--fluid-scale)); /* 230 */
-    color: #ff4444;
+    color: var(--theme-text-brand);
     transition: color var(--transition-duration) var(--transition-easing);
   }
   .traditional-production_title.is--kulbit {
@@ -362,26 +341,22 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
   .traditional-production_accent {
     display: block;
   }
-  .traditional-production_accent.accent--blue {
-    color: #62b0ff;
-  }
-  /* .traditional-production-card: no top border (the one above draws it) */
+  /* .traditional-production-card: no top border (the one above draws it); the gap = the stacked mobile gap, on the
+     row only the minimum of space-between (the label and the text are far apart) */
   .traditional-production_card {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
+    gap: var(--spacing-md);
     padding: var(--size-32);
-    border-width: var(--size-2);
+    border-width: var(--border-width-md);
     border-style: none solid solid;
-    border-color: #252525;
+    border-color: var(--theme-border);
   }
   /* .is-last: the last card of a group closes the table */
   .traditional-production_card.card--last {
-    border-bottom-right-radius: calc(0.56rem * var(--fluid-scale)); /* 9 */
-    border-bottom-left-radius: calc(0.56rem * var(--fluid-scale));
-  }
-  .traditional-production_term {
-    color: #404040;
+    border-bottom-right-radius: var(--radius-sm); /* 9 */
+    border-bottom-left-radius: var(--radius-sm);
   }
   /* .span-block: its own line on every breakpoint */
   .traditional-production_line {
@@ -392,29 +367,23 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
     position: relative;
     height: var(--size-16);
     overflow: hidden;
-    background-color: #252525;
+    background-color: var(--theme-border);
   }
   /* .icon-32 (every breakpoint) */
   .traditional-production_icon {
     width: var(--size-32);
     height: var(--size-32);
-    color: #404040;
+    color: var(--theme-text-secondary);
   }
 
   @media (max-width: 991px) {
     .padding-top-64\/24\/24 {
       padding-top: var(--size-24);
     }
-    .padding-bottom-64\/48\/24 {
-      padding-bottom: var(--size-48);
-    }
-    .spacing-0\/32\/32 {
-      gap: var(--size-32);
-    }
     .spacing-32\/24\/16 {
       gap: var(--size-24);
     }
-    .text-size-16\/13\/8 {
+    .text-size-production-label {
       font-size: calc(0.81rem * var(--fluid-scale));
     }
     .traditional-production_chart {
@@ -429,7 +398,7 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
     }
     .traditional-production_radar.radar--blue {
       right: calc(7.29rem * var(--fluid-scale)); /* 117 */
-      bottom: calc(1.75rem * var(--fluid-scale)); /* 28 */
+      bottom: var(--size-28);
       width: calc(19.38rem * var(--fluid-scale)); /* 310 */
       height: calc(19.38rem * var(--fluid-scale));
     }
@@ -463,7 +432,7 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
       display: inline;
     }
     .traditional-production_card {
-      padding: calc(1.75rem * var(--fluid-scale)) calc(2.5rem * var(--fluid-scale)); /* 28, 40 */
+      padding: var(--size-28) var(--size-40);
     }
     .traditional-production_bar {
       height: var(--size-12);
@@ -471,25 +440,19 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
   }
 
   @media (max-width: 479px) {
-    .padding-bottom-64\/48\/24 {
-      padding-bottom: var(--size-24);
-    }
-    .spacing-48\/48\/24 {
-      gap: var(--size-24);
-    }
     .spacing-32\/24\/16 {
       gap: var(--size-16);
     }
-    .text-size-16\/13\/8 {
+    .text-size-production-label {
       font-size: var(--size-8);
     }
-    .text-size-16\/16\/14 {
+    .text-size-production-head {
       font-size: calc(0.88rem * var(--fluid-scale));
     }
-    .text-size-16\/16\/13 {
+    .text-size-production-card {
       font-size: calc(0.81rem * var(--fluid-scale));
     }
-    .text-size-18\/18\/15 {
+    .text-size-production-text {
       font-size: calc(0.94rem * var(--fluid-scale));
     }
     .width--150\/150\/auto {
@@ -532,7 +495,6 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
     }
     .traditional-production_card {
       flex-direction: column;
-      gap: var(--size-16);
       padding: var(--size-20);
     }
     .traditional-production_bar {
@@ -551,15 +513,16 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
   //   A card (step): it rises and fades in, its dot(s) appear, its bar fills to data-kulbit-progress, the line grows
   //     to s / 12. Cards 4 and 8 also draw their radar's dashed outline edge after edge (a solid clone in a <mask> +
   //     its dash offset, the technique of the working process arrows), then its gradient fades in.
-  //   4 → 5: the red radar goes grey (#252525) and loses its gradient, the blue centre appears, scramble rewrites the
+  //   4 → 5: the red radar goes grey (--theme-border) and loses its gradient, the blue centre appears, scramble rewrites the
   //     head Traditional → KULBIT and its square turns red → white; the blue radar fills with cards 5–8.
   //   9–12: the third group — no radar, no bar.
   //   Back = the last step reversed; at state 1 the engine goes to the previous section. There is no collapse.
   //   reset(toEnd): the instant start (state 1: a restore, a jump) / end (all 12: opened from below — the footer).
   // Differences from the source: the elements are found by data-traditional-* attributes and the radars by their
-  // data-kulbit-svg-grad (not the Webflow classes); the fills of the bars and of the line are in the markup and the
-  // line's track colour is in the CSS (the source injected them, the fills with a colour variable this site does not
-  // have); the colours are raw (the source read the Webflow variables white, black-30, red, white-10); the head's
+  // data-kulbit-svg-grad (not the Webflow classes); the fills of the bars and the line (ui/ProgressLine) are in the
+  // markup and the line's track colour is in the CSS (the source injected them, the fills with a colour variable this
+  // site does not have); the colours are read from the tokens (the source read the Webflow variables white, black-30,
+  // red, white-10); the head's
   // colour is the is--kulbit state (the source toggled .text-color-red); the scramble respects reduced motion (as
   // Our Clients); a breakpoint change kills the running step and the head scramble; showEnd (opened from the
   // footer) fills the bars of the red and the KULBIT groups too (the source left them empty).
@@ -612,10 +575,13 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
     const maxState = allCards.length;
     let state = 0;
 
-    const WHITE = '#ffffff';
-    const BLACK30 = '#252525';
-    const RED = '#ff4444';
-    const WHITE10 = getComputedStyle(root).getPropertyValue('--theme-text').trim() || '#fdfcfc';
+    // The colours, read once from the tokens (the current hex as the fallback)
+    const tokens = getComputedStyle(document.documentElement);
+    const token = (name: string, fallback: string) => tokens.getPropertyValue(name).trim() || fallback;
+    const ILLUSTRATION = token('--theme-illustration', '#ffffff');
+    const BORDER = token('--theme-border', '#252525');
+    const BRAND = token('--theme-icon-brand', '#ff4444');
+    const TEXT = token('--theme-text', '#fdfcfc');
     const headIcon = root.querySelector<HTMLElement>('[data-traditional-square]');
 
     // The "drawing" mask of a dashed edge (a solid clone + its dash offset)
@@ -694,7 +660,7 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
     const liOf = (s: number) => (s <= 4 ? s - 1 : s <= 8 ? s - 5 : s - 9);
 
     // The line of the section
-    const secFill = root.querySelector('[data-traditional-line]')?.querySelector<HTMLElement>('[data-traditional-fill]') ?? null;
+    const secFill = root.querySelector<HTMLElement>('[data-traditional-line] [data-progress-fill]');
 
     const pctOf = (g: Group, li: number) => {
       const value = parseFloat(g.cards[li]?.querySelector('[data-kulbit-progress]')?.getAttribute('data-kulbit-progress') ?? '');
@@ -735,12 +701,12 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
           undefined,
           at,
         );
-        if (headIcon) tl.to(headIcon, { backgroundColor: toBlue ? WHITE10 : RED, duration: STEP, ease: EASE }, at);
+        if (headIcon) tl.to(headIcon, { backgroundColor: toBlue ? TEXT : BRAND, duration: STEP, ease: EASE }, at);
       } else {
         apply();
         gsap.killTweensOf(headText);
         buildSegments(headText, toBlue ? kulbitSegs : traditionalSegs, true);
-        if (headIcon) gsap.set(headIcon, { backgroundColor: toBlue ? WHITE10 : RED });
+        if (headIcon) gsap.set(headIcon, { backgroundColor: toBlue ? TEXT : BRAND });
       }
     };
 
@@ -846,11 +812,11 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
     };
     const deactivateRed = (tl: gsap.core.Timeline, at: number) => {
       if (red.gradFill) tl.to(red.gradFill, { autoAlpha: 0, duration: STEP * 0.5, ease: EASE }, at);
-      tintRed(tl, BLACK30, at);
+      tintRed(tl, BORDER, at);
     };
     const reactivateRed = (tl: gsap.core.Timeline, at: number) => {
       if (red.gradFill) tl.to(red.gradFill, { autoAlpha: 1, duration: STEP, ease: EASE }, at);
-      tintRed(tl, WHITE, at);
+      tintRed(tl, ILLUSTRATION, at);
     };
 
     const forwardTo = (tl: gsap.core.Timeline, s: number) => {
@@ -906,13 +872,13 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
       if (red.center) gsap.set(red.center, { autoAlpha: 1 }); // the red centre is always visible
       DOTS.forEach((n) => {
         const dot = red.dot(n);
-        if (dot) gsap.set(dot, { autoAlpha: 0, fill: WHITE });
+        if (dot) gsap.set(dot, { autoAlpha: 0, fill: ILLUSTRATION });
       });
       red.edges.forEach((edge, i) => {
         if (!edge || !red.svg) return;
         const m = ensureMask(red.svg, edge, i, 'red');
         gsap.set(m.clone, { attr: { 'stroke-dashoffset': m.L } });
-        gsap.set(edge, { stroke: WHITE });
+        gsap.set(edge, { stroke: ILLUSTRATION });
       });
       if (red.gradFill) gsap.set(red.gradFill, { autoAlpha: 0 });
       if (blue.center) gsap.set(blue.center, { autoAlpha: 0 }); // the blue radar hidden entirely
@@ -949,12 +915,12 @@ const axisPlaces = ['', 'axis--budget', 'axis--scalability', 'axis--creativity',
       setPageDisplay(pages.length - 1); // the last page in the flow
       DOTS.forEach((n) => {
         const dot = red.dot(n);
-        if (dot) gsap.set(dot, { autoAlpha: 1, fill: BLACK30 });
+        if (dot) gsap.set(dot, { autoAlpha: 1, fill: BORDER });
       });
       red.edges.forEach((edge, i) => {
         if (!edge || !red.svg) return;
         gsap.set(ensureMask(red.svg, edge, i, 'red').clone, { attr: { 'stroke-dashoffset': 0 } });
-        gsap.set(edge, { stroke: BLACK30 });
+        gsap.set(edge, { stroke: BORDER });
       });
       if (blue.center) gsap.set(blue.center, { autoAlpha: 1 });
       DOTS.forEach((n) => {

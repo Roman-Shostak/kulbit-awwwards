@@ -1,9 +1,9 @@
 ---
 /**
  * Button — three variants (Figma component «Button», layout as in the Webflow build):
- *   outline  a play icon + label on black in a 2px #171717 frame: the header button; icon only on mobile
+ *   outline  a play icon + label on black in a 2px --theme-frame frame: the header button; icon only on mobile
  *   arrow    a red label + the red arrow square in a row: the hero CTA; the square only at ≤ 991px
- *   second   a white label in two lines + the blue arrow square in a 2px #171717 frame (.button.is-second): the
+ *   second   a white label in two lines + the blue arrow square in a 2px --theme-frame frame (.button.is-second): the
  *            pilot button of the working process; the square turns red on hover
  *   second-footer  the same in the footer (.button.is-second-footer): the whole width with the square at the end
  *            at 991px and below, centred at 479px and below
@@ -24,11 +24,11 @@ const { variant, href, class: className, type, ...rest } = Astro.props;
 const Tag = href ? 'a' : 'button';
 const buttonType = href ? undefined : ((type ?? 'button') as 'button' | 'submit' | 'reset');
 const textSize = {
-  outline: 'text-size-16/14/14',
-  arrow: 'text-size-32',
-  second: 'text-size-18/18/16',
-  'second-footer': 'text-size-18/18/16',
-  showreel: 'text-size-16/14/14',
+  outline: 'text-size-button',
+  arrow: 'text-size-button-hero',
+  second: 'text-size-button-second',
+  'second-footer': 'text-size-button-second',
+  showreel: 'text-size-button',
 }[variant];
 const withPlay = variant === 'outline' || variant === 'showreel';
 ---
@@ -56,32 +56,32 @@ const withPlay = variant === 'outline' || variant === 'showreel';
     text-transform: uppercase;
     white-space: nowrap;
   }
-  /* PP Monument Wide Black 16 / 1.15 (tablet 14) */
-  .text-size-16\/14\/14 {
+  /* PP Monument Wide Black 16 / 1.15 (tablet 14): .text-size-button */
+  .text-size-button {
     font-size: var(--size-16);
     line-height: 1.15;
   }
-  /* PP Monument Wide Black 32, tracking 0.03em */
-  .text-size-32 {
+  /* PP Monument Wide Black 32, tracking 0.03em: .text-size-button-hero */
+  .text-size-button-hero {
     font-size: var(--size-32);
     line-height: 1.15;
     letter-spacing: 0.03em;
   }
   /* PP Monument Wide Black 18 / 1.15 (mobile 16): .text-size-button.is-second */
-  .text-size-18\/18\/16 {
+  .text-size-button-second {
     font-size: calc(1.13rem * var(--fluid-scale));
     line-height: 1.15;
   }
 
   /* ---------- outline: header ---------- */
   .button.type--outline {
-    gap: var(--size-8);
+    gap: var(--spacing-xs);
     width: calc(18.625rem * var(--fluid-scale)); /* 298 */
     height: var(--size-64);
     /* an inner outline, as in Webflow: it takes no space, the hover border (data-kulbit-border) draws on its line */
-    outline: var(--size-2) solid #171717;
-    outline-offset: calc(var(--size-2) * -1);
-    border-radius: calc(0.5625rem * var(--fluid-scale)); /* 9 */
+    outline: var(--border-width-md) solid var(--theme-frame);
+    outline-offset: calc(var(--border-width-md) * -1);
+    border-radius: var(--radius-sm); /* 9 */
     background-color: var(--theme-page-bg);
   }
   .button_icon {
@@ -92,7 +92,7 @@ const withPlay = variant === 'outline' || variant === 'showreel';
 
   /* ---------- arrow: hero CTA ---------- */
   .button.type--arrow {
-    gap: var(--size-16);
+    gap: var(--spacing-md);
     color: var(--theme-text-brand);
     transition: color var(--transition-duration) var(--transition-easing);
   }
@@ -109,7 +109,7 @@ const withPlay = variant === 'outline' || variant === 'showreel';
   }
   .button.type--arrow:hover .button_arrow,
   .button.type--arrow:focus-visible .button_arrow {
-    color: #62b0ff;
+    color: var(--theme-icon-secondary);
   }
 
   /* ---------- showreel: the footer's «Explore» card (.button.is-footer) ---------- */
@@ -117,14 +117,14 @@ const withPlay = variant === 'outline' || variant === 'showreel';
     position: relative;
     isolation: isolate;
     flex-direction: column;
-    gap: var(--size-8);
+    gap: var(--spacing-xs);
     width: 100%;
     height: calc(17rem * var(--fluid-scale)); /* 272 */
     padding: var(--size-20); /* .button: 1.25rem (tablet 1, mobile 0.75) */
     overflow: hidden;
-    outline: var(--size-2) solid #171717;
-    outline-offset: calc(var(--size-2) * -1);
-    border-radius: calc(0.5625rem * var(--fluid-scale)); /* 9 */
+    outline: var(--border-width-md) solid var(--theme-frame);
+    outline-offset: calc(var(--border-width-md) * -1);
+    border-radius: var(--radius-sm); /* 9 */
     background-color: var(--theme-page-bg);
   }
   /* The picture under the icon and the label (Webflow: the background image, cover) */
@@ -138,14 +138,14 @@ const withPlay = variant === 'outline' || variant === 'showreel';
      (.button.is-second-footer), the same at desktop ---------- */
   .button.type--second,
   .button.type--second-footer {
-    gap: var(--size-24);
+    gap: var(--spacing-lg);
     align-self: flex-start;
-    padding: var(--size-24) var(--size-32);
-    outline: var(--size-2) solid #171717;
-    outline-offset: calc(var(--size-2) * -1);
-    border-radius: calc(0.5625rem * var(--fluid-scale)); /* 9 */
+    padding: var(--spacing-lg) var(--spacing-xl);
+    outline: var(--border-width-md) solid var(--theme-frame);
+    outline-offset: calc(var(--border-width-md) * -1);
+    border-radius: var(--radius-sm); /* 9 */
     background-color: var(--theme-page-bg);
-    color: #62b0ff;
+    color: var(--theme-icon-secondary); /* the arrow square (currentColor); the label keeps its white */
     transition: color var(--transition-duration) var(--transition-easing);
   }
   /* .width-140.is-second-button: the label wraps in 140 and keeps its white */
@@ -167,11 +167,11 @@ const withPlay = variant === 'outline' || variant === 'showreel';
   .button.type--second:focus-visible,
   .button.type--second-footer:hover,
   .button.type--second-footer:focus-visible {
-    color: var(--theme-text-brand);
+    color: var(--theme-icon-brand);
   }
 
   @media (max-width: 991px) {
-    .text-size-16\/14\/14 {
+    .text-size-button {
       font-size: var(--size-14);
     }
     .button.type--outline {
@@ -180,7 +180,7 @@ const withPlay = variant === 'outline' || variant === 'showreel';
     }
     .button.type--showreel {
       height: calc(17.63rem * var(--fluid-scale)); /* 282 */
-      padding: var(--size-16);
+      padding: var(--spacing-md);
     }
     .button.type--second-footer {
       justify-content: space-between;
@@ -197,11 +197,11 @@ const withPlay = variant === 'outline' || variant === 'showreel';
     }
   }
   @media (max-width: 479px) {
-    .text-size-18\/18\/16 {
+    .text-size-button-second {
       font-size: var(--size-16);
     }
     .button.type--second {
-      gap: var(--size-16);
+      gap: var(--spacing-md);
       padding: var(--size-20) var(--size-28);
     }
     .type--second .button_arrow,
@@ -210,9 +210,9 @@ const withPlay = variant === 'outline' || variant === 'showreel';
       height: var(--size-32);
     }
     .button.type--second-footer {
-      gap: var(--size-24);
+      gap: var(--spacing-lg);
       justify-content: center;
-      padding: var(--size-16) var(--size-32);
+      padding: var(--spacing-md) var(--spacing-xl);
     }
     /* .width-140-140-a: auto */
     .type--second-footer .button_label {
@@ -220,11 +220,16 @@ const withPlay = variant === 'outline' || variant === 'showreel';
     }
     .button.type--showreel {
       height: calc(11.25rem * var(--fluid-scale)); /* 180 */
-      padding: var(--size-12);
+      padding: var(--spacing-sm);
     }
+    /* .button: 0.75rem around the 1rem icon (.icon-24-24-16) */
     .button.type--outline {
       width: calc(5.625rem * var(--fluid-scale)); /* 90 */
-      height: var(--size-48);
+      height: var(--size-40);
+    }
+    .type--outline .button_icon {
+      width: var(--size-16);
+      height: var(--size-16);
     }
     /* the play icon only */
     .type--outline .button_label,

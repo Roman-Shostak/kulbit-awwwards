@@ -14,7 +14,7 @@
  *      flex-h/v/v  = row on desktop, column on tablet and mobile
  *      grid-3/2/1col = 3 columns desktop, 2 tablet, 1 mobile
  *    "/" must be escaped in CSS selectors: .flex-h\/v\/v
- *  - add a new utility only when the same pattern repeats in 3+ places, and add it to
+ *  - a value or pattern used in 2+ places is one token + one utility (class-naming.md → Reuse first); add it to
  *    .claude/rules/styles.md as well
  */
 
@@ -83,11 +83,12 @@ html:has([data-menu-toggle][aria-expanded='true']) {
   overflow: hidden;
   scrollbar-gutter: stable;
 }
-/* The footer owns its background and padding (the component starts with .container). Kulbit (Webflow .section.footer):
- * 5rem (tablet 1rem · 6.25rem, mobile 2rem · 4rem) — SiteFooter's content fills the screen minus these */
+/* The footer owns its background and padding (the component starts with .container); SiteFooter's content fills the
+ * screen minus the same two tokens */
 .footer {
-  padding-block: var(--size-80);
-  background-color: var(--theme-section-bg-dark);
+  padding-top: var(--footer-padding-top);
+  padding-bottom: var(--footer-padding-bottom);
+  background-color: var(--theme-page-bg);
 }
 .section {
   position: relative;
@@ -113,52 +114,15 @@ html:has([data-menu-toggle][aria-expanded='true']) {
   pointer-events: none;
 }
 
-/* ---------- Dark colour mode ----------
- * The same --theme-* names with the values Figma shows on dark backgrounds, so dark sections use the
- * very same text-color-* / Card / Tag utilities. sync-tokens fills the values from the dark section's
- * variables; `alw` tokens are deliberately not re-assigned. Kulbit: the footer is not in this list — it
- * keeps the page's own colours (the whole site is dark; Webflow uses the same variables there). */
-.theme--dark {
-  --theme-text: var(--swatch-white);
-  --theme-text-secondary: var(--swatch-grey-light);
-  --theme-text-brand: var(--swatch-grey-light);
-  --theme-icon: var(--swatch-white);
-  --theme-icon-secondary: var(--swatch-grey-light);
-  --theme-card-bg: var(--swatch-white-10);
-  color: var(--theme-text);
-}
-.theme--dark {
-  background-color: var(--theme-section-bg-dark);
-}
-
-/* ---------- Section padding (vertical) ---------- */
-.padding-sm {
-  padding-block: var(--section-padding-sm);
-}
+/* ---------- Section padding (vertical): .section — 4rem / 3rem / 1.5rem ---------- */
 .padding-md {
   padding-block: var(--section-padding-md);
-}
-.padding-lg {
-  padding-block: var(--section-padding-lg);
-}
-/* Different top and bottom values (Figma: section padding/lg top, section padding/sm bottom) */
-.padding-top-sm {
-  padding-top: var(--section-padding-sm);
 }
 .padding-top-md {
   padding-top: var(--section-padding-md);
 }
-.padding-top-lg {
-  padding-top: var(--section-padding-lg);
-}
-.padding-bottom-sm {
-  padding-bottom: var(--section-padding-sm);
-}
 .padding-bottom-md {
   padding-bottom: var(--section-padding-md);
-}
-.padding-bottom-lg {
-  padding-bottom: var(--section-padding-lg);
 }
 
 /* ---------- Flex direction: flex-{desktop}/{tablet}/{mobile} ---------- */
@@ -230,10 +194,7 @@ html:has([data-menu-toggle][aria-expanded='true']) {
   align-self: stretch;
 }
 
-/* ---------- Spacing = gap between children (flex and grid). Name = Figma gap/<name> ---------- */
-.spacing-tiny {
-  gap: var(--spacing-tiny);
-}
+/* ---------- Spacing = gap between children (flex and grid) ---------- */
 .spacing-xs {
   gap: var(--spacing-xs);
 }
@@ -255,8 +216,9 @@ html:has([data-menu-toggle][aria-expanded='true']) {
 .spacing-3xl {
   gap: var(--spacing-3xl);
 }
-.spacing-4xl {
-  gap: var(--spacing-4xl);
+/* The head row of a section: label ↔ statement (space-between on desktop, stacked below) */
+.spacing-head {
+  gap: var(--spacing-head);
 }
 
 /* ---------- Grids: grid-Ncol (all breakpoints) or grid-{desktop}/{tablet}/{mobile}col ---------- */
@@ -348,101 +310,46 @@ html:has([data-menu-toggle][aria-expanded='true']) {
   display: none;
 }
 
-/* ---------- Typography: text styles. text-size-<Figma name> = size + line-height + letter-spacing.
- * Put it on the parent; children inherit. Weight and colour are separate utilities.
- * A style of the secondary font (e.g. desktop/h2 stix) also sets font-family and font-style here. ---------- */
+/* ---------- Typography: text styles. text-size-<Webflow name> = size + line-height + letter-spacing (+ the family
+ * of the secondary font). Put it on the parent; children inherit. Weight and colour are separate utilities. ---------- */
 .text-size-h1 {
+  font-family: var(--font-secondary);
   font-size: var(--font-h1);
   line-height: var(--line-height-h1);
   letter-spacing: var(--letter-spacing-h1);
 }
-.text-size-h2 {
-  font-size: var(--font-h2);
-  line-height: var(--line-height-h2);
-  letter-spacing: var(--letter-spacing-h2);
-}
 .text-size-h3 {
+  font-family: var(--font-secondary);
   font-size: var(--font-h3);
   line-height: var(--line-height-h3);
   letter-spacing: var(--letter-spacing-h3);
 }
-.text-size-h4 {
-  font-size: var(--font-h4);
-  line-height: var(--line-height-h4);
-  letter-spacing: var(--letter-spacing-h4);
+.text-size-section-h2 {
+  font-family: var(--font-secondary);
+  font-size: var(--font-section-h2);
+  line-height: var(--line-height-section-h2);
+  letter-spacing: var(--letter-spacing-section-h2);
 }
-.text-size-h5 {
-  font-size: var(--font-h5);
-  line-height: var(--line-height-h5);
-  letter-spacing: var(--letter-spacing-h5);
+.text-size-section-label {
+  font-size: var(--font-section-label);
+  line-height: var(--line-height-section-label);
+  letter-spacing: var(--letter-spacing-section-label);
 }
-.text-size-subheading-md {
-  font-size: var(--font-subheading-md);
-  line-height: var(--line-height-subheading-md);
-  letter-spacing: var(--letter-spacing-subheading-md);
-}
-.text-size-subheading-sm {
-  font-size: var(--font-subheading-sm);
-  line-height: var(--line-height-subheading-sm);
-  letter-spacing: var(--letter-spacing-subheading-sm);
-}
-.text-size-body-lg {
-  font-size: var(--font-body-lg);
-  line-height: var(--line-height-body-lg);
-  letter-spacing: var(--letter-spacing-body-lg);
-}
-.text-size-body-md {
-  font-size: var(--font-body-md);
-  line-height: var(--line-height-body-md);
-  letter-spacing: var(--letter-spacing-body-md);
-}
-.text-size-body-sm {
-  font-size: var(--font-body-sm);
-  line-height: var(--line-height-body-sm);
-  letter-spacing: var(--letter-spacing-body-sm);
-}
-.text-size-caption {
-  font-size: var(--font-caption);
-  line-height: var(--line-height-caption);
-  letter-spacing: var(--letter-spacing-caption);
-}
-.text-size-link {
-  font-size: var(--font-link);
-  line-height: var(--line-height-link);
-  letter-spacing: var(--letter-spacing-link);
-}
-.text-size-button {
-  font-size: var(--font-button);
-  line-height: var(--line-height-button);
-  letter-spacing: var(--letter-spacing-button);
-}
-.text-size-placeholder {
-  font-size: var(--font-placeholder);
-  line-height: var(--line-height-placeholder);
-  letter-spacing: var(--letter-spacing-placeholder);
+.text-size-hero {
+  font-size: var(--font-hero);
+  line-height: var(--line-height-hero);
+  letter-spacing: var(--letter-spacing-hero);
 }
 
 /* ---------- Typography: weight, case, alignment, colour ---------- */
-.text-weight-300 {
-  font-weight: var(--font-weight-light);
-}
 .text-weight-400 {
   font-weight: var(--font-weight-regular);
-}
-.text-weight-500 {
-  font-weight: var(--font-weight-medium);
-}
-.text-weight-600 {
-  font-weight: var(--font-weight-semibold);
 }
 .text-weight-700 {
   font-weight: var(--font-weight-bold);
 }
 .text-weight-800 {
   font-weight: var(--font-weight-extra-bold);
-}
-.text-weight-900 {
-  font-weight: var(--font-weight-black);
 }
 .text-style-uppercase {
   text-transform: uppercase;
@@ -468,11 +375,11 @@ html:has([data-menu-toggle][aria-expanded='true']) {
 .text-color-brand {
   color: var(--theme-text-brand);
 }
+.text-color-accent {
+  color: var(--theme-text-accent);
+}
 .text-color-inverse {
   color: var(--theme-text-inverse);
-}
-.text-color-error {
-  color: var(--theme-text-error);
 }
 .text-color-inherit {
   color: inherit;
@@ -493,35 +400,6 @@ html:has([data-menu-toggle][aria-expanded='true']) {
   height: 1em;
   vertical-align: -0.125em;
 }
-.icon-xs {
-  height: var(--icon-height-xs);
-}
-.icon-sm {
-  height: var(--icon-height-sm);
-}
-.icon-md {
-  height: var(--icon-height-md);
-}
-.icon-lg {
-  height: var(--icon-height-lg);
-}
-.icon-xl {
-  height: var(--icon-height-xl);
-}
-.u-svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-.u-path {
-  stroke: currentColor;
-  stroke-width: 0.094rem;
-  vector-effect: non-scaling-stroke;
-}
-.fill-cover {
-  object-fit: cover;
-}
 /* A photo that fills its box: <Picture class="fill-box"> (Astro puts `class` on the <img>).
  * The box decides the size (aspect-ratio or height + overflow-hidden + border-radius-*);
  * max-width: none removes the cap Astro's constrained layout sets from the `width` prop. */
@@ -538,32 +416,11 @@ html:has([data-menu-toggle][aria-expanded='true']) {
 }
 
 /* ---------- Border ---------- */
-.border-radius-xs {
-  border-radius: var(--radius-xs);
-}
 .border-radius-sm {
   border-radius: var(--radius-sm);
 }
 .border-radius-md {
   border-radius: var(--radius-md);
-}
-.border-radius-lg {
-  border-radius: var(--radius-lg);
-}
-.border-radius-xl {
-  border-radius: var(--radius-xl);
-}
-.border-width-sm {
-  border-style: solid;
-  border-width: var(--border-width-sm);
-}
-.border-width-md {
-  border-style: solid;
-  border-width: var(--border-width-md);
-}
-.border-width-lg {
-  border-style: solid;
-  border-width: var(--border-width-lg);
 }
 
 /* ---------- Accessibility ---------- */
@@ -718,10 +575,6 @@ html[data-steps] [data-kulbit-section] {
 
 /* ---------- Tablet (≤ 991px) ---------- */
 @media (max-width: 991px) {
-  .footer {
-    padding-top: var(--size-16);
-    padding-bottom: var(--size-100);
-  }
   .container {
     max-width: none;
   }
@@ -766,10 +619,6 @@ html[data-steps] [data-kulbit-section] {
 
 /* ---------- Mobile portrait (≤ 479px) ---------- */
 @media (max-width: 479px) {
-  .footer {
-    padding-top: var(--size-32);
-    padding-bottom: var(--size-64);
-  }
   /* A CTA / submit button stretched to the column on mobile (the Button sets no width of its own) */
   .mob-width--100 {
     width: 100%;

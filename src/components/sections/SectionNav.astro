@@ -7,7 +7,7 @@
  * src/scripts/kulbit/sections.ts) and closes the panel.
  * Rendered in the header slot (<SectionNav slot="header" />): .header-fixed lies over the stacked sections and has no
  * transform, so the fixed panel covers the whole screen height, the header button included.
- * Not in the Webflow build or in Figma: a provisional look in the site's style (the #171717 frames, the Decima Mono
+ * Not in the Webflow build or in Figma: a provisional look in the site's style (the --theme-frame frames, the Decima Mono
  * label, the triangle of the player icons) until the designer's mockup — the values are marked TODO.
  * Disclosure pattern: <nav> > <button aria-expanded aria-controls> (the arrow, named by aria-label) + the panel
  * (inert + aria-hidden while closed). Esc, a click outside and an item close it; Esc and an item bring the focus back
@@ -32,11 +32,11 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
     <IconTriangle class="section-nav_arrow" aria-hidden="true" />
   </button>
   <div class="section-nav_panel" id="section-nav-panel" inert aria-hidden="true" data-section-nav-panel>
-    <ul class="text-size-16/16/13 text-weight-700 text-style-uppercase">
+    <ul class="text-size-section-label text-weight-700 text-style-uppercase">
       {
         t.items.map((item, i) => (
           <li>
-            <button type="button" class="section-nav_item" aria-current={i === 0 ? 'true' : undefined} data-target-section={i}>
+            <button type="button" class="section-nav_item align-center spacing-xs" aria-current={i === 0 ? 'true' : undefined} data-target-section={i}>
               <Square size="12" class="section-nav_mark" />
               {item}
             </button>
@@ -63,12 +63,6 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
   .section-nav.is--open {
     transform: none;
   }
-  /* Decima Mono Bold 16 / 1.1, tracking 0.03em (mobile 13): the section label style of the site */
-  .text-size-16\/16\/13 {
-    font-size: var(--size-16);
-    line-height: 1.1;
-    letter-spacing: 0.03em;
-  }
   /* The arrow tab: on the panel's left edge, in the middle of the screen */
   .section-nav_tab {
     position: absolute;
@@ -79,16 +73,20 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
     justify-content: center;
     width: var(--size-32);
     height: var(--size-64);
-    outline: var(--size-2) solid #171717;
-    outline-offset: calc(var(--size-2) * -1);
-    border-radius: calc(0.5625rem * var(--fluid-scale)) 0 0 calc(0.5625rem * var(--fluid-scale)); /* 9 */
+    outline: var(--border-width-md) solid var(--theme-frame);
+    outline-offset: calc(var(--border-width-md) * -1);
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm); /* 9 */
     background-color: var(--theme-page-bg);
     transform: translateY(-50%);
     transition: color var(--transition-duration) var(--transition-easing);
   }
   .section-nav_tab:hover,
   .section-nav_tab:focus-visible {
-    color: #62b0ff;
+    color: var(--theme-icon-secondary);
+  }
+  /* The frame is the focus ring: the global :focus-visible outline would be the same line */
+  .section-nav_tab:focus-visible {
+    outline-color: var(--theme-text);
   }
   /* The triangle points left (the panel comes from there) and turns to the right when the panel is open */
   .section-nav_arrow {
@@ -100,28 +98,26 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
   .section-nav_tab[aria-expanded='true'] .section-nav_arrow {
     transform: none;
   }
+  /* safe: a list taller than the screen starts at the top instead of being cut off above it */
   .section-nav_panel {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: safe center;
     height: 100%;
-    padding: var(--size-32);
+    padding: var(--spacing-xl);
     overflow-y: auto;
-    border-left: var(--size-2) solid #171717;
+    border-left: var(--border-width-md) solid var(--theme-frame);
     background-color: var(--theme-page-bg);
   }
   .section-nav_item {
-    display: flex;
-    align-items: center;
-    gap: var(--size-8);
     width: 100%;
-    padding-block: var(--size-12);
+    padding-block: var(--spacing-sm);
     text-align: left;
     transition: color var(--transition-duration) var(--transition-easing);
   }
   .section-nav_item:hover,
   .section-nav_item:focus-visible {
-    color: #62b0ff;
+    color: var(--theme-text-accent);
   }
   /* The square of the current screen (the others keep its place) */
   .section-nav_mark {
@@ -137,9 +133,16 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
     .section-nav {
       width: calc(16.25rem * var(--fluid-scale)); /* 260 */
     }
+    /* No wider than the side padding, so it never covers the content; the touch target stays 24 px wide */
     .section-nav_tab {
-      width: var(--size-24);
+      width: var(--container-padding);
       height: var(--size-56);
+    }
+    .section-nav_tab::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 0 auto;
+      width: max(24px, var(--size-24));
     }
     .section-nav_panel {
       padding: var(--size-20);

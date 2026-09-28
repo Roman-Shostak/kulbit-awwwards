@@ -15,6 +15,7 @@
  * once they are on the screen (they appeared empty and popped in).
  */
 import { Image, Picture } from 'astro:assets';
+import ProgressLine from '@/components/ui/ProgressLine.astro';
 import Square from '@/components/ui/Square.astro';
 import { useTranslations } from '@/i18n';
 import logoEurovision from '@/assets/our-clients/logo-eurovision.svg';
@@ -77,31 +78,31 @@ const awards = [awardCreation, awardUnderground, awardKyiv, awardVisioniCorte, a
 const isBig = (index: number, total: number) => index === 0 || index === total - 1;
 ---
 
-<section class="section padding-64/48/24" data-kulbit-section data-clients>
+<section class="section padding-md" data-kulbit-section data-clients>
   <div class="container">
-    <div class="flex-v spacing-48/48/24 text-style-uppercase">
-      <div class="our-clients_progress" aria-hidden="true"><div class="our-clients_fill" data-clients-fill></div></div>
+    <div class="flex-v spacing-2xl text-style-uppercase">
+      <ProgressLine start="third" />
       <div class="flex-v/h/v spacing-64/48/24">
-        <div class="our-clients_head flex-h/v/v spacing-0/64/24">
-          <h2 class="text-size-16/16/13" data-kulbit-scramble>
+        <div class="our-clients_head flex-h/v/v spacing-head">
+          <h2 class="text-size-section-label" data-kulbit-scramble>
             {t.title.lead} <span class="text-color-brand">{t.title.accent}</span>
           </h2>
           <div class="our-clients_body flex-v">
             <div class="our-clients_lead">
-              <p class="our-clients_statement text-size-32/28/23" data-kulbit-scramble>
-                {s.lead} <span class="our-clients_grey">{s.grey}</span> {s.industries} <span class="our-clients_amp">{s.amp}</span> {s.last}
+              <p class="our-clients_statement text-size-section-h2" data-kulbit-scramble>
+                {s.lead} <span class="text-color-secondary">{s.grey}</span> {s.industries} <span class="our-clients_amp text-color-secondary">{s.amp}</span> {s.last}
               </p>
             </div>
-            <div class="our-clients_texts text-size-16 text-weight-700">
+            <div class="our-clients_texts text-size-hero text-weight-700">
               <div class="our-clients_facts spacing-36/36/20">
                 {
                   t.facts.map((fact) => (
                     <div class="our-clients_fact">
                       <p data-clients-text>
-                        <span class="our-clients_grey">{fact.grey}</span> {fact.text}
+                        <span class="text-color-secondary">{fact.grey}</span> {fact.text}
                       </p>
                       <template data-clients-next>
-                        <span class="our-clients_grey">{fact.next.grey}</span> {fact.next.text}
+                        <span class="text-color-secondary">{fact.next.grey}</span> {fact.next.text}
                       </template>
                     </div>
                   ))
@@ -120,7 +121,7 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
             clientSets.map((set, i) => (
               <ul class:list={['our-clients_set', { 'set--overlay': i > 0, 'set--center': set.center }]} data-clients-set>
                 {set.logos.map((logo, j) => (
-                  <li class:list={['our-clients_card', { 'size--big': isBig(j, set.logos.length) }]}>
+                  <li class:list={['our-clients_card border-radius-sm', { 'size--big': isBig(j, set.logos.length) }]}>
                     <div class="our-clients_logo">
                       <Image src={logo.white} alt={logo.name} loading="eager" class="fill-box" />
                     </div>
@@ -135,7 +136,7 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
           <ul class="our-clients_set set--overlay" data-clients-set>
             {
               awards.map((award, j) => (
-                <li class:list={['our-clients_card', { 'size--big': isBig(j, awards.length) }]}>
+                <li class:list={['our-clients_card border-radius-sm', { 'size--big': isBig(j, awards.length) }]}>
                   <div class="our-clients_logo">
                     <Picture src={award.src} formats={['avif', 'webp']} width={159} alt={award.alt} loading="eager" class="fill-box" />
                   </div>
@@ -152,57 +153,11 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
 </section>
 
 <style>
-  /* .section: 4rem top and bottom (tablet 3, mobile 1.5) */
-  .padding-64\/48\/24 {
-    padding-block: var(--size-64);
-  }
-  /* .gap-48-32-24: the Webflow CSS keeps 48 on tablet */
-  .spacing-48\/48\/24 {
-    gap: var(--size-48);
-  }
   .spacing-64\/48\/24 {
     gap: var(--size-64);
   }
-  .spacing-0\/64\/24 {
-    gap: 0;
-  }
   .spacing-36\/36\/20 {
     gap: var(--size-36);
-  }
-
-  /* Decima Mono 16 / 1.1, tracking 0.03em (mobile 13): .text-size-section-label */
-  .text-size-16\/16\/13 {
-    font-size: var(--size-16);
-    line-height: 1.1;
-    letter-spacing: 0.03em;
-  }
-  /* PP Monument Wide 32 / 1.3, tracking 0.03em (tablet 28, mobile 23): .text-size-section-h2 */
-  .text-size-32\/28\/23 {
-    font-family: var(--font-secondary);
-    font-size: var(--size-32);
-    line-height: 1.3;
-    letter-spacing: 0.03em;
-  }
-  /* Decima Mono Bold 16 / 1.37: .text-size-hero */
-  .text-size-16 {
-    font-size: var(--size-16);
-    line-height: 1.37;
-  }
-
-  /* ---------- Progress line (.section-progresbar + the fill kulbit-webflow adds): the track at 15 % ---------- */
-  .our-clients_progress {
-    position: relative;
-    flex: none;
-    height: var(--size-2);
-    background-color: rgb(253 252 252 / 0.15);
-  }
-  .our-clients_fill {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: calc(100% / 3); /* set 1 of 3; the script drives it */
-    height: 100%;
-    background-color: var(--theme-text);
   }
 
   /* ---------- Label + statement + facts (.flex-h-v-v.is-our-clients) ---------- */
@@ -216,12 +171,6 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
   }
   .our-clients_statement {
     text-align: justify;
-  }
-  .our-clients_grey {
-    color: #404040;
-  }
-  .our-clients_amp {
-    color: #404040;
   }
   /* .our-clients-text-wrapper: 14.3rem below the top of the row, at its right edge */
   .our-clients_texts {
@@ -259,11 +208,13 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
     align-self: flex-start;
     overflow: hidden;
   }
+  /* column-gap is only the minimum: three cards of 238 leave 80 between them */
   .our-clients_set {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    row-gap: calc(2.5rem * var(--fluid-scale));
+    row-gap: var(--size-40);
+    column-gap: var(--spacing-xs);
     width: calc(54.63rem * var(--fluid-scale)); /* 874 */
   }
   /* the sets 2… lie over set 1; they wait below the frame until the script brings them in */
@@ -272,6 +223,7 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
     inset: 0 0 auto;
     transform: translateY(100%);
   }
+  /* the 2px frame straddles the edge of the card */
   .our-clients_card {
     position: relative;
     display: flex;
@@ -279,21 +231,20 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
     justify-content: center;
     width: calc(14.88rem * var(--fluid-scale)); /* 238 */
     aspect-ratio: 1;
-    outline: var(--size-2) solid #171717;
-    outline-offset: -1px;
-    border-radius: calc(0.56rem * var(--fluid-scale)); /* 9 */
+    outline: var(--border-width-md) solid var(--theme-frame);
+    outline-offset: calc(var(--border-width-md) / -2);
   }
   .our-clients_logo {
     position: relative;
     z-index: 5;
     width: calc(9.94rem * var(--fluid-scale)); /* 159 */
-    transition: opacity 0.6s ease;
+    transition: opacity var(--transition-duration-slow) var(--transition-easing);
   }
   .our-clients_logo.logo--color {
     position: absolute;
     z-index: 10;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity var(--transition-duration) var(--transition-easing);
   }
   /* Webflow custom code; only a card with a colour copy fades (Webflow emptied the award cards on hover) */
   .our-clients_card:hover .our-clients_logo:has(+ .logo--color) {
@@ -307,26 +258,17 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
     position: absolute;
     inset: 0 0 auto;
     height: var(--size-80);
-    background-image: linear-gradient(180deg, #000, rgb(0 0 0 / 0));
+    background-image: linear-gradient(180deg, var(--theme-page-bg), var(--theme-fade));
     pointer-events: none;
   }
   .our-clients_fade.fade--bottom {
     inset: auto 0 0;
-    background-image: linear-gradient(0deg, #000, rgb(0 0 0 / 0));
+    background-image: linear-gradient(0deg, var(--theme-page-bg), var(--theme-fade));
   }
 
   @media (max-width: 991px) {
-    .padding-64\/48\/24 {
-      padding-block: var(--size-48);
-    }
     .spacing-64\/48\/24 {
       gap: var(--size-48);
-    }
-    .spacing-0\/64\/24 {
-      gap: var(--size-64);
-    }
-    .text-size-32\/28\/23 {
-      font-size: var(--size-28);
     }
     .our-clients_head {
       justify-content: flex-start;
@@ -360,7 +302,7 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
     .our-clients_set {
       flex-direction: column;
       flex-wrap: nowrap;
-      gap: var(--size-24);
+      gap: var(--spacing-lg);
       width: auto;
       height: calc(49rem * var(--fluid-scale)); /* 784 */
       overflow: hidden;
@@ -385,26 +327,11 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
   }
 
   @media (max-width: 479px) {
-    .padding-64\/48\/24 {
-      padding-block: var(--size-24);
-    }
-    .spacing-48\/48\/24 {
-      gap: var(--size-24);
-    }
     .spacing-64\/48\/24 {
-      gap: var(--size-24);
-    }
-    .spacing-0\/64\/24 {
       gap: var(--size-24);
     }
     .spacing-36\/36\/20 {
       gap: var(--size-20);
-    }
-    .text-size-16\/16\/13 {
-      font-size: calc(0.81rem * var(--fluid-scale));
-    }
-    .text-size-32\/28\/23 {
-      font-size: calc(1.44rem * var(--fluid-scale));
     }
     /* the full row: the width no longer follows the statement while scramble writes it (the square jumped) */
     .our-clients_body {
@@ -427,12 +354,12 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
     .our-clients_set {
       flex-direction: row;
       flex-wrap: wrap;
-      gap: var(--size-12);
+      gap: var(--spacing-sm);
       height: calc(16rem * var(--fluid-scale)); /* 256 */
     }
     .our-clients_card {
       width: calc(10.81rem * var(--fluid-scale)); /* 173 */
-      height: calc(7.5rem * var(--fluid-scale)); /* 120 */
+      height: var(--size-120);
     }
     .our-clients_card.size--big {
       width: 100%;
@@ -456,6 +383,7 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
   // line fills to the first third), collapse (slides away: the line empties), reset(toEnd) (instant state).
   import { gsap } from 'gsap';
   import { app, config, registerSectionBuilder, type SectionController } from '@/scripts/kulbit/app';
+  import { progressLine } from '@/scripts/kulbit/progress-line';
   import { buildSegments, parseSegments, reducedMotion, SCRAMBLE, type Segment } from '@/scripts/kulbit/scramble';
 
   const root = document.querySelector<HTMLElement>('[data-clients]');
@@ -494,12 +422,14 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
     if (!section || !root) return;
     const sets = [...root.querySelectorAll<HTMLElement>('[data-clients-set]')];
     if (sets.length < 2) return;
-    const fill = root.querySelector<HTMLElement>('[data-clients-fill]');
     const boxes = facts.map((f) => f.text.parentElement!);
     const cardsOf = (set: HTMLElement) => [...set.children] as HTMLElement[];
     const cards = sets.flatMap(cardsOf);
     const STEP = config.scrollDuration;
     const EASE = config.ease;
+    // The progress line by the index of the set in the frame: empty at once while sliding in (no backward run),
+    // 0 → 1/3 once covered, empties while sliding away
+    const line = progressLine(root, STEP, EASE);
     const total = sets.length;
     const clamp = (value: number, max: number) => Math.max(0, Math.min(max, value));
 
@@ -512,34 +442,11 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
     // The sets 2… wait below the frame in CSS (translateY 100 %): GSAP takes the transform over from zero
     gsap.set(sets, { y: 0 });
 
-    // Progress line by the index of the set in the frame
-    const setFill = (index: number, animate: boolean) => {
-      if (!fill) return;
-      const width = `${((index + 1) / total) * 100}%`;
-      if (animate) gsap.to(fill, { width, duration: STEP, ease: EASE });
-      else gsap.set(fill, { width });
-    };
-    // Empty at once while sliding in (no backward run), 0 → 1/3 once covered, empties while sliding away
-    const prepareLine = () => {
-      if (!fill) return;
-      gsap.killTweensOf(fill);
-      gsap.set(fill, { width: '0%' });
-    };
-    const enterLine = () => {
-      prepareLine();
-      setFill(0, true);
-    };
-    const collapseLine = () => {
-      if (!fill) return;
-      gsap.killTweensOf(fill);
-      gsap.to(fill, { width: '0%', duration: STEP, ease: EASE });
-    };
     // The breakpoint changes: tweens of the steps live outside the matchMedia context
     const dispose = () => {
       gsap.killTweensOf([...sets, ...cards]);
-      if (fill) gsap.killTweensOf(fill);
+      line.dispose();
       gsap.set([...sets, ...cards], { clearProps: 'transform' });
-      if (fill) gsap.set(fill, { clearProps: 'width' });
       setTexts(false);
       boxes.forEach((box) => {
         box.style.height = '';
@@ -562,7 +469,7 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
         });
       let state = 0;
       setSets(0, false);
-      prepareLine(); // hidden start until the section appears
+      line.prepare(); // hidden start until the section appears
       controller = {
         get state() {
           return state;
@@ -571,20 +478,20 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
           state = 0;
           setSets(0, false);
           setTexts(false);
-          prepareLine();
+          line.prepare();
         },
         reset(toEnd) {
           state = toEnd ? total - 1 : 0;
           setSets(state, false);
-          setFill(state, false);
+          line.to((state + 1) / total, false);
           setTexts(state === total - 1);
         },
         enter() {
           state = 0;
           setSets(0, false);
-          enterLine();
+          line.enter(1 / total);
         },
-        collapse: collapseLine,
+        collapse: () => line.collapse(),
         dispose,
         step(dir) {
           const next = clamp(state + dir, total - 1);
@@ -593,7 +500,7 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
           state = next;
           finishStep();
           setSets(state, true);
-          setFill(state, true);
+          line.to((state + 1) / total, true);
           if (state === total - 1) morphTexts(true);
           if (prev === total - 1) morphTexts(false);
           return true;
@@ -631,11 +538,11 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
             gsap.set(cardsOf(set), { y });
           }
         });
-        setFill(stage.current, animate);
+        line.to((stage.current + 1) / total, animate);
       };
       let stage = 0;
       applyStage(0, false);
-      prepareLine();
+      line.prepare();
       controller = {
         get state() {
           return stage;
@@ -644,7 +551,7 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
           stage = 0;
           applyStage(0, false);
           setTexts(false);
-          prepareLine();
+          line.prepare();
         },
         reset(toEnd) {
           stage = toEnd ? last : 0;
@@ -654,9 +561,9 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
         enter() {
           stage = 0;
           applyStage(0, false);
-          enterLine();
+          line.enter(1 / total);
         },
-        collapse: collapseLine,
+        collapse: () => line.collapse(),
         dispose,
         step(dir) {
           const next = clamp(stage + dir, last);

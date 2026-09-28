@@ -1,5 +1,6 @@
 # Cloudflare response headers (PageSpeed → Best Practices → Trust and Safety)
-# (Only one rule per path is applied, so every header for /* stays in this one block.)
+# The headers of every rule that matches a path are applied together: the shared ones live in /*, the specific ones
+# in their own blocks.
 # Stage is kept out of search by the Worker (worker/index.ts → serveAssets), not here.
 # X-Robots-Tag stays for good (not a launch TODO): kulbit.site is a portfolio / Awwwards site and must never compete
 # in search with the client's own site kulbit.com. robots.txt keeps crawling allowed so crawlers can read the noindex.
@@ -7,6 +8,7 @@
   X-Frame-Options: SAMEORIGIN
   Cross-Origin-Opener-Policy: same-origin
   X-Robots-Tag: noindex
+  Strict-Transport-Security: max-age=31536000
 
 # Hashed build assets never change under the same URL (Cloudflare's default is max-age=0)
 /_astro/*

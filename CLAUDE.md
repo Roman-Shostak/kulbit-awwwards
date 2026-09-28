@@ -241,7 +241,10 @@ not used — never connect Git in the Cloudflare dashboard. `/cloudflare-deploy`
 must be the production URL (canonical, OG, schema, generated files).
 
 A new site is closed from search until the client approves it: `public/_headers` ships `X-Robots-Tag: noindex`
-in the `/*` block (`TODO: remove at launch`; `/prelaunch` reminds); stage stays closed by the Worker. Every page
+in the `/*` block (`TODO: remove at launch`; `/prelaunch` reminds); stage stays closed by the Worker.
+**Kulbit exception:** kulbit.site stays closed for good (a portfolio / Awwwards site that must never compete in search
+with the client's kulbit.com): the `X-Robots-Tag: noindex` header is permanent, `seoFiles({ indexable: false })`
+writes robots.txt only (no sitemap, no llms files), and `/prelaunch` reports the header as ✓, never as a blocker. Every page
 starts with `<!-- Published: <build time UTC> · commit <sha> -->` from `BaseLayout` — the stamp of the version
 that is live. Security headers (`X-Frame-Options`, `Cross-Origin-Opener-Policy`) live in `public/_headers` as
 well; CSP has a ready, commented `security.csp` block in `astro.config.mjs` (`/prelaunch` step 9). The static

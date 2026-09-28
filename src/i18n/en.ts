@@ -7,9 +7,22 @@
 export default {
   pages: {
     home: {
-      /* From the visible copy (the Webflow build has only «Kulbit»); the site is noindex for good */
-      title: 'Filmmaker Vision x AI Dimension | Kulbit',
-      description: 'We blend human creative direction with advanced AI to deliver high-end, brand-aligned videos.',
+      /* From the visible copy (the Webflow build has only «Kulbit»): the services first, the brand last; the
+       * description is not the hero paragraph. The site is noindex for good: these are the tab and the share card */
+      title: 'AI-Elevated Brand & Product Video Production | Kulbit',
+      description:
+        'Cinematic brand stories, KPI-driven product videos and localization into 50+ languages: human creative direction and advanced AI, from strategy to launch.',
+      /** og:image:alt — the share card: the hero frame (public/og/og-home.jpg from src/assets/og/og-home.jpg) */
+      ogImageAlt: 'Kulbit: «Filmmaker Vision x AI Dimension» over a couple walking to a helicopter in front of a city skyline',
+    },
+    /** src/pages/404.astro — not in the design or the Webflow build: the standard texts of a missing page (noindex) */
+    notFound: {
+      title: 'Page not found | Kulbit',
+      description: 'This page does not exist or has moved. Go back to the home page of Kulbit.',
+      label: '404',
+      heading: 'Page not found',
+      text: 'This page does not exist or has moved.',
+      home: 'Back to home',
     },
   },
   siteHeader: {
@@ -21,8 +34,8 @@ export default {
     home: 'Kulbit — home',
   },
   hero: {
-    /** «Filmmaker Vision x AI Dimension»: the accent part is blue */
-    title: { lead: 'Filmmaker Vision x', accent: 'AI Dimension' },
+    /** «Filmmaker Vision x AI Dimension»: the accent part is blue and never breaks (a no-break space, as on the site) */
+    title: { lead: 'Filmmaker Vision x', accent: 'AI\u{a0}Dimension' },
     /** One sentence in three blocks; grey parts as on the site */
     statement: {
       blend: 'We blend',

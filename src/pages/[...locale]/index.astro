@@ -17,7 +17,12 @@ export const getStaticPaths = localeStaticPaths;
 const t = useTranslations(Astro.currentLocale);
 ---
 
-<BaseLayout title={t.pages.home.title} description={t.pages.home.description} steps>
+<BaseLayout
+  title={t.pages.home.title}
+  description={t.pages.home.description}
+  ogImage="/og/og-home.jpg"
+  ogImageAlt={t.pages.home.ogImageAlt}
+  steps>
   <SiteHeader slot="header" />
   <SectionNav slot="header" />
   <Hero />

@@ -17,6 +17,7 @@
  */
 import { getImage } from 'astro:assets';
 import { useTranslations } from '@/i18n';
+import ProgressLine from '@/components/ui/ProgressLine.astro';
 import IconArrow from '@/assets/icons/arrow-pilot.svg';
 import posterStrategy from '@/assets/our-services/service-strategy-poster.jpg';
 import posterBrandVideos from '@/assets/our-services/service-brand-videos-poster.jpg';
@@ -43,19 +44,19 @@ const cards = await Promise.all(
 );
 ---
 
-<section class="section padding-64/48/24 our-services" data-kulbit-section>
+<section class="section padding-md our-services" data-kulbit-section>
   <div class="container">
-    <div class="flex-v spacing-48/48/24">
-      <div class="our-services_progress" aria-hidden="true"><div class="our-services_fill" data-services-fill></div></div>
-      <div class="our-services_head spacing-0/64/24 text-style-uppercase" data-services-head>
-        <h2 class="text-size-16/16/13" data-kulbit-scramble>{t.title}</h2>
+    <div class="flex-v spacing-2xl">
+      <ProgressLine start="sixth" />
+      <div class="our-services_head spacing-head text-style-uppercase" data-services-head>
+        <h2 class="text-size-section-label" data-kulbit-scramble>{t.title}</h2>
         <div class="our-services_lead">
-          <p class="our-services_statement text-size-32/28/23" data-kulbit-scramble data-services-title>
+          <p class="our-services_statement text-size-section-h2" data-kulbit-scramble data-services-title>
             {
               t.statement.map((part, i) => (
                 <Fragment>
                   {i > 0 && ' '}
-                  {part.grey ? <span class="our-services_grey">{part.text}</span> : part.text}
+                  {part.grey ? <span class="text-color-secondary">{part.text}</span> : part.text}
                 </Fragment>
               ))
             }
@@ -66,35 +67,35 @@ const cards = await Promise.all(
       <ul class="our-services_cards" data-kulbit-hswipe-group>
         {
           cards.map((card) => (
-            <li class="our-services_card">
-              <div class="our-services_content">
+            <li class="our-services_card border-radius-sm">
+              <div class="our-services_content spacing-sm">
                 <div class="our-services_info">
                   <div class="flex-v spacing-20/16/8 text-style-uppercase">
                     <div class="justify-space-between spacing-12/12/0">
-                      <div class:list={[card.width, 'text-size-40/32/20 text-weight-800']}>
+                      <div class:list={[card.width, 'text-size-card-title text-weight-800']}>
                         <h3 class="our-services_title">{card.title}</h3>
                       </div>
                       <div class="desktop-hide">
                         <IconArrow class="our-services_icon icon--corner" aria-hidden="true" />
                       </div>
                     </div>
-                    <div class="our-services_meta text-size-16/16/13 text-color-brand">
+                    <div class="our-services_meta text-size-section-label text-color-brand">
                       {card.meta.map((line) => (
                         <p>{line}</p>
                       ))}
                     </div>
                   </div>
-                  <div class="our-services_description">
+                  <div class="our-services_description spacing-xl">
                     <div class:list={['our-services_texts spacing-64/24/12', { 'texts--list': card.list }]}>
                       {card.columns.map((column) =>
                         card.list ? (
-                          <ul class="our-services_column column--list text-size-18/18/14">
+                          <ul class="our-services_column column--list text-size-services-paragraph">
                             {column.map((item) => (
                               <li>{item}</li>
                             ))}
                           </ul>
                         ) : (
-                          <div class="our-services_column text-size-18/18/14">
+                          <div class="our-services_column text-size-services-paragraph">
                             {column.map((paragraph) => (
                               <p>{paragraph}</p>
                             ))}
@@ -103,9 +104,9 @@ const cards = await Promise.all(
                       )}
                     </div>
                     <div class="text-style-uppercase text-weight-700">
-                      <ul class="our-services_tags spacing-24/24/8 text-size-16/16/12">
+                      <ul class="our-services_tags spacing-24/24/8 text-size-services-label">
                         {card.tags.map((tag) => (
-                          <li class="our-services_tag">{tag}</li>
+                          <li class="our-services_tag border-radius-sm">{tag}</li>
                         ))}
                       </ul>
                     </div>
@@ -134,17 +135,6 @@ const cards = await Promise.all(
   .our-services {
     overflow: clip;
   }
-  /* .section: 4rem top and bottom (tablet 3, mobile 1.5) */
-  .padding-64\/48\/24 {
-    padding-block: var(--size-64);
-  }
-  /* .gap-48-32-24: the Webflow CSS keeps 48 on tablet */
-  .spacing-48\/48\/24 {
-    gap: var(--size-48);
-  }
-  .spacing-0\/64\/24 {
-    gap: 0;
-  }
   .spacing-20\/16\/8 {
     gap: var(--size-20);
   }
@@ -160,54 +150,25 @@ const cards = await Promise.all(
     gap: var(--size-24);
   }
 
-  /* Decima Mono 16 / 1.1, tracking 0.03em (mobile 13): .text-size-section-label */
-  .text-size-16\/16\/13 {
-    font-size: var(--size-16);
-    line-height: 1.1;
-    letter-spacing: 0.03em;
-  }
-  /* PP Monument Wide 32 / 1.3, tracking 0.03em (tablet 28, mobile 23): .text-size-section-h2 */
-  .text-size-32\/28\/23 {
-    font-family: var(--font-secondary);
-    font-size: var(--size-32);
-    line-height: 1.3;
-    letter-spacing: 0.03em;
-  }
   /* PP Monument Wide Black 40 / 1.3, tracking 0.03em (tablet 32, mobile 20): .our-services-card-title */
-  .text-size-40\/32\/20 {
+  .text-size-card-title {
     font-family: var(--font-secondary);
     font-size: var(--size-40);
     line-height: 1.3;
     letter-spacing: 0.03em;
   }
   /* PP Monument Wide 18 / 1.3, tracking 0.03em (mobile 14): .our-services-paragraph */
-  .text-size-18\/18\/14 {
+  .text-size-services-paragraph {
     font-family: var(--font-secondary);
     font-size: calc(1.13rem * var(--fluid-scale));
     line-height: 1.3;
     letter-spacing: 0.03em;
   }
   /* Decima Mono Bold 16 / 1.3, tracking 0.03em (mobile 12 / 1.1): .our-services-label */
-  .text-size-16\/16\/12 {
+  .text-size-services-label {
     font-size: var(--size-16);
     line-height: 1.3;
     letter-spacing: 0.03em;
-  }
-
-  /* ---------- Progress line (.section-progresbar + the fill kulbit-webflow adds): the track at 15 % ---------- */
-  .our-services_progress {
-    position: relative;
-    flex: none;
-    height: var(--size-2);
-    background-color: rgb(253 252 252 / 0.15);
-  }
-  .our-services_fill {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: calc(100% / 6); /* state 0 of 0–5; the script drives it */
-    height: 100%;
-    background-color: var(--theme-text);
   }
 
   /* ---------- Label + statement (.flex-h-v-v.is-our-clients) ---------- */
@@ -218,16 +179,13 @@ const cards = await Promise.all(
   }
   /* .width-695-557-a.margin-left-auto */
   .our-services_lead {
-    width: calc(43.44rem * var(--fluid-scale)); /* 695 */
+    width: var(--width-statement);
     margin-left: auto;
   }
   /* overflow: step 1 collapses its height (scramble sets it too; without scramble — reduced motion — it must clip) */
   .our-services_statement {
     overflow: hidden;
     text-align: justify;
-  }
-  .our-services_grey {
-    color: #404040;
   }
 
   /* ---------- Cards (.our-services-cards-wrapper > .our-services-card): one per screen, in a row ---------- */
@@ -242,8 +200,7 @@ const cards = await Promise.all(
     justify-content: space-between;
     width: 100%;
     overflow: hidden;
-    border: var(--size-2) solid #252525;
-    border-radius: calc(0.56rem * var(--fluid-scale)); /* 9 */
+    border: var(--border-width-md) solid var(--theme-border);
   }
   /* .our-services-contet */
   .our-services_content {
@@ -252,7 +209,6 @@ const cards = await Promise.all(
     align-self: stretch;
     align-items: flex-start;
     justify-content: space-between;
-    gap: var(--size-12);
     padding: calc(2.9rem * var(--fluid-scale)); /* 46.4 */
   }
   .our-services_info {
@@ -280,16 +236,17 @@ const cards = await Promise.all(
     display: block;
     flex: none;
     align-self: flex-start;
-    width: var(--size-56);
-    height: var(--size-56);
-    color: #62b0ff;
+    width: var(--icon-arrow);
+    height: var(--icon-arrow);
+    color: var(--theme-icon-secondary);
   }
   /* the meta line; card 4 has none and keeps its line (Webflow draws an invisible «-» there) */
   .our-services_meta {
     display: flex;
-    gap: var(--size-64);
+    gap: var(--spacing-3xl);
     min-height: 1.1em;
   }
+  /* the texts and the tags: space-between; spacing-xl = the tablet gap, on desktop only the minimum */
   .our-services_description {
     display: flex;
     flex: 1;
@@ -320,42 +277,29 @@ const cards = await Promise.all(
   }
   .our-services_tag {
     padding: var(--size-16) var(--size-24);
-    outline: var(--size-2) solid #252525;
-    outline-offset: calc(var(--size-2) * -1);
-    border-radius: calc(0.56rem * var(--fluid-scale)); /* 9 */
+    outline: var(--border-width-md) solid var(--theme-border);
+    outline-offset: calc(var(--border-width-md) * -1);
   }
   /* .our-services-video-wrapper */
   .our-services_media {
     width: calc(47.13rem * var(--fluid-scale)); /* 754 */
     height: calc(40.88rem * var(--fluid-scale)); /* 654 */
-    border-left: var(--size-2) solid #252525;
+    border-left: var(--border-width-md) solid var(--theme-border);
   }
 
   @media (max-width: 991px) {
-    .padding-64\/48\/24 {
-      padding-block: var(--size-48);
-    }
-    .spacing-0\/64\/24 {
-      gap: var(--size-64);
-    }
     .spacing-20\/16\/8 {
       gap: var(--size-16);
     }
     .spacing-64\/24\/12 {
       gap: var(--size-24);
     }
-    .text-size-32\/28\/23 {
-      font-size: var(--size-28);
-    }
-    .text-size-40\/32\/20 {
+    .text-size-card-title {
       font-size: var(--size-32);
     }
     .our-services_head {
       flex-direction: column;
       justify-content: flex-start;
-    }
-    .our-services_lead {
-      width: calc(34.81rem * var(--fluid-scale)); /* 557 */
     }
     /* the card is a column: the texts, then the video */
     .our-services_card {
@@ -375,9 +319,6 @@ const cards = await Promise.all(
     .width--439\/347\/219 {
       width: calc(21.69rem * var(--fluid-scale)); /* 347 */
     }
-    .our-services_description {
-      gap: var(--size-32);
-    }
     .our-services_texts {
       flex-direction: column;
     }
@@ -388,21 +329,12 @@ const cards = await Promise.all(
       align-self: stretch;
       width: auto;
       height: calc(20.31rem * var(--fluid-scale)); /* 325 */
-      border-top: var(--size-2) solid #252525;
+      border-top: var(--border-width-md) solid var(--theme-border);
       border-left: none;
     }
   }
 
   @media (max-width: 479px) {
-    .padding-64\/48\/24 {
-      padding-block: var(--size-24);
-    }
-    .spacing-48\/48\/24 {
-      gap: var(--size-24);
-    }
-    .spacing-0\/64\/24 {
-      gap: var(--size-24);
-    }
     .spacing-20\/16\/8 {
       gap: var(--size-8);
     }
@@ -415,24 +347,15 @@ const cards = await Promise.all(
     .spacing-24\/24\/8 {
       gap: var(--size-8);
     }
-    .text-size-16\/16\/13 {
-      font-size: calc(0.81rem * var(--fluid-scale));
-    }
-    .text-size-32\/28\/23 {
-      font-size: calc(1.44rem * var(--fluid-scale));
-    }
-    .text-size-40\/32\/20 {
+    .text-size-card-title {
       font-size: var(--size-20);
     }
-    .text-size-18\/18\/14 {
+    .text-size-services-paragraph {
       font-size: calc(0.88rem * var(--fluid-scale));
     }
-    .text-size-16\/16\/12 {
+    .text-size-services-label {
       font-size: var(--size-12);
       line-height: 1.1;
-    }
-    .our-services_lead {
-      width: auto;
     }
     .our-services_card {
       position: relative;
@@ -452,10 +375,6 @@ const cards = await Promise.all(
       width: calc(13.69rem * var(--fluid-scale)); /* 219 */
     }
     /* the square goes to the bottom right corner of the card, over the video */
-    .our-services_icon {
-      width: var(--size-40);
-      height: var(--size-40);
-    }
     .our-services_icon.icon--corner {
       position: absolute;
       right: var(--size-16);
@@ -464,7 +383,7 @@ const cards = await Promise.all(
     }
     .our-services_description {
       padding-top: var(--size-20);
-      border-top: var(--size-2) solid #252525;
+      border-top: var(--border-width-md) solid var(--theme-border);
     }
     .our-services_tag {
       padding: var(--size-12) var(--size-16);
@@ -487,6 +406,7 @@ const cards = await Promise.all(
   // row before the mobile lift is measured and set (the source set y: 0 after it and dropped the lift).
   import { gsap } from 'gsap';
   import { app, config, registerSectionBuilder, type SectionController } from '@/scripts/kulbit/app';
+  import { progressLine } from '@/scripts/kulbit/progress-line';
   import { reducedMotion, scrambles } from '@/scripts/kulbit/scramble';
   import { registerVideo } from '@/scripts/kulbit/video';
 
@@ -545,10 +465,12 @@ const cards = await Promise.all(
     if (total < 2) return;
     const head = section.el.querySelector<HTMLElement>('[data-services-head]');
     const title = section.el.querySelector<HTMLElement>('[data-services-title]');
-    const fill = section.el.querySelector<HTMLElement>('[data-services-fill]');
-    const bar = fill?.parentElement ?? null;
     const STEP = config.scrollDuration;
     const EASE = config.ease;
+    // Progress line by the state: (state + 1) / (maxState + 1); empty at once while sliding in, 0 → its first part
+    // once covered, empties while sliding away
+    const line = progressLine(section.el, STEP, EASE);
+    const bar = line.fill?.parentElement ?? null;
     const RISE = 60; // px: the row rises from below when the section appears
     const maxState = total; // 0 appear, 1 the statement erased + the cards up, 2…total the swap
     const isMobile = mode === 'mobile';
@@ -598,29 +520,6 @@ const cards = await Promise.all(
       collapsed = collapse;
     };
 
-    // Progress line by the state; empty at once while sliding in, 0 → its first part once covered, empties while
-    // sliding away
-    const setFill = (s: number, animate: boolean) => {
-      if (!fill) return;
-      const width = `${((s + 1) / (maxState + 1)) * 100}%`;
-      if (animate) gsap.to(fill, { width, duration: STEP, ease: EASE });
-      else gsap.set(fill, { width });
-    };
-    const prepareLine = () => {
-      if (!fill) return;
-      gsap.killTweensOf(fill);
-      gsap.set(fill, { width: '0%' });
-    };
-    const enterLine = () => {
-      prepareLine();
-      setFill(0, true);
-    };
-    const collapseLine = () => {
-      if (!fill) return;
-      gsap.killTweensOf(fill);
-      gsap.to(fill, { width: '0%', duration: STEP, ease: EASE });
-    };
-
     const moveX = (s: number, animate: boolean) => {
       const x = shiftFor(s);
       if (animate) gsap.to(group, { x, duration: STEP, ease: EASE });
@@ -642,7 +541,7 @@ const cards = await Promise.all(
     moveX(0, false);
     setTitle(false, false);
     hideCards();
-    prepareLine(); // hidden start until the section appears
+    line.prepare(); // hidden start until the section appears
 
     const controller: SectionController = {
       get state() {
@@ -653,7 +552,7 @@ const cards = await Promise.all(
         moveX(0, false);
         setTitle(false, false);
         hideCards();
-        prepareLine();
+        line.prepare();
         showVideo(0);
       },
       enter() {
@@ -661,16 +560,16 @@ const cards = await Promise.all(
         moveX(0, false);
         setTitle(false, false);
         showCards();
-        enterLine();
+        line.enter(1 / (maxState + 1));
       },
-      collapse: collapseLine,
+      collapse: () => line.collapse(),
       reset(toEnd) {
         state = toEnd ? maxState : 0;
         gsap.killTweensOf(group);
         gsap.set(group, { autoAlpha: 1, y: 0 });
         moveX(state, false);
         setTitle(state >= 1, false);
-        setFill(state, false);
+        line.to((state + 1) / (maxState + 1), false);
         showVideo(state);
       },
       // The breakpoint changes: the row, the statement's height and the faded head live outside the matchMedia context
@@ -682,10 +581,7 @@ const cards = await Promise.all(
           gsap.killTweensOf(title);
           title.style.height = '';
         }
-        if (fill) {
-          gsap.killTweensOf(fill);
-          gsap.set(fill, { clearProps: 'width' });
-        }
+        line.dispose();
       },
       step(dir) {
         const next = Math.max(0, Math.min(maxState, state + dir));
@@ -696,7 +592,7 @@ const cards = await Promise.all(
         if (prev === 0 && next >= 1) setTitle(true, true);
         else if (prev >= 1 && next === 0) setTitle(false, true);
         moveX(next, true);
-        setFill(next, true);
+        line.to((next + 1) / (maxState + 1), true);
         // The incoming card plays at once, the leaving one stops when it is out of the frame
         const leaving = active;
         active = swapIndexOf(next);

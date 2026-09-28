@@ -13,6 +13,9 @@
 //   blockAiCrawlers true → Disallow: / for the common AI training crawlers (default false:
 //                   client sites usually want to be found, and llms.txt exists for that)
 //   llmsFull        false → skip llms-full.txt (default true)
+//   indexable       false → the whole site is closed from search for good (X-Robots-Tag: noindex in public/_headers):
+//                   only robots.txt is written (crawling allowed, so crawlers still read the noindex; no Sitemap
+//                   line), no sitemap.xml and no llms files (default true)
 
 import { execFile } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
@@ -68,11 +71,11 @@ async function gitDate(file) {
 }
 
 /**
- * @param {{ lastmod?: 'git' | 'build' | false; disallow?: string[]; blockAiCrawlers?: boolean; llmsFull?: boolean }} [options]
+ * @param {{ lastmod?: 'git' | 'build' | false; disallow?: string[]; blockAiCrawlers?: boolean; llmsFull?: boolean; indexable?: boolean }} [options]
  * @returns {import('astro').AstroIntegration}
  */
 export function seoFiles(options = {}) {
-  const { lastmod = 'git', disallow = [], blockAiCrawlers = false, llmsFull = true } = options;
+  const { lastmod = 'git', disallow = [], blockAiCrawlers = false, llmsFull = true, indexable = true } = options;
   /** @type {string | undefined} */
   let site;
   /** @type {import('astro').IntegrationResolvedRoute[]} */
@@ -127,17 +130,22 @@ export function seoFiles(options = {}) {
         const siteName = home?.siteName || entries.find((e) => e.siteName)?.siteName || home?.title || origin.hostname;
 
         // robots.txt
+        // ASCII only: Cloudflare serves .txt without a charset and browsers read it as windows-1252
         const robots = [
-          '# Generated at build by scripts/seo-files.mjs — change the options in astro.config.mjs, not this file',
+          '# Generated at build by scripts/seo-files.mjs - change the options in astro.config.mjs, not this file',
+          ...(indexable ? [] : ['# The site is closed from search (X-Robots-Tag: noindex); crawling stays allowed so crawlers read it']),
           'User-agent: *',
           'Allow: /',
           ...disallow.map((path) => `Disallow: ${path}`),
           '',
           ...(blockAiCrawlers ? AI_CRAWLERS.flatMap((bot) => [`User-agent: ${bot}`, 'Disallow: /', '']) : []),
-          `Sitemap: ${new URL('/sitemap.xml', origin).href}`,
-          '',
+          ...(indexable ? [`Sitemap: ${new URL('/sitemap.xml', origin).href}`, ''] : []),
         ].join('\n');
         await writeFile(out('robots.txt'), robots);
+        if (!indexable) {
+          logger.info(`robots.txt written to ${fileURLToPath(dir)} (the site is closed from search: no sitemap, no llms files)`);
+          return;
+        }
 
         // sitemap.xml — loc (+ lastmod); changefreq/priority are ignored by search engines
         const urls = entries

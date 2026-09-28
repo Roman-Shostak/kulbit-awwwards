@@ -74,13 +74,29 @@ export const config = {
   landscapeMaxHeight: 500, // a landscape screen this low with a coarse pointer = a phone → the rotate popup
 };
 
+// The start and the end of every move and step (app.isAnimating false ↔ true; set in many places — the engine and the
+// sections' controllers): the listeners get the new state (./video: the loaded images' loading hint follows where they
+// stand)
+const animatingListeners: ((running: boolean) => void)[] = [];
+export const onAnimating = (listener: (running: boolean) => void) => {
+  animatingListeners.push(listener);
+};
+let animating = false;
+
 export const app = {
   sections: [] as KulbitSection[],
   currentSectionIndex: 0,
   /** Step inside the current section: reveal steps / desktop timeline (0↔1) / tablet hero (0..3) */
   currentStep: 0,
-  /** A move or a step is playing: gestures are ignored */
-  isAnimating: false,
+  /** A move or a step is playing: gestures are ignored; its start and end call the onAnimating listeners */
+  get isAnimating() {
+    return animating;
+  },
+  set isAnimating(value: boolean) {
+    if (value === animating) return;
+    animating = value;
+    animatingListeners.forEach((listener) => listener(value));
+  },
   observer: null as Observer | null,
   mm: null as gsap.MatchMedia | null,
   /** The fixed viewport (.wrapper) and the stacking container (<main data-scenes>) */

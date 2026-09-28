@@ -17,7 +17,7 @@
  * The lazy media of the stacked sections is warmed here as well (warmSection): see showCurrentVideo, setupWarmUp.
  */
 import { gsap } from 'gsap';
-import { app } from './app';
+import { app, onAnimating } from './app';
 
 export interface VideoRecord {
   sectionIndex: number;
@@ -171,12 +171,45 @@ export const registerVideo = (record: VideoRecord) => {
 // `img[loading="lazy"]` turn eager and its videos get their `data-poster` as `poster` when it becomes the current or
 // the next one; once the hero video can play through (or 4 s after the load, whichever comes first) every section is
 // warmed, so a jump from the menu never shows an empty box.
+// Once loaded, a warmed image's loading hint follows where it stands — eager on the first screen of its section, lazy
+// below it: its file is in, the attribute changes nothing any more, and the dev toolbar's audit reads it («below / above
+// the fold»). A step can move an image across that line (Projects' cards change height): while a move or a step plays
+// the hints of the current section's images follow every frame — in GSAP's tick, after the tweens, so a lint the tick's
+// DOM changes start reads them right; a move between sections only translates them — then every image's once at its end
+// and after a resize. The fold is the audit's: the sum of the offsetTops (the stack's
+// transforms ignored) against the window's height.
+const depthOf = (el: HTMLElement) => {
+  let y = 0;
+  for (let node: Element | null = el; node instanceof HTMLElement; node = node.offsetParent) y += node.offsetTop;
+  return y;
+};
+// every warmed image → its section
+const warmedImages = new Map<HTMLImageElement, Element | null>();
+const markLoading = (img: HTMLImageElement) => {
+  const hint = depthOf(img) < window.innerHeight ? 'eager' : 'lazy';
+  if (img.loading !== hint) img.loading = hint;
+};
+const markAllLoading = () => {
+  warmedImages.forEach((_, img) => {
+    if (img.complete) markLoading(img);
+  });
+};
+const markCurrentLoading = () => {
+  const current = app.sections[app.currentSectionIndex]?.el;
+  warmedImages.forEach((section, img) => {
+    if (section === current && img.complete) markLoading(img);
+  });
+};
+const warmImage = (img: HTMLImageElement) => {
+  img.loading = 'eager';
+  warmedImages.set(img, img.closest('[data-kulbit-section]'));
+  if (img.complete) markLoading(img);
+  else img.addEventListener('load', () => markLoading(img), { once: true });
+};
 const warmSection = (index: number) => {
   const el = app.sections[index]?.el;
   if (!el) return;
-  el.querySelectorAll<HTMLImageElement>('img[loading="lazy"]').forEach((img) => {
-    img.loading = 'eager';
-  });
+  el.querySelectorAll<HTMLImageElement>('img[loading="lazy"]').forEach(warmImage);
   el.querySelectorAll<HTMLVideoElement>('video[data-poster]').forEach((video) => {
     const poster = video.dataset.poster;
     if (poster && !video.getAttribute('poster')) video.poster = poster;
@@ -184,6 +217,19 @@ const warmSection = (index: number) => {
 };
 
 const setupWarmUp = () => {
+  onAnimating((running) => {
+    if (running) {
+      gsap.ticker.add(markCurrentLoading);
+    } else {
+      gsap.ticker.remove(markCurrentLoading);
+      markAllLoading();
+    }
+  });
+  let resizing = 0;
+  window.addEventListener('resize', () => {
+    window.clearTimeout(resizing);
+    resizing = window.setTimeout(markAllLoading, 300);
+  });
   let warmed = false;
   const warmAll = () => {
     if (warmed) return;

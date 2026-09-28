@@ -12,8 +12,8 @@
  * The markup is the natural state: set 1 in the frame, the others below it, the line at a third.
  * Files: src/assets/our-clients/ — logos as SVG files (107 KB together: too heavy to inline), awards 4x PNG; the
  * awards' `sizes` is their box (9.94 / 7.19 / 5.69rem on the 1920 / 744 / 390 frames = 8.28 / 15.46 / 23.34vw).
- * Images load eagerly: the stacked sections wait outside the clipped viewport, where lazy images only start loading
- * once they are on the screen (they appeared empty and popped in).
+ * Images are lazy like everywhere: the step engine warms the section before it comes (src/scripts/kulbit/video.ts →
+ * warmSection) — in the clipped stack a lazy image alone would start loading only on screen and pop in.
  */
 import { Image, Picture } from 'astro:assets';
 import ProgressLine from '@/components/ui/ProgressLine.astro';
@@ -124,10 +124,10 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
                 {set.logos.map((logo, j) => (
                   <li class:list={['our-clients_card border-radius-sm', { 'size--big': isBig(j, set.logos.length) }]}>
                     <div class="our-clients_logo">
-                      <Image src={logo.white} alt={logo.name} loading="eager" class="fill-box" />
+                      <Image src={logo.white} alt={logo.name} class="fill-box" />
                     </div>
                     <div class="our-clients_logo logo--color">
-                      <Image src={logo.color} alt="" loading="eager" class="fill-box" />
+                      <Image src={logo.color} alt="" class="fill-box" />
                     </div>
                   </li>
                 ))}
@@ -145,7 +145,6 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
                       width={159}
                       sizes="(max-width: 479px) 23.34vw, (max-width: 991px) 15.46vw, 8.28vw"
                       alt={award.alt}
-                      loading="eager"
                       class="fill-box"
                     />
                   </div>

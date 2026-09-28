@@ -201,12 +201,12 @@ const setupWarmUp = () => {
 /**
  * Plays the current section's video (at once, while its section slides in); the next section's videos load ahead.
  * Runs on every change of the current section (a move, a restore, the tablet hero hand-off): the current and the next
- * section's lazy media are warmed first.
+ * section's lazy media are warmed first. Under the preloader nothing plays: it calls this again when it leaves.
  */
 export const showCurrentVideo = () => {
   warmSection(app.currentSectionIndex);
   warmSection(app.currentSectionIndex + 1);
-  if (app.videoFullscreen || app.landscapeBlocked) return;
+  if (app.videoFullscreen || app.landscapeBlocked || app.preloading) return;
   videos.forEach((record) => {
     if (record.sectionIndex === app.currentSectionIndex) record.show();
     else if (record.sectionIndex === app.currentSectionIndex + 1) record.warm?.();

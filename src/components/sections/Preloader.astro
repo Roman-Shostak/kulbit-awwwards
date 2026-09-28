@@ -1,0 +1,272 @@
+---
+/**
+ * Preloader — the loading screen of the live Webflow site kulbit.webflow.io (its .preloader markup and CSS + initPreloader()
+ * of github.com/Roman-Shostak/KULBIT-GSPAP.js gsap-animation.js; the kulbit-gsap export has none), values 1:1 (1rem =
+ * 16px on the 1920 / 744 / 390 frames = our fluid scale). A black screen over everything: the counter 0 → 100 % over
+ * a line in the top right corner, the white square with the K mark in the middle; two red squares fly round it, it
+ * grows, one of them floods it blue, it folds, the line runs across the screen and the screen fades out — 2.8 s, timed
+ * like the source (not tied to the real loading). Then the current section's video starts.
+ * Decorative (aria-hidden): the page under it stays in the accessibility tree. It is in the first paint (no flash of
+ * the page before it), but only with scripts and without `prefers-reduced-motion: reduce` (media queries below; the
+ * script checks the same). While it is on, the step scroll ignores the gestures and the keys and the video waits
+ * (`app.preloading`, src/scripts/kulbit/). If its script never runs, it fades out by itself after 6 s (a script that
+ * arrives after that lets the fade finish and plays nothing).
+ * Rendered in the header slot (<Preloader slot="header" />) like LandscapePopup and right before it: fixed, over the
+ * header and the menu panel, under the landscape popup (both z-index 2 inside .header-fixed, which lies over the
+ * sections and the footer) — as in the source, where the rotate overlay lies over the preloader.
+ * Not ported: the source's «AI Video Boutique» (under the line inside its 35px box with overflow hidden — never
+ * visible) and its hero intro after the preloader (another hero).
+ * `inline` (the /dev/components showcase only): its start state in the flow of the page; the script leaves it alone.
+ */
+import IconMark from '@/assets/icons/logo-mark.svg';
+
+interface Props {
+  inline?: boolean;
+}
+
+const { inline = false } = Astro.props;
+---
+
+<div class:list={['preloader', { 'type--inline': inline }]} aria-hidden="true" data-preloader={inline ? undefined : ''}>
+  <div class="preloader_line" data-preloader-line>
+    <p class="text-size-preloader-precent"><span data-preloader-count>0</span>/100%</p>
+  </div>
+  <div class="preloader_square" data-preloader-square>
+    <IconMark class="preloader_mark" data-preloader-mark />
+    <span class="preloader_mask" data-preloader-mask></span>
+    <span class="preloader_mask corner--bottom-right" data-preloader-mask></span>
+    <span class="preloader_mask corner--bottom-left" data-preloader-mask></span>
+    <span class="preloader_dot" data-preloader-dot="1"></span>
+    <span class="preloader_dot corner--bottom-right" data-preloader-dot="2"></span>
+  </div>
+</div>
+
+<style>
+  /* .preloader: the whole screen, black, the square in the middle; it takes the pointer back from .header-fixed */
+  .preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: var(--theme-page-bg);
+    pointer-events: auto;
+    animation: preloader-leave var(--transition-duration-slow) var(--transition-easing) 6s forwards;
+  }
+  /* The script plays it: no fallback exit */
+  .preloader.is--running {
+    animation: none;
+  }
+  /* The fallback exit when its script never runs */
+  @keyframes preloader-leave {
+    to {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
+  /* Without scripts, or with reduced motion: never shown */
+  @media (scripting: none) {
+    .preloader:not(.type--inline) {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .preloader:not(.type--inline) {
+      display: none;
+    }
+  }
+  /* /dev/components: in the flow of the page, the proportions of the 1920 × 1080 frame */
+  .preloader.type--inline {
+    position: relative;
+    z-index: auto;
+    aspect-ratio: 1920 / 1080;
+    animation: none;
+  }
+
+  /* .preloader-precent-container: the counter over a 2px line, 7.25rem from the top and 5.31rem from the right
+   * (mobile 1.5rem / 1rem); 8.3125rem wide at the start (the script's set), it runs to 108.75rem to the left */
+  .preloader_line {
+    position: absolute;
+    top: calc(7.25rem * var(--fluid-scale)); /* 116 */
+    right: calc(5.31rem * var(--fluid-scale)); /* 85 */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: calc(8.3125rem * var(--fluid-scale)); /* 133 */
+    height: calc(2.19rem * var(--fluid-scale)); /* 35 */
+    overflow: hidden;
+    border-bottom: var(--border-width-md) solid var(--theme-illustration);
+    color: var(--theme-text-counter);
+  }
+  /* .preloader-precent: Decima Mono X 24 / 1.37, the live body's tracking (0.03em of 16 = 0.48px) */
+  .text-size-preloader-precent {
+    font-size: var(--size-24);
+    line-height: 1.37;
+    letter-spacing: 0.02em;
+  }
+
+  /* .preloader-center-square: 8.06rem, white, the mark in its middle; no z-index — its children are layered with the
+   * rest of the preloader (the script changes their z-index) */
+  .preloader_square {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(8.0625rem * var(--fluid-scale)); /* 129 */
+    height: calc(8.0625rem * var(--fluid-scale));
+    background-color: var(--theme-illustration);
+  }
+  /* .preloader-logo-svg: 4.69 × 5.44rem, black; hidden until the script shows it */
+  .preloader_mark {
+    z-index: 3;
+    width: calc(4.69rem * var(--fluid-scale)); /* 75 */
+    height: calc(5.44rem * var(--fluid-scale)); /* 87 */
+    color: var(--theme-text-inverse);
+    opacity: 0;
+    visibility: hidden;
+  }
+  /* .preloader-small-square: 1.31rem in a corner of the square (top left; .is-second bottom right, .is-alternate
+   * bottom left). The masks: white on the white square, over the red squares (a red one landing there disappears) */
+  .preloader_mask,
+  .preloader_dot {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(1.31rem * var(--fluid-scale)); /* 21 */
+    height: calc(1.31rem * var(--fluid-scale));
+  }
+  .preloader_mask {
+    z-index: 5;
+    background-color: var(--theme-illustration);
+  }
+  /* The red squares: hidden until the script shows them */
+  .preloader_dot {
+    z-index: 1;
+    background-color: var(--theme-icon-brand);
+    opacity: 0;
+    visibility: hidden;
+  }
+  .preloader_mask.corner--bottom-right,
+  .preloader_dot.corner--bottom-right {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: auto;
+  }
+  .preloader_mask.corner--bottom-left {
+    top: auto;
+    bottom: 0;
+  }
+
+  @media (max-width: 479px) {
+    .preloader_line {
+      top: var(--size-24);
+      right: var(--size-16);
+    }
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+  import { app, reducedMotion } from '@/scripts/kulbit/app';
+  import { showCurrentVideo } from '@/scripts/kulbit/video';
+
+  // initPreloader() of the source, 1:1: the same timeline, eases and numbers. Its lengths are rem × our fluid scale
+  // (1rem = 16px on the frames, the browser's own root size otherwise), turned into px once at the start
+  const preloader = document.querySelector<HTMLElement>('[data-preloader]');
+  // The CSS fallback exit (6 s) has begun: the script came too late — the fade finishes, nothing plays
+  const fallback = preloader?.getAnimations()[0];
+  const late = !!fallback && Number(fallback.currentTime) >= 6000;
+  if (preloader && fallback && late) {
+    const hide = () => gsap.set(preloader, { display: 'none' });
+    fallback.finished.then(hide, hide);
+  }
+  // Reduced motion: CSS never shows it, nothing waits for it
+  if (preloader && !late && !reducedMotion) {
+    const line = preloader.querySelector<HTMLElement>('[data-preloader-line]');
+    const count = preloader.querySelector<HTMLElement>('[data-preloader-count]');
+    const square = preloader.querySelector<HTMLElement>('[data-preloader-square]');
+    const mark = preloader.querySelector<SVGElement>('[data-preloader-mark]');
+    const masks = preloader.querySelectorAll<HTMLElement>('[data-preloader-mask]');
+    const dot1 = preloader.querySelector<HTMLElement>('[data-preloader-dot="1"]');
+    const dot2 = preloader.querySelector<HTMLElement>('[data-preloader-dot="2"]');
+
+    if (!line || !count || !square || !mark || !dot1 || !dot2) {
+      gsap.set(preloader, { display: 'none' });
+    } else {
+      const root = getComputedStyle(document.documentElement);
+      const scale =
+        parseFloat(root.getPropertyValue('--viewport-width')) / parseFloat(root.getPropertyValue('--reference')) || 1;
+      const rootSize = parseFloat(root.fontSize) || 16;
+      const rem = (value: number) => value * rootSize * scale;
+      const tokens = getComputedStyle(preloader);
+      const BLUE = tokens.getPropertyValue('--theme-icon-secondary').trim() || '#62b0ff';
+
+      app.preloading = true;
+      preloader.classList.add('is--running');
+
+      const counter = { value: 0 };
+      const tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } });
+
+      tl.to(
+        counter,
+        {
+          value: 100,
+          duration: 2.3,
+          ease: 'none',
+          onUpdate: () => {
+            count.textContent = String(Math.round(counter.value));
+          },
+        },
+        0,
+      );
+
+      // The mark appears, the red squares fly out of two corners, across, and land in the other two
+      tl.to(mark, { autoAlpha: 1, duration: 0.3 }, 0);
+      tl.to(dot1, { autoAlpha: 1, x: -rem(5.8125), y: -rem(4.0625), duration: 0.3 }, 0);
+      tl.to(dot2, { autoAlpha: 1, x: rem(5.8125), y: rem(4.0625), duration: 0.3 }, 0);
+      tl.to(dot1, { x: rem(11.5), duration: 0.3 }, 0.3);
+      tl.to(dot2, { x: -rem(11.5), duration: 0.3 }, 0.3);
+      tl.to(dot1, { x: rem(6.775), y: 0, duration: 0.3 }, 0.6);
+      tl.to(dot2, { x: -rem(6.775), y: 0, duration: 0.3 }, 0.6);
+
+      // The square and the mark grow, the red square rides its corner; the other one is gone under its mask
+      tl.to(square, { width: rem(16.5625), height: rem(16.5625), duration: 0.4, ease: 'power3.inOut' }, 0.9);
+      tl.to(mark, { width: rem(9.5625), height: rem(11.0625), duration: 0.4, ease: 'power3.inOut' }, 0.9);
+      tl.to(
+        dot1,
+        { width: rem(2.69), height: rem(2.69), x: rem(13.87), y: 0, duration: 0.4, ease: 'power3.inOut' },
+        0.9,
+      );
+      tl.set(dot2, { autoAlpha: 0 }, 1.0);
+
+      // The red square floods the square blue under the mark
+      tl.set(dot1, { zIndex: 6 }, 1.3);
+      tl.to(dot1, { x: 0, y: 0, width: rem(16.5625), height: rem(16.5625), backgroundColor: BLUE, duration: 0.3 }, 1.3);
+      tl.set(mark, { zIndex: 7 }, 1.3);
+      tl.set(masks, { autoAlpha: 0 }, 1.3);
+
+      // Everything fades, the square folds, the line runs across the screen, the screen fades out
+      tl.set(square, { backgroundColor: BLUE }, 1.6);
+      tl.to(mark, { autoAlpha: 0, duration: 0.3 }, 1.6);
+      tl.to(dot1, { autoAlpha: 0, duration: 0.3 }, 1.6);
+      tl.to(square, { height: 0, autoAlpha: 0, duration: 0.15 }, 1.9);
+      tl.to(line, { width: rem(108.75), duration: 0.25, ease: 'power3.inOut' }, 2.05);
+      tl.to(
+        preloader,
+        {
+          autoAlpha: 0,
+          duration: 0.5,
+          onComplete: () => {
+            gsap.set(preloader, { display: 'none' });
+            app.preloading = false;
+            showCurrentVideo();
+          },
+        },
+        2.3,
+      );
+    }
+  }
+</script>

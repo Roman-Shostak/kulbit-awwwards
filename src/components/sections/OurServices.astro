@@ -431,9 +431,11 @@ const cards = await Promise.all(
 
   // Only the card in view plays (the Webflow build: the browser pauses its muted autoplay videos off screen) and
   // only while the section is the current one: ./video calls show when it becomes current and hide when it is
-  // covered. prefers-reduced-motion → the posters stay.
+  // covered. prefers-reduced-motion → the posters stay. Under the preloader (a restored section) it waits: the preloader
+  // calls ./video's show when it leaves.
   let active = 0;
-  const isCurrent = () => app.sections[app.currentSectionIndex]?.el === root && !app.landscapeBlocked;
+  const isCurrent = () =>
+    app.sections[app.currentSectionIndex]?.el === root && !app.landscapeBlocked && !app.preloading;
   const playActive = () => {
     // Reduced motion, a covered section or the visitor's pause (the menu): the poster stays
     if (reducedMotion() || !isCurrent() || backgroundVideosPaused()) return;

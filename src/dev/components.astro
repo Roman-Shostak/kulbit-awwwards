@@ -37,6 +37,7 @@ import WorkingProcess from '@/components/sections/WorkingProcess.astro';
 import TraditionalProduction from '@/components/sections/TraditionalProduction.astro';
 import SectionNav from '@/components/sections/SectionNav.astro';
 import LandscapePopup from '@/components/sections/LandscapePopup.astro';
+import Preloader from '@/components/sections/Preloader.astro';
 import SiteHeader from '@/components/sections/SiteHeader.astro';
 import SiteFooter from '@/components/sections/SiteFooter.astro';
 import ContactPopup from '@/components/sections/ContactPopup.astro';
@@ -55,7 +56,7 @@ const sectionFiles = Object.keys(import.meta.glob('../components/sections/*.astr
 
 // Registry of what this page renders — keep in sync with the blocks below
 const showcasedUi: string[] = ['Button', 'Square', 'ProgressLine', 'ProjectVideo', 'Logo', 'Input', 'Checkbox', 'Form'];
-const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients', 'Projects', 'OurServices', 'IntroScreen', 'WorkingProcess', 'TraditionalProduction', 'SectionNav', 'LandscapePopup', 'SiteFooter', 'ContactPopup'];
+const showcasedSections: string[] = ['SiteHeader', 'Hero', 'OurClients', 'Projects', 'OurServices', 'IntroScreen', 'WorkingProcess', 'TraditionalProduction', 'SectionNav', 'LandscapePopup', 'Preloader', 'SiteFooter', 'ContactPopup'];
 
 const missingUi = uiFiles.filter((name) => !showcasedUi.includes(name));
 const missingSections = sectionFiles.filter((name) => !showcasedSections.includes(name));
@@ -368,6 +369,7 @@ const stale = [...showcasedUi.filter((n) => !uiFiles.includes(n)), ...showcasedS
   <div class="dev_section-frame"><div class="dev_section-label">TraditionalProduction.astro (the natural state: every card, both radars drawn; the steps and the head scramble run on the home page)</div><TraditionalProduction /></div>
   <div class="dev_section-frame"><div class="dev_section-label">SectionNav.astro (the arrow on the right edge of the window slides the panel in — here too; the items are links to the screens' anchors, the jumps and the current mark work on the home page; the last button pauses the background videos)</div><SectionNav /></div>
   <div class="dev_section-frame"><div class="dev_section-label">LandscapePopup.astro (open: in the flow of this page; on the home page fixed over everything and hidden until a phone is held sideways)</div><LandscapePopup open /></div>
+  <div class="dev_section-frame"><div class="dev_section-label">Preloader.astro (inline: its start state in the flow of this page; on the home page fixed over everything, it plays on every load)</div><Preloader inline /></div>
   <div class="dev_section-frame"><div class="dev_section-label">SiteFooter.astro (in the layout's footer; the step scroll of tablet / mobile runs on the home page)</div><footer class="footer"><SiteFooter /></footer></div>
   <div class="dev_section-frame">
     <div class="dev_section-label">ContactPopup.astro (a modal dialog: the button opens it — the same as every <code>data-popup="contact"</code> CTA; ✕, Esc or a click outside the panel closes it)</div>

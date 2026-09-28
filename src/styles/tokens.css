@@ -206,6 +206,7 @@
   --swatch-white-10-a12: rgb(253 252 252 / 0.12);
   --swatch-white-10-a15: rgb(253 252 252 / 0.15);
   --swatch-black-20: #404040; /* colors/black-20 */
+  --swatch-black-15: #d6d6d6; /* colors/black-15 of kulbit.webflow.io: the preloader's counter */
   --swatch-black-30: #252525; /* colors/black-30 */
   --swatch-graphite: #171717; /* no variable: the frames of the buttons and tiles */
   --swatch-coal: #121212; /* no variable: the contact popup's «Submit message» (= its dropdown options: white 2 % on the list) */
@@ -229,6 +230,7 @@
   --theme-text-inverse: var(--swatch-black); /* text on a white chip, on the checked blue subject */
   --theme-error: var(--swatch-red); /* the error state of the contact form: the line under a field, the frame of a checkbox / pill / the subject list's button (no text turns red) */
   --theme-text-placeholder: var(--swatch-white-10-a15); /* the contact form's placeholders («[ Your Name ]») */
+  --theme-text-counter: var(--swatch-black-15); /* the preloader's counter «0/100%» */
   --theme-icon: var(--swatch-white-10); /* logo, monochrome icons */
   --theme-icon-secondary: var(--swatch-blue); /* the square of the logo, the blue squares, arrows */
   --theme-icon-brand: var(--swatch-red); /* the red squares */

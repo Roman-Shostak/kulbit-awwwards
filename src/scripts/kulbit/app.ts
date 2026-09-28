@@ -88,6 +88,11 @@ export const app = {
   landscapeBlocked: false,
   /** A video is in fullscreen (set by ./project-video): rotation must not pause it */
   videoFullscreen: false,
+  /**
+   * The preloader covers the page (src/components/sections/Preloader.astro sets it before the engine starts and clears
+   * it when it leaves): gestures and keys are ignored, the current section's video waits (showCurrentVideo)
+   */
+  preloading: false,
   initialized: false,
 };
 

@@ -35,8 +35,9 @@ two-decimal rem roundings (18px → 1.13rem = 18.08px) are kept exactly, so the 
 | --- | --- | --- | --- |
 | black | `#000000` | `--swatch-black` (+ `-a0`, `-a65`) | `--theme-page-bg`, `--theme-text-inverse`; `--theme-fade`, `--theme-vignette` |
 | white-10 | `#fdfcfc` | `--swatch-white-10` (+ `-a5/-a7/-a10/-a12/-a15`) | `--theme-text`, `--theme-icon`; `--theme-track`, `--theme-text-placeholder`, `--theme-ring-*`, `--theme-player-seek/-volume` |
-| white | `#ffffff` | `--swatch-white` | `--theme-illustration` (radar and chart strokes) |
+| white | `#ffffff` | `--swatch-white` | `--theme-illustration` (radar and chart strokes; the preloader's square and line) |
 | black-20 | `#404040` | `--swatch-black-20` | `--theme-text-secondary` → `text-color-secondary` (the grey half of the statements) |
+| black-15 (kulbit.webflow.io) | `#d6d6d6` | `--swatch-black-15` | `--theme-text-counter` (the preloader's counter) |
 | black-30 | `#252525` | `--swatch-black-30` | `--theme-border` |
 | — (raw in its classes) | `#171717` | `--swatch-graphite` | `--theme-frame` (button and tile frames, the contact form's hairlines and pills) |
 | — (the contact popup in Figma) | `#121212` | `--swatch-coal` | `--theme-surface` (Button solid, the options of the mobile subject list) |
@@ -68,7 +69,8 @@ One-offs (one element each) — declared in their component under the Webflow na
 `text-size-production-label`, `-production-head`, `-production-card`, `-production-text` (TraditionalProduction);
 `text-size-process-label`, `-process-week`, `-process-number`, `-process-category`, `text-size-list` (WorkingProcess);
 `text-size-player` (ProjectVideo); `text-size-button`, `-button-hero`, `-button-second`, `-button-solid` (Button);
-`text-size-popup-title` (ContactPopup); `text-size-input`, `-input-small`, `-input-value` (Input).
+`text-size-popup-title` (ContactPopup); `text-size-input`, `-input-small`, `-input-value` (Input);
+`text-size-preloader-precent` (Preloader).
 
 ## Spacing, sizes, shape, motion
 
@@ -91,7 +93,9 @@ One-offs (one element each) — declared in their component under the Webflow na
 | `--border-width-sm` / `-md` | 1px / 2px | every border, outline and hairline |
 | `--transition-duration` / `-easing` / `-duration-slow` | 0.3s / ease / 0.6s | Square 0.3s ease, OurClients 0.3s / 0.6s ease, every hover |
 
-The step scroll (`src/scripts/kulbit/app.ts` → `config`) keeps the Webflow build's own durations and easing.
+The step scroll (`src/scripts/kulbit/app.ts` → `config`) keeps the Webflow build's own durations and easing; the
+Preloader's GSAP timeline keeps those of its source (kulbit.webflow.io `initPreloader()`), and its CSS fallback exit
+waits 6 s.
 
 ## One-offs (raw values left on purpose)
 

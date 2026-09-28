@@ -9,6 +9,7 @@ import WorkingProcess from '@/components/sections/WorkingProcess.astro';
 import TraditionalProduction from '@/components/sections/TraditionalProduction.astro';
 import SectionNav from '@/components/sections/SectionNav.astro';
 import LandscapePopup from '@/components/sections/LandscapePopup.astro';
+import Preloader from '@/components/sections/Preloader.astro';
 import SiteFooter from '@/components/sections/SiteFooter.astro';
 import ContactPopup from '@/components/sections/ContactPopup.astro';
 import { localeStaticPaths, useTranslations } from '@/i18n';
@@ -27,6 +28,7 @@ const t = useTranslations(Astro.currentLocale);
   steps>
   <SiteHeader slot="header" />
   <SectionNav slot="header" />
+  <Preloader slot="header" />
   <LandscapePopup slot="header" />
   <Hero />
   <OurClients />

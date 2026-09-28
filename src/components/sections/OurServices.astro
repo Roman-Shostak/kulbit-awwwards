@@ -12,7 +12,8 @@
  * Only the card in view plays its video, and only while the section is the current one; the files load ahead (the
  * first card's when the section before becomes the current one, the next card's while one plays).
  * The markup is the natural state: the first card in the frame, the line at its first part.
- * Files: public/video/service-*-1080.mp4 (the originals: 1920 × 1062) / -720.mp4 (the Webflow transcodes, 1280 × 708);
+ * Files: public/video/service-*-1080.mp4 / -720.mp4 (H.264) + their -av1 copies, played first where AV1 decodes (from the
+ * client's 4K masters in video-masters/; the strategy loop is cropped of its black bars: 1920 × 1062 / 1280 × 708);
  * posters src/assets/our-services/ (the first frames, 1280 × 708) — in data-poster: the step engine sets `poster` when
  * the section is the current or the next one (not at the page start). The 1080 file only where the box needs it: a
  * desktop at 2x, or wider than 2078px (the 754 × 654 box covered by the 16:9 frame = 1182px wide at 1920, under the 720
@@ -27,6 +28,7 @@ import posterBrandVideos from '@/assets/our-services/service-brand-videos-poster
 import posterProductVideos from '@/assets/our-services/service-product-videos-poster.jpg';
 import posterGlobalScale from '@/assets/our-services/service-global-scale-poster.jpg';
 import posterExtended from '@/assets/our-services/service-extended-capabilities-poster.jpg';
+import { av1Type } from '@/data/video';
 
 const t = useTranslations(Astro.currentLocale).ourServices;
 
@@ -38,12 +40,15 @@ const media = [
   { video: 'global-scale', poster: posterGlobalScale, width: 'width--702/500/auto' },
   { video: 'extended-capabilities', poster: posterExtended, width: 'width--639/500/auto' },
 ];
+// The 1080 file only where the card is drawn wider than the 720 frame: 2× screens on desktop, or ≥ 2079px wide (PERF-06)
+const BIG = '(min-width: 992px) and (min-resolution: 2dppx), (min-width: 2079px)';
 const cards = await Promise.all(
   t.cards.map(async (card, i) => {
     const { video, poster, width } = media[i];
     // layout none: only .src is used (a poster attribute), no srcset files
     const image = await getImage({ src: poster, format: 'webp', width: 1280, quality: 80, layout: 'none' });
-    return { ...card, width, poster: image.src, src: `/video/service-${video}-1080.mp4`, srcSmall: `/video/service-${video}-720.mp4` };
+    const file = `/video/service-${video}`;
+    return { ...card, width, poster: image.src, src: `${file}-1080.mp4`, srcSmall: `${file}-720.mp4`, srcAv1: `${file}-1080-av1.mp4`, srcSmallAv1: `${file}-720-av1.mp4` };
   }),
 );
 ---
@@ -122,7 +127,9 @@ const cards = await Promise.all(
               </div>
               <div class="our-services_media">
                 <video class="fill-box" muted loop playsinline preload="none" data-poster={card.poster} aria-hidden="true">
-                  <source src={card.src} type="video/mp4" media="(min-width: 992px) and (min-resolution: 2dppx), (min-width: 2079px)" />
+                  <source src={card.srcAv1} type={av1Type(1080, false)} media={BIG} />
+                  <source src={card.src} type="video/mp4" media={BIG} />
+                  <source src={card.srcSmallAv1} type={av1Type(720, false)} />
                   <source src={card.srcSmall} type="video/mp4" />
                 </video>
               </div>

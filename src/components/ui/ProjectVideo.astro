@@ -24,18 +24,22 @@ import IconPlay from '@/assets/icons/play.svg';
 import IconPlayTriangle from '@/assets/icons/play-triangle.svg';
 import IconMute from '@/assets/icons/speaker-mute.svg';
 import IconVolume from '@/assets/icons/speaker-unmute.svg';
+import { av1Type } from '@/data/video';
 
 interface Props extends HTMLAttributes<'div'> {
   /** Unique on the page: the root's id and the base of the popup's and the poster's ids */
   id: string;
   src: string;
   srcSmall: string;
+  /** The AV1 copies of src / srcSmall (with sound), played first where the browser decodes AV1 */
+  srcAv1?: string;
+  srcSmallAv1?: string;
   poster: ImageMetadata;
   alt: string;
   element?: 'div' | 'li';
 }
 
-const { id, src, srcSmall, poster, alt, element = 'div', class: className, ...rest } = Astro.props;
+const { id, src, srcSmall, srcAv1, srcSmallAv1, poster, alt, element = 'div', class: className, ...rest } = Astro.props;
 const Tag = element;
 const t = useTranslations(Astro.currentLocale).projectVideo;
 // aria-controls of the volume button and aria-describedby of the start button
@@ -45,7 +49,9 @@ const posterId = `${id}-poster`;
 
 <Tag id={id} class:list={['project-video', className]} data-kulbit-project-video="" {...rest}>
   <video class="project-video_video" playsinline preload="none">
+    {srcSmallAv1 && <source src={srcSmallAv1} type={av1Type(720, true)} media="(max-width: 991px)" />}
     <source src={srcSmall} type="video/mp4" media="(max-width: 991px)" />
+    {srcAv1 && <source src={srcAv1} type={av1Type(1080, true)} />}
     <source src={src} type="video/mp4" />
   </video>
   <div class="project-video_poster" data-kulbit-poster>

@@ -12,7 +12,7 @@
  * gesture moves to the next section. The line fills by the window position. The closed cards (height 0) are inert:
  * out of the Tab order and the accessibility tree.
  * The markup is the natural state: the first window in the frame, the line at its first part.
- * Files: public/video/project-*-1080.mp4 / -720.mp4 (≤ 991px); posters src/assets/projects/ (2310 × 1290). The images
+ * Files: public/video/project-*-1080.mp4 / -720.mp4 (≤ 991px) + their -av1 copies (from the client's masters); posters src/assets/projects/ (2310 × 1290). The images
  * are lazy: the step engine starts the images of the current and the next section (src/scripts/kulbit/video.ts);
  * sizes = the card, 91–92vw on every breakpoint.
  */
@@ -34,6 +34,8 @@ const videos = [
   id: `project-${name}`,
   src: `/video/project-${name}-1080.mp4`,
   srcSmall: `/video/project-${name}-720.mp4`,
+  srcAv1: `/video/project-${name}-1080-av1.mp4`,
+  srcSmallAv1: `/video/project-${name}-720-av1.mp4`,
   poster,
   alt: t.posters[i],
 }));

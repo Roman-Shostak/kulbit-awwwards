@@ -8,11 +8,14 @@
  * the heading and the CTA leave down (yPercent 300), the text up (−300), the header up (−600); tablet/mobile — the
  * whole content leaves down and the sound button moves to the middle of the screen. The video plays only while the
  * hero is the current section. The sound button is drawn towards the cursor (below).
- * Files: public/video/hero-1080.mp4 (desktop) / hero-720.mp4 (≤ 991px), poster = the first frame.
+ * Files: public/video/hero-1080.mp4 (desktop) / hero-720.mp4 (≤ 991px), poster = the first frame. First the AV1
+ * copies (hero-1080-av1 / hero-720-av1: SVT-AV1 10-bit CRF 40 from the client's master «showreel (for site) hq v1»,
+ * VMAF 93.6 / 93.5 against it, half the size of the H.264 files); a browser without AV1 takes the H.264 file.
  */
 import { getImage } from 'astro:assets';
 import Button from '@/components/ui/Button.astro';
 import Square from '@/components/ui/Square.astro';
+import { av1Type } from '@/data/video';
 import { useTranslations } from '@/i18n';
 import heroPoster from '@/assets/hero/hero-poster.jpg';
 import IconMute from '@/assets/icons/speaker-mute.svg';
@@ -57,7 +60,9 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
         data-kulbit-scale-from-tablet="1.2"
       >
         <video class="fill-box" muted loop playsinline preload="auto" poster={poster.src}>
+          <source src="/video/hero-720-av1.mp4" type={av1Type(720, true)} media="(max-width: 991px)" />
           <source src="/video/hero-720.mp4" type="video/mp4" media="(max-width: 991px)" />
+          <source src="/video/hero-1080-av1.mp4" type={av1Type(1080, true)} />
           <source src="/video/hero-1080.mp4" type="video/mp4" />
         </video>
       </div>

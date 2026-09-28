@@ -44,3 +44,6 @@ worker/worker-configuration.d.ts
 
 # The Webflow export the sections are ported from (reference only, 34 MB)
 /WEBFLOW/
+
+# Client video masters: sources for public/video (encoded with ffmpeg), never committed
+video-masters/

@@ -1,21 +1,23 @@
 ---
 /**
- * Preloader — the loading screen of the live Webflow site kulbit.webflow.io (its .preloader markup and CSS + initPreloader()
- * of github.com/Roman-Shostak/KULBIT-GSPAP.js gsap-animation.js; the kulbit-gsap export has none), values 1:1 (1rem =
- * 16px on the 1920 / 744 / 390 frames = our fluid scale). A black screen over everything: the counter 0 → 100 % over
- * a line in the top right corner, the white square with the K mark in the middle; two red squares fly round it, it
- * grows, one of them floods it blue, it folds, the line runs across the screen and the screen fades out — 2.8 s, timed
- * like the source (not tied to the real loading). Then the current section's video starts.
+ * Preloader — the loading screen of the live Webflow site kulbit.webflow.io (its .preloader markup and CSS +
+ * initPreloader() of github.com/Roman-Shostak/KULBIT-GSPAP.js gsap-animation.js; the kulbit-gsap export has none),
+ * values 1:1 (1rem = 16px on the 1920 / 744 / 390 frames = our fluid scale). A black screen over everything: the
+ * counter 0 → 100 % over a line in the top right corner, the white square with the K mark in the middle; two red
+ * squares fly round it, it grows, one of them floods it blue, it folds, the line runs across the screen and the screen
+ * fades out — 2.8 s, timed like the source (not tied to the real loading). Then the current section's video starts
+ * and, on the hero, its intro plays (src/scripts/kulbit/hero-intro.ts: set up when the fade begins, played when the
+ * preloader has gone).
  * Decorative (aria-hidden): the page under it stays in the accessibility tree. It is in the first paint (no flash of
  * the page before it), but only with scripts and without `prefers-reduced-motion: reduce` (media queries below; the
- * script checks the same). While it is on, the step scroll ignores the gestures and the keys and the video waits
- * (`app.preloading`, src/scripts/kulbit/). If its script never runs, it fades out by itself after 6 s (a script that
- * arrives after that lets the fade finish and plays nothing).
+ * script checks the same). While it is on the video waits (`app.preloading`); until the end of the hero intro the step
+ * scroll ignores the gestures and the keys (`app.intro`, src/scripts/kulbit/). If its script never runs, it fades out
+ * by itself after 6 s (a script that arrives after that lets the fade finish and plays nothing).
  * Rendered in the header slot (<Preloader slot="header" />) like LandscapePopup and right before it: fixed, over the
  * header and the menu panel, under the landscape popup (both z-index 2 inside .header-fixed, which lies over the
  * sections and the footer) — as in the source, where the rotate overlay lies over the preloader.
  * Not ported: the source's «AI Video Boutique» (under the line inside its 35px box with overflow hidden — never
- * visible) and its hero intro after the preloader (another hero).
+ * visible).
  * `inline` (the /dev/components showcase only): its start state in the flow of the page; the script leaves it alone.
  */
 import IconMark from '@/assets/icons/logo-mark.svg';
@@ -128,7 +130,8 @@ const { inline = false } = Astro.props;
     visibility: hidden;
   }
   /* .preloader-small-square: 1.31rem in a corner of the square (top left; .is-second bottom right, .is-alternate
-   * bottom left). The masks: white on the white square, over the red squares (a red one landing there disappears) */
+   * bottom left). The masks: white on the white square, over the start of the red squares (the first one); the
+   * second one slides under the square itself (below) */
   .preloader_mask,
   .preloader_dot {
     position: absolute;
@@ -159,6 +162,11 @@ const { inline = false } = Astro.props;
     top: auto;
     bottom: 0;
   }
+  /* The second red square slides UNDER the white square (the source's CSS z-index -1; its script lifted it to 1 and
+   * a mask hid its landing — the mask's edges and the growth of the square showed a red strip on the white) */
+  .preloader_dot.corner--bottom-right {
+    z-index: -1;
+  }
 
   @media (max-width: 479px) {
     .preloader_line {
@@ -170,7 +178,8 @@ const { inline = false } = Astro.props;
 
 <script>
   import { gsap } from 'gsap';
-  import { app, reducedMotion } from '@/scripts/kulbit/app';
+  import { app, reducedMotion, rem } from '@/scripts/kulbit/app';
+  import { prepareHeroIntro, type HeroIntro } from '@/scripts/kulbit/hero-intro';
   import { showCurrentVideo } from '@/scripts/kulbit/video';
 
   // initPreloader() of the source, 1:1: the same timeline, eases and numbers. Its lengths are rem × our fluid scale
@@ -196,16 +205,13 @@ const { inline = false } = Astro.props;
     if (!line || !count || !square || !mark || !dot1 || !dot2) {
       gsap.set(preloader, { display: 'none' });
     } else {
-      const root = getComputedStyle(document.documentElement);
-      const scale =
-        parseFloat(root.getPropertyValue('--viewport-width')) / parseFloat(root.getPropertyValue('--reference')) || 1;
-      const rootSize = parseFloat(root.fontSize) || 16;
-      const rem = (value: number) => value * rootSize * scale;
       const tokens = getComputedStyle(preloader);
       const BLUE = tokens.getPropertyValue('--theme-icon-secondary').trim() || '#62b0ff';
 
       app.preloading = true;
+      app.intro = true;
       preloader.classList.add('is--running');
+      let intro: HeroIntro | null = null;
 
       const counter = { value: 0 };
       const tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } });
@@ -230,9 +236,10 @@ const { inline = false } = Astro.props;
       tl.to(dot1, { x: rem(11.5), duration: 0.3 }, 0.3);
       tl.to(dot2, { x: -rem(11.5), duration: 0.3 }, 0.3);
       tl.to(dot1, { x: rem(6.775), y: 0, duration: 0.3 }, 0.6);
-      tl.to(dot2, { x: -rem(6.775), y: 0, duration: 0.3 }, 0.6);
+      // exactly into the corner (8.0625 − 1.31): the source's 6.775 left 0.36px of it outside the square
+      tl.to(dot2, { x: -rem(6.7525), y: 0, duration: 0.3 }, 0.6);
 
-      // The square and the mark grow, the red square rides its corner; the other one is gone under its mask
+      // The square and the mark grow, the red square rides its corner; the other one is gone under the square
       tl.to(square, { width: rem(16.5625), height: rem(16.5625), duration: 0.4, ease: 'power3.inOut' }, 0.9);
       tl.to(mark, { width: rem(9.5625), height: rem(11.0625), duration: 0.4, ease: 'power3.inOut' }, 0.9);
       tl.to(
@@ -254,6 +261,14 @@ const { inline = false } = Astro.props;
       tl.to(dot1, { autoAlpha: 0, duration: 0.3 }, 1.6);
       tl.to(square, { height: 0, autoAlpha: 0, duration: 0.15 }, 1.9);
       tl.to(line, { width: rem(108.75), duration: 0.25, ease: 'power3.inOut' }, 2.05);
+      // The hero under the fade already in the intro's start state
+      tl.call(
+        () => {
+          intro = prepareHeroIntro();
+        },
+        [],
+        2.3,
+      );
       tl.to(
         preloader,
         {
@@ -263,6 +278,13 @@ const { inline = false } = Astro.props;
             gsap.set(preloader, { display: 'none' });
             app.preloading = false;
             showCurrentVideo();
+            if (intro) {
+              intro.play(() => {
+                app.intro = false;
+              });
+            } else {
+              app.intro = false;
+            }
           },
         },
         2.3,

@@ -121,7 +121,7 @@ src/
   scripts/motion.ts            Lenis + reveal on scroll + hiding header + hero intro (opt-in)
   scripts/header.ts            hiding header alone (`hidingHeader` prop; included in motion)
   scripts/kulbit/              GSAP step scroll (`steps` prop), port of the Webflow build: index.ts entry, app/observer/sections/hero/
-                               responsive/video/navigation/hero-height/button-border/scramble/project-video; sections plug in via registerSectionBuilder()
+                               responsive/video/navigation/hero-height/button-border/scramble/project-video/hero-intro; sections plug in via registerSectionBuilder()
   scripts/form.ts              fetch submit of every `<form data-form>` (ui/Form.astro): states, aria-invalid, messages from the `form` dictionary — copied in by /cloudflare-form
   dev/                         dev-only routes (astro.config devPages): tokens.astro (auto inventory of
                                tokens.css + utilities.css), components.astro (showcase registry), DevShell, css-inventory.ts;

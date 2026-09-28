@@ -7,7 +7,9 @@
  * src/scripts/kulbit (data-kulbit-* attributes, the Webflow API): desktop — the mask fades, the video scales to 1,
  * the heading and the CTA leave down (yPercent 300), the text up (−300), the header up (−600); tablet/mobile — the
  * whole content leaves down and the sound button moves to the middle of the screen. The video plays only while the
- * hero is the current section. The sound button is drawn towards the cursor (below).
+ * hero is the current section. The sound button is drawn towards the cursor (below). After the preloader the hero plays
+ * its intro (src/scripts/kulbit/hero-intro.ts, the data-hero-intro hooks): the video fades in, the heading types
+ * itself, the CTA's arrow slides in, the statement scrambles in, the square rises.
  * Files: public/video/hero-1080.mp4 (desktop) / hero-720.mp4 (≤ 991px), poster = the first frame. First the AV1
  * copies (hero-1080-av1 / hero-720-av1: SVT-AV1 10-bit CRF 40 from the client's master «showreel (for site) hq v1»,
  * VMAF 93.6 / 93.5 against it, half the size of the H.264 files); a browser without AV1 takes the H.264 file.
@@ -31,19 +33,19 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
   <div class="container">
     <div class="hero_content text-style-uppercase" data-kulbit-y-tablet="300" data-kulbit-fade-tablet="0">
       <div class="hero_heading text-weight-800" data-kulbit-y="300" data-kulbit-fade="0">
-        <h1 class="hero_title text-size-h1">{t.title.lead} <span class="text-color-accent">{t.title.accent}</span></h1>
+        <h1 class="hero_title text-size-h1" data-hero-intro="title">{t.title.lead} <span class="text-color-accent">{t.title.accent}</span></h1>
         <div class="hero_blur desktop-only" aria-hidden="true"></div>
       </div>
       {/* One sentence in three blocks: the spans are flex items (blocks) of the column, the spaces between them keep the
         words apart in the text (a flex container does not render them); it reads after the heading, before the CTA (the
         text or the CTA is absolute on every breakpoint, so the DOM order moves nothing) */}
-      <p class="hero_text text-size-hero text-weight-700" data-kulbit-y="-300" data-kulbit-fade="0">
+      <p class="hero_text text-size-hero text-weight-700" data-kulbit-y="-300" data-kulbit-fade="0" data-hero-intro="text">
         <span class="hero_blend"><span class="text-color-secondary">{s.blend}</span> {s.human}</span>{' '}
         <span class="hero_ai text-color-accent">{s.ai}</span>{' '}
         <span class="hero_deliver"><span class="text-color-secondary">{s.deliver}</span> {s.quality} <span class="text-color-secondary">{s.videos}</span></span>
-        <Square class="hero_square" />
+        <Square class="hero_square" data-hero-intro="square" />
       </p>
-      <Button variant="arrow" class="hero_pilot" data-kulbit-y="300" data-kulbit-fade="0" data-popup="contact">{t.pilot}</Button>
+      <Button variant="arrow" class="hero_pilot" data-kulbit-y="300" data-kulbit-fade="0" data-popup="contact" data-hero-intro="pilot">{t.pilot}</Button>
     </div>
   </div>
 

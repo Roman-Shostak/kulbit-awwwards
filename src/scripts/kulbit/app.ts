@@ -90,9 +90,14 @@ export const app = {
   videoFullscreen: false,
   /**
    * The preloader covers the page (src/components/sections/Preloader.astro sets it before the engine starts and clears
-   * it when it leaves): gestures and keys are ignored, the current section's video waits (showCurrentVideo)
+   * it when it leaves): the current section's video waits (showCurrentVideo)
    */
   preloading: false,
+  /**
+   * The preloader and the hero intro after it (./hero-intro) are playing: gestures and keys are ignored (set with
+   * `preloading`, cleared at the end of the intro — or with `preloading` when the page restores a later section)
+   */
+  intro: false,
   initialized: false,
 };
 
@@ -138,6 +143,17 @@ export const playTimeline = (
     return;
   }
   track(timeline.tweenTo(position, { duration, onComplete }));
+};
+
+/**
+ * A Webflow rem length in px now: rem × our fluid scale (1rem = 16px on the 1920 / 744 / 390 frames, the browser's own
+ * root size otherwise) — for GSAP numbers ported from the source (the preloader, the hero intro)
+ */
+export const rem = (value: number) => {
+  const root = getComputedStyle(document.documentElement);
+  const scale =
+    parseFloat(root.getPropertyValue('--viewport-width')) / parseFloat(root.getPropertyValue('--reference')) || 1;
+  return value * (parseFloat(root.fontSize) || 16) * scale;
 };
 
 /** Numeric attribute with a fallback */

@@ -21,7 +21,7 @@ const handleGesture = (dir: Direction, self: Observer) => {
   const velocity = Math.abs(self.velocityY);
   const accelerating = velocity > previousVelocity * config.accelRatio && velocity > config.minVelocity;
   previousVelocity = velocity;
-  if (app.isAnimating || app.preloading) return; // a move / step is playing, or the preloader covers the page
+  if (app.isAnimating || app.intro) return; // a move / step is playing, or the preloader / the hero intro
   if (flinging && !accelerating) return; // the inertia tail
   flinging = true;
   advance(dir);
@@ -76,7 +76,7 @@ export const setupKeyboard = () => {
     else if (event.key === ' ' && !target?.closest('button, summary, [role="button"]')) dir = event.shiftKey ? -1 : 1;
     if (!dir) return;
     event.preventDefault();
-    if (event.repeat || app.isAnimating || app.preloading) return; // a held key is one step
+    if (event.repeat || app.isAnimating || app.intro) return; // a held key is one step
     advance(dir);
   });
 };

@@ -1,7 +1,8 @@
 /**
  * Input: wheel and touch through GSAP Observer (ADR-008) + the keyboard. One gesture = one `advance`.
  * Source: kulbit-webflow `src/02-app-core.js` → handleGesture, setupObserver. The keyboard is new (the source had
- * none): ArrowDown / PageDown / Space → next, ArrowUp / PageUp / Shift+Space → previous.
+ * none): ArrowDown / PageDown / Space → next, ArrowUp / PageUp / Shift+Space → previous — never from inside a field,
+ * a dialog or a widget that owns these keys (a slider, a video / audio element).
  *
  * Trackpad inertia: one flick is a long stream of wheel events. A NEW flick is told from the inertia tail by
  * velocity: the tail slows down (ignored), a new flick spikes (> accelRatio × the previous velocity and
@@ -49,13 +50,25 @@ export const setupObserver = () => {
   });
 };
 
+// Fields, dialogs and the widgets that own these keys (the player's sliders, a video / audio element)
+const KEY_OWNERS = [
+  'input',
+  'textarea',
+  'select',
+  '[contenteditable]:not([contenteditable="false"])',
+  'dialog',
+  '[role="slider"]',
+  'video',
+  'audio',
+].join(', ');
+
 export const setupKeyboard = () => {
   window.addEventListener('keydown', (event) => {
     if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
     // Navigation off (the landscape popup) or a modal dialog open
     if (!app.observer?.isEnabled || document.querySelector('dialog:modal')) return;
     const target = event.target instanceof Element ? event.target : null;
-    if (target?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), dialog')) return;
+    if (target?.closest(KEY_OWNERS)) return;
 
     let dir: Direction | 0 = 0;
     if (event.key === 'ArrowDown' || event.key === 'PageDown') dir = 1;

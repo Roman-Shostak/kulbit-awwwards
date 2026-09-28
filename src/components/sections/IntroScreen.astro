@@ -10,12 +10,15 @@
  * `accent` = its blue part), the statement (typed letter by letter, data-kulbit-typewriter) and the pilot button
  * (Button «second», the hover border from the cursor: data-kulbit-border). No steps of its own: one gesture moves to
  * the next section. The label is the <h2> of the topic: the section after the screen continues its outline.
- * The page passes the texts of one dictionary key (workingProcessIntro, traditionalProductionIntro).
+ * The page passes the texts of one dictionary key (workingProcessIntro, traditionalProductionIntro) and the `id` of the
+ * screen (the anchor the menu links to).
  */
 import Button from '@/components/ui/Button.astro';
 import ProgressLine from '@/components/ui/ProgressLine.astro';
 
 interface Props {
+  /** The anchor of the screen (SectionNav links to it) */
+  id?: string;
   title: string;
   accent?: string;
   /** One sentence; the grey parts as on the site */
@@ -23,10 +26,10 @@ interface Props {
   pilot: string;
 }
 
-const { title, accent, statement, pilot } = Astro.props;
+const { id, title, accent, statement, pilot } = Astro.props;
 ---
 
-<section class="section padding-md" data-kulbit-section>
+<section class="section padding-md" id={id} data-kulbit-section>
   <div class="container">
     <div class="flex-v spacing-2xl text-style-uppercase">
       <ProgressLine start="full" />

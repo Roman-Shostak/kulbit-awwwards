@@ -3,7 +3,10 @@
  * Logo — the Kulbit logo linking home (the Webflow build: .logo — the header and .logo.is-footer — the footer). On the
  * home page it is the current page's own item: <a aria-current="page"> without href. The accessible name is sr-only
  * text; the square turns red on hover / focus of a real link (Webflow .logo: blue → red).
- *   size  150/150/125 (default, the header) · 108 (the footer, every breakpoint)
+ *   size     150/150/125 (default, the header) · 108 (the footer, every breakpoint) · 125 (every breakpoint: the
+ *            landscape popup, .logo.is-landscape-popup)
+ *   element  a (default): the link home · span: the plain mark, aria-hidden, where a link has no use (the landscape
+ *            popup blocks the whole site: a link home would lead back to it)
  * Every other attribute passes through.
  */
 import type { HTMLAttributes } from 'astro/types';
@@ -11,23 +14,27 @@ import LogoMark from '@/assets/icons/logo.svg';
 import { localePath, useTranslations } from '@/i18n';
 
 type Props = Omit<HTMLAttributes<'a'>, 'href'> & {
-  size?: '150/150/125' | '108';
+  size?: '150/150/125' | '108' | '125';
+  element?: 'a' | 'span';
 };
 
-const { size = '150/150/125', class: className, ...rest } = Astro.props;
+const { size = '150/150/125', element = 'a', class: className, ...rest } = Astro.props;
 const t = useTranslations(Astro.currentLocale).logo;
 const home = localePath('/', Astro.currentLocale);
 const isHome = Astro.url.pathname === home;
+const isLink = element === 'a';
+const Tag = element;
 ---
 
-<a
-  class:list={['logo', { 'size--108': size === '108' }, className]}
-  href={isHome ? undefined : home}
-  aria-current={isHome ? 'page' : undefined}
+<Tag
+  class:list={['logo', { 'size--108': size === '108', 'size--125': size === '125' }, className]}
+  href={isLink && !isHome ? home : undefined}
+  aria-current={isLink && isHome ? 'page' : undefined}
+  aria-hidden={isLink ? undefined : 'true'}
   {...rest}>
   <LogoMark aria-hidden="true" />
-  <span class="sr-only">{t.home}</span>
-</a>
+  {isLink && <span class="sr-only">{t.home}</span>}
+</Tag>
 
 <style>
   .logo {
@@ -38,17 +45,22 @@ const isHome = Astro.url.pathname === home;
   .logo.size--108 {
     width: calc(6.75rem * var(--fluid-scale));
   }
+  .logo.size--125 {
+    width: calc(7.81rem * var(--fluid-scale));
+  }
   .logo svg {
     display: block;
     width: 100%;
     height: auto;
   }
-  .logo :global(rect:first-of-type) {
+  /* The square is fill="var(--theme-icon-secondary)" in the file (svgo turns its <rect> into a <path>, the variable
+   * stays): the link re-assigns the variable, the shapes fade to the new fill */
+  .logo :global(path) {
     transition: fill var(--transition-duration) var(--transition-easing);
   }
-  .logo[href]:hover :global(rect:first-of-type),
-  .logo[href]:focus-visible :global(rect:first-of-type) {
-    fill: var(--theme-icon-brand);
+  .logo[href]:hover,
+  .logo[href]:focus-visible {
+    --theme-icon-secondary: var(--theme-icon-brand);
   }
   @media (max-width: 479px) {
     .logo {

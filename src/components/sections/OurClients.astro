@@ -10,7 +10,8 @@
  * first moves its cards up (tablet by 1 / 0 / 1 cards, mobile by 2 / 1 / 2). The line fills per set; the two facts
  * are rewritten when the last set appears. Hovering a client card crossfades its logo to the colour version.
  * The markup is the natural state: set 1 in the frame, the others below it, the line at a third.
- * Files: src/assets/our-clients/ — logos as SVG files (107 KB together: too heavy to inline), awards 4x PNG.
+ * Files: src/assets/our-clients/ — logos as SVG files (107 KB together: too heavy to inline), awards 4x PNG; the
+ * awards' `sizes` is their box (9.94 / 7.19 / 5.69rem on the 1920 / 744 / 390 frames = 8.28 / 15.46 / 23.34vw).
  * Images load eagerly: the stacked sections wait outside the clipped viewport, where lazy images only start loading
  * once they are on the screen (they appeared empty and popped in).
  */
@@ -78,7 +79,7 @@ const awards = [awardCreation, awardUnderground, awardKyiv, awardVisioniCorte, a
 const isBig = (index: number, total: number) => index === 0 || index === total - 1;
 ---
 
-<section class="section padding-md" data-kulbit-section data-clients>
+<section class="section padding-md" id="clients" data-kulbit-section data-clients>
   <div class="container">
     <div class="flex-v spacing-2xl text-style-uppercase">
       <ProgressLine start="third" />
@@ -97,7 +98,7 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
               <div class="our-clients_facts spacing-36/36/20">
                 {
                   t.facts.map((fact) => (
-                    <div class="our-clients_fact">
+                    <div class="our-clients_fact" data-clients-fact>
                       <p data-clients-text>
                         <span class="text-color-secondary">{fact.grey}</span> {fact.text}
                       </p>
@@ -138,7 +139,15 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
               awards.map((award, j) => (
                 <li class:list={['our-clients_card border-radius-sm', { 'size--big': isBig(j, awards.length) }]}>
                   <div class="our-clients_logo">
-                    <Picture src={award.src} formats={['avif', 'webp']} width={159} alt={award.alt} loading="eager" class="fill-box" />
+                    <Picture
+                      src={award.src}
+                      formats={['avif', 'webp']}
+                      width={159}
+                      sizes="(max-width: 479px) 23.34vw, (max-width: 991px) 15.46vw, 8.28vw"
+                      alt={award.alt}
+                      loading="eager"
+                      class="fill-box"
+                    />
                   </div>
                 </li>
               ))
@@ -379,50 +388,35 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
   //   tablet / mobile the stages come from the shifts per set (tablet [1, 0, 1], mobile [2, 1, 2]): appear → shift
   //                   the cards of set i (if any) → the next set → … ; a shift = the distance between two cards
   // Both: the progress line (1/3 → 2/3 → 3/3 by the set), the facts rewritten by scramble when the last set
-  // appears (back → the original). The engine calls prepare (slide-in start: the line empty), enter (covered: the
-  // line fills to the first third), collapse (slides away: the line empties), reset(toEnd) (instant state).
+  // appears (back → the original; morphSegments: screen readers get the new text at once, never the animation).
+  // The engine calls prepare (slide-in start: the line empty), enter (covered: the line fills to the first third),
+  // collapse (slides away: the line empties), reset(toEnd) (instant state), resize (within the breakpoint: the px
+  // measures — the fact boxes, the card shifts — taken again for the current state). Every duration is the engine's
+  // (config, × motion): reduced motion makes the steps and the rewrites instant.
   import { gsap } from 'gsap';
   import { app, config, registerSectionBuilder, type SectionController } from '@/scripts/kulbit/app';
   import { progressLine } from '@/scripts/kulbit/progress-line';
-  import { buildSegments, parseSegments, reducedMotion, SCRAMBLE, type Segment } from '@/scripts/kulbit/scramble';
+  import { morphSegments, parseSegments } from '@/scripts/kulbit/scramble';
 
   const root = document.querySelector<HTMLElement>('[data-clients]');
-  // The facts as rendered and their rewrite (<template>), read once before anything changes them
-  const facts = [...(root?.querySelectorAll<HTMLElement>('[data-clients-text]') ?? [])].map((text) => ({
-    text,
-    orig: parseSegments(text),
-    next: parseSegments(text.parentElement?.querySelector<HTMLTemplateElement>('[data-clients-next]')?.content ?? text),
-  }));
+  // The facts: the box, the text as rendered and its rewrite (<template>), read once before anything changes them
+  const facts = [...(root?.querySelectorAll<HTMLElement>('[data-clients-fact]') ?? [])].flatMap((box) => {
+    const text = box.querySelector<HTMLElement>('[data-clients-text]');
+    if (!text) return [];
+    const next = box.querySelector<HTMLTemplateElement>('[data-clients-next]');
+    return [{ box, text, orig: parseSegments(text), next: parseSegments(next?.content ?? text) }];
+  });
 
   // Erase the whole paragraph, then write every segment (the grey span keeps its colour)
-  const morphText = (text: HTMLElement, segments: Segment[]) => {
-    gsap.killTweensOf(text);
-    if (reducedMotion()) {
-      buildSegments(text, segments, true);
-      return;
-    }
-    gsap.to(text, {
-      duration: 0.35,
-      scrambleText: { text: '', ...SCRAMBLE, speed: 3 },
-      onComplete: () =>
-        buildSegments(text, segments, false).forEach(([span, value]) =>
-          gsap.to(span, { duration: 0.6, scrambleText: { text: value, ...SCRAMBLE } }),
-        ),
-    });
-  };
-  const morphTexts = (toNext: boolean) => facts.forEach((f) => morphText(f.text, toNext ? f.next : f.orig));
-  const setTexts = (toNext: boolean) =>
-    facts.forEach((f) => {
-      gsap.killTweensOf(f.text);
-      buildSegments(f.text, toNext ? f.next : f.orig, true);
-    });
+  const morphTexts = (toNext: boolean) => facts.forEach((f) => morphSegments(f.text, toNext ? f.next : f.orig));
+  const setTexts = (toNext: boolean) => facts.forEach((f) => morphSegments(f.text, toNext ? f.next : f.orig, false));
 
   registerSectionBuilder((mode) => {
     const section = app.sections.find((s) => s.el === root);
     if (!section || !root) return;
     const sets = [...root.querySelectorAll<HTMLElement>('[data-clients-set]')];
     if (sets.length < 2) return;
-    const boxes = facts.map((f) => f.text.parentElement!);
+    const boxes = facts.map((f) => f.box);
     const cardsOf = (set: HTMLElement) => [...set.children] as HTMLElement[];
     const cards = sets.flatMap(cardsOf);
     const STEP = config.scrollDuration;
@@ -433,12 +427,17 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
     const total = sets.length;
     const clamp = (value: number, max: number) => Math.max(0, Math.min(max, value));
 
-    // The fact boxes keep their height while the texts are erased (the square is aligned to their bottom)
-    setTexts(false);
-    boxes.forEach((box) => {
-      box.style.height = '';
-      box.style.height = `${box.offsetHeight}px`;
-    });
+    // The fact boxes keep their height while the texts are erased (the square is aligned to their bottom): the height
+    // of the original texts, measured again on a resize (then the texts of the current state come back)
+    const measureBoxes = (toNext: boolean) => {
+      setTexts(false);
+      boxes.forEach((box) => {
+        box.style.height = '';
+        box.style.height = `${box.offsetHeight}px`;
+      });
+      if (toNext) setTexts(true);
+    };
+    measureBoxes(false);
     // The sets 2… wait below the frame in CSS (translateY 100 %): GSAP takes the transform over from zero
     gsap.set(sets, { y: 0 });
 
@@ -492,6 +491,8 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
           line.enter(1 / total);
         },
         collapse: () => line.collapse(),
+        // A resize within the breakpoint: the sets move by %, only the fact boxes are px
+        resize: () => measureBoxes(state === total - 1),
         dispose,
         step(dir) {
           const next = clamp(state + dir, total - 1);
@@ -508,10 +509,13 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
       };
     } else {
       const shifts = mode === 'mobile' ? [2, 1, 2] : [1, 0, 1];
-      const cardStep = sets.map((set) => {
-        const [first, second] = cardsOf(set);
-        return second ? second.getBoundingClientRect().top - first.getBoundingClientRect().top : 0;
-      });
+      // The distance between two cards of a set (px: measured again on a resize; the cards of a set share one shift)
+      const measureCardStep = () =>
+        sets.map((set) => {
+          const [first, second] = cardsOf(set);
+          return second ? second.getBoundingClientRect().top - first.getBoundingClientRect().top : 0;
+        });
+      let cardStep = measureCardStep();
       // appear → (shift set i) → set i + 1 → …
       const stages: { current: number; shifted: number[] }[] = [];
       const shifted = sets.map(() => 0);
@@ -564,6 +568,12 @@ const isBig = (index: number, total: number) => index === 0 || index === total -
           line.enter(1 / total);
         },
         collapse: () => line.collapse(),
+        // A resize within the breakpoint: the card shifts and the fact boxes are px (the line and the sets are %)
+        resize() {
+          cardStep = measureCardStep();
+          sets.forEach((set, i) => gsap.set(cardsOf(set), { y: -stages[stage].shifted[i] * cardStep[i] }));
+          measureBoxes(stage >= rewriteAt);
+        },
         dispose,
         step(dir) {
           const next = clamp(stage + dir, last);

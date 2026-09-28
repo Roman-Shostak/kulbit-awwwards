@@ -95,6 +95,10 @@ export default defineConfig({
   // the forms post to it through this proxy. Ignored by `astro build`.
   vite: { server: { proxy: { '/api': 'http://localhost:8787' } } },
 
+  // Every page's CSS inline in its HTML: one render-blocking request less on the first visit (one page + 404,
+  // ~12 KB gzip). Kulbit measured FCP/LCP 664 → 384 ms on a throttled mobile together with the lazy images.
+  build: { inlineStylesheets: 'always' },
+
   // dev-only pages (/dev/tokens, /dev/components) + robots.txt, sitemap.xml, llms.txt, llms-full.txt
   // generated into dist/ on every build (options: scripts/seo-files.mjs)
   // kulbit.site is closed from search for good (public/_headers): robots.txt only, no sitemap or llms files

@@ -1,26 +1,35 @@
 /**
- * Tablet (768–991) and mobile portrait (≤479) hero — one choreography (ADR-011), read from the `-tablet`
- * attributes on the same elements as the desktop ones (`data-kulbit-y-tablet`, `-scale-tablet`,
+ * Tablet (480–991; the source started at 768) and mobile portrait (≤ 479) hero — one choreography (ADR-011), read
+ * from the `-tablet` attributes on the same elements as the desktop ones (`data-kulbit-y-tablet`, `-scale-tablet`,
  * `-scale-from-tablet`, `-fade-tablet`; the header `[data-kulbit-header]` too):
  *   step 1  the attribute tweens + the sound button `[data-kulbit-sound]` moves to the centre of the visible screen
  *   step 2  `[data-hero-video]` shrinks to a 16:9 band at the top, section 2 slides in under it, the button moves
  *           to the centre of the band
  *   step 3  section 2 covers the screen = the move to section 1 (the hand-off)
  * Steps 2 and 3 need a second `[data-kulbit-section]`: with the hero alone the choreography is step 1 only.
+ * The geometry (the 16:9 band, the button's targets) is measured once per build: a width change while the hero is
+ * current rebuilds the breakpoint and puts it back on its step (./sections → handleResize, setTabletHeroStep).
+ * The timeline is built with the unscaled lengths (config.timeline*) and played through playTimeline: under reduced
+ * motion every step lands at once.
  * Source: kulbit-webflow `src/03-sections.js` → buildTabletHero, tabletHeroStep.
  */
 import { gsap } from 'gsap';
-import { app, config, num, persistSection, visibleHeight, type Direction } from './app';
+import { app, config, num, persistSection, playTimeline, visibleHeight, type Direction } from './app';
 import { updateVideoVisibility } from './video';
 
 const SUFFIX = '-tablet';
 let labels: (string | number)[] = [0];
 let cleanup: (() => void) | null = null;
+let builtWidth = 0;
+
+/** The viewport width the current tablet hero was measured at (0 = not built) */
+export const heroBuiltWidth = () => builtWidth;
 
 /** Removes the resize listener of the hero video (a breakpoint change) */
 export const teardownTabletHero = () => {
   cleanup?.();
   cleanup = null;
+  builtWidth = 0;
 };
 
 export const buildTabletHero = () => {
@@ -34,7 +43,7 @@ export const buildTabletHero = () => {
   const section2 = app.sections[1]?.el ?? null;
   const button = hero.el.querySelector<HTMLElement>('[data-kulbit-sound]');
 
-  const STEP = config.stepDuration;
+  const STEP = config.timelineStep;
   const EASE = config.ease;
   const has = (el: Element, name: string) => el.hasAttribute(`data-kulbit-${name}${SUFFIX}`);
   const value = (el: Element, name: string, fallback: number) => num(el, `data-kulbit-${name}${SUFFIX}`, fallback);
@@ -93,7 +102,7 @@ export const buildTabletHero = () => {
     timeline.to(section2, { yPercent: partial, duration: STEP, ease: EASE }, 's1');
     if (button) timeline.to(button, { y: buttonY16, duration: STEP, ease: EASE }, 's1');
     timeline.addLabel('s2');
-    timeline.to(section2, { yPercent: 0, duration: config.scrollDuration, ease: EASE }, 's2');
+    timeline.to(section2, { yPercent: 0, duration: config.timelineScroll, ease: EASE }, 's2');
     timeline.addLabel('s3');
   }
   labels = section2 ? [0, 's1', 's2', 's3'] : [0, 's1'];
@@ -104,6 +113,7 @@ export const buildTabletHero = () => {
 
   // Re-sync the video height after a rotation / viewport change (the hero height fix lands asynchronously)
   teardownTabletHero();
+  builtWidth = window.innerWidth;
   let timer = 0;
   const onResize = () => {
     clearTimeout(timer);
@@ -118,6 +128,14 @@ export const buildTabletHero = () => {
     window.removeEventListener('resize', onResize);
     window.visualViewport?.removeEventListener('resize', onResize);
   };
+};
+
+/** Puts the current tablet hero on its `step` (0–2) at once, after a rebuild for a new width */
+export const setTabletHeroStep = (step: number) => {
+  const timeline = app.sections[0]?.tabletTL;
+  if (!timeline || app.currentSectionIndex !== 0 || step <= 0 || step >= labels.length) return;
+  timeline.pause(labels[step]);
+  app.currentStep = step;
 };
 
 /**
@@ -137,26 +155,22 @@ export const tabletHeroStep = (dir: Direction) => {
     if (dir > 0 && app.currentStep < max) {
       app.isAnimating = true;
       const next = app.currentStep + 1;
-      timeline.tweenTo(labels[next], {
-        onComplete: () => {
-          app.isAnimating = false;
-          if (handOff && next === max) {
-            app.currentSectionIndex = 1;
-            app.currentStep = 0;
-            persistSection(); // hero → section 1 bypasses goToSection
-            updateVideoVisibility();
-            app.sections[1]?.controller?.enter?.(); // section 1 covered the screen: its appearance
-          } else app.currentStep = next;
-        },
+      playTimeline(timeline, labels[next], undefined, () => {
+        app.isAnimating = false;
+        if (handOff && next === max) {
+          app.currentSectionIndex = 1;
+          app.currentStep = 0;
+          persistSection(); // hero → section 1 bypasses goToSection
+          updateVideoVisibility();
+          app.sections[1]?.controller?.enter?.(); // section 1 covered the screen: its appearance
+        } else app.currentStep = next;
       });
     } else if (dir < 0 && app.currentStep > 0) {
       app.isAnimating = true;
       const next = app.currentStep - 1;
-      timeline.tweenTo(labels[next], {
-        onComplete: () => {
-          app.isAnimating = false;
-          app.currentStep = next;
-        },
+      playTimeline(timeline, labels[next], undefined, () => {
+        app.isAnimating = false;
+        app.currentStep = next;
       });
     }
     return true; // the hero is fully under the tablet logic
@@ -170,11 +184,9 @@ export const tabletHeroStep = (dir: Direction) => {
     persistSection(); // section 1 → hero bypasses goToSection
     controller?.prepare?.(); // hidden again for its next appearance
     updateVideoVisibility();
-    timeline.tweenTo(labels[max - 1], {
-      onComplete: () => {
-        app.isAnimating = false;
-        app.currentStep = max - 1;
-      },
+    playTimeline(timeline, labels[max - 1], undefined, () => {
+      app.isAnimating = false;
+      app.currentStep = max - 1;
     });
     return true;
   }

@@ -193,7 +193,7 @@ export default {
     /** The legend of the diagram: the blue line and the red one */
     legend: { kulbit: 'Kulbit', traditional: 'Traditional' },
     /** Under the diagram, left to right */
-    weeks: ['(Week 1)', '(Week 2-3)', '(Week 4-8)', '(16 Weeks)'],
+    weeks: ['(Week 1)', '(Week 2–3)', '(Week 4–8)', '(16 Weeks)'],
     /** Per stage: the label, the title, «The “Why”» in two lines and the tags by rows (one row = one branch of the
      * dashed line) */
     stages: [
@@ -258,7 +258,8 @@ export default {
      */
     traditional: [
       { label: 'Timeline:', text: ['3–12 Months. Linear, slow approval cycles.'] },
-      { label: 'Cost Structure:', text: ['High Fixed Costs.Crew, travel, insurance, rentals.'] },
+      // Figma has «Costs.Crew» (no space): a typo, fixed with a space — TODO: confirm with the client
+      { label: 'Cost Structure:', text: ['High Fixed Costs. Crew, travel, insurance, rentals.'] },
       { label: 'Flexibility:', text: ['Rigid. Changes require expensive reshoots.'] },
       { label: 'Scalability:', lead: 'Linear', text: ['1 Shoot = 1 Video.'] },
     ],
@@ -300,6 +301,9 @@ export default {
       'Traditional vs KULBIT',
       'Footer',
     ],
+    /** The toggle at the end of the panel that stops the autoplaying background videos (WCAG 2.2.2); aria-pressed
+     * tells its state. Not in the design (the panel is provisional) */
+    pauseVideo: 'Pause background video',
   },
   /** The footer: the copyright line, its three columns (the Webflow copy) and the names of the icon links */
   siteFooter: {
@@ -335,6 +339,13 @@ export default {
     pause: 'Pause',
     seek: 'Seek',
     volume: 'Volume',
+    /** ≤ 991px the volume button only mutes (no slider): its name, aria-pressed = muted */
+    mute: 'Mute',
     fullscreen: 'Fullscreen',
+  },
+  /** The screen a phone held sideways gets (the Webflow build's .landscape-popup), texts as on the build */
+  landscapePopup: {
+    title: 'Explore better experience',
+    text: 'please rotate phone to portrait mode or open the site on a desktop.',
   },
 };

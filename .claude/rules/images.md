@@ -58,6 +58,7 @@ import aboutPhoto from '@/assets/about/about-portrait.jpg';
 - On desktop the decor is anchored to the **container**, never to the section edges (on a 1920 screen it would drift): either `background-slot > container > <svg class="section_decor">` with `position: absolute` relative to the container, or `left: 50%; transform: translateX(-50%); width: calc(96rem * var(--fluid-scale))` (the frame width).
 - `overflow-hidden` goes on the `background-slot`, not on the section (the section must not clip its own content).
 - Colour: `currentColor` in the file, `color: var(--theme-illustration)` on the element class.
+- **A decorative background that is a file** (an `<img>` of a large SVG, not an inline component): the visibility utilities hide it with `display: none`, but every breakpoint's file still downloads. Use ONE `<picture>` in one slot instead: `<source media="(max-width: 479px)" srcset={mobile.src}>`, `<source media="(max-width: 991px)" srcset={tablet.src}>`, `<img src={desktop.src} width={desktop.width} height={desktop.height} alt="" loading="lazy" decoding="async" class="fill-box">` with the imports' `.src/.width/.height` — the one exception to "always an astro:assets component": `<Image>` makes a fake srcset of identical SVG copies and cannot art-direct. Each device downloads one file (Kulbit: the radar of TraditionalProduction).
 
 ## Icons and logos: SVG first
 - If an icon/logo exists as a vector in Figma, export SVG. Raster icons only when no vector exists.

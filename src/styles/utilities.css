@@ -24,14 +24,21 @@
   flex-direction: column;
   min-height: 100dvh;
 }
-/* The header always sits inside .header-fixed; header padding/background live here, not in the component */
+/* The header always sits inside .header-fixed; header padding/background live here, not in the component.
+ * Its strip spans the whole width over the top of every screen, so it lets the pointer through (hover, clicks and
+ * selection reach the section under it); its controls — the links, the buttons, the menu (a nav), a dialog — take it
+ * back */
 .header-fixed {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 10;
+  pointer-events: none;
   transition: transform var(--transition-duration) var(--transition-easing);
+}
+.header-fixed :is(a, button, nav, [role='dialog']) {
+  pointer-events: auto;
 }
 /* Hidden while scrolling down, shown again on the way up (src/scripts/header.ts: <BaseLayout hidingHeader> or motion) */
 .header-fixed.is--hidden {
@@ -438,13 +445,15 @@ html:has([data-menu-toggle][aria-expanded='true']) {
 }
 
 /* ---------- Motion: step scroll (src/scripts/kulbit/, enabled with <BaseLayout steps>) ----------
- * data-steps on <html> (BaseLayout's inline script, before the first paint): the native scroll is locked,
- * .wrapper is the fixed viewport (clip, not hidden: keyboard focus cannot scroll it) and <main data-scenes>
- * the stacking container — the module positions every [data-kulbit-section] inside it (absolute, 100vh,
- * z-index = its index) and moves them. z-index 0 keeps every section under .header-fixed.
+ * data-steps on <html> (BaseLayout's inline script, before the first paint): the native scroll is locked (clip on
+ * the root = hidden on the viewport, while the content stays visible to axe / Lighthouse), .wrapper is the fixed
+ * viewport (clip, not hidden: keyboard focus cannot scroll it) and <main data-scenes> the stacking container, as high
+ * as the visible viewport (100% of .wrapper, not 100vh: the mobile browser bars) — the module positions every
+ * [data-kulbit-section] inside it (absolute, 100%, z-index = its index; the footer the same inside .wrapper) and
+ * moves them. z-index 0 keeps every section under .header-fixed.
  * No JS → the page scrolls as usual. */
 html[data-steps] {
-  overflow: hidden;
+  overflow: clip;
 }
 html[data-steps] .wrapper {
   position: fixed;
@@ -455,11 +464,16 @@ html[data-steps] .wrapper {
 html[data-steps] [data-scenes] {
   position: relative;
   z-index: 0;
-  height: 100vh;
+  height: 100%;
 }
 /* A section slides in over the previous one: it covers it with the page background (Webflow: .section black) */
 html[data-steps] [data-kulbit-section] {
   background-color: var(--theme-page-bg);
+}
+/* Every section is a focus anchor (tabindex="-1"): the script moves the focus to the current screen. A container
+ * focused by script, not a control: no ring */
+html[data-steps] [data-kulbit-section]:focus {
+  outline: none;
 }
 
 /* ---------- Motion: reveal on scroll (src/scripts/motion.ts, enabled with <BaseLayout motion>) ----------

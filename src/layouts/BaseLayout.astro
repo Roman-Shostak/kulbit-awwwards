@@ -204,7 +204,7 @@ const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': grap
       </main>
       {
         Astro.slots.has('footer') && (
-          <footer class="footer" data-kulbit-section={steps ? '' : undefined}>
+          <footer class="footer" id="footer" data-kulbit-section={steps ? '' : undefined}>
             <slot name="footer" />
           </footer>
         )

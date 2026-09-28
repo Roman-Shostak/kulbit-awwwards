@@ -25,7 +25,7 @@ const t = useTranslations(Astro.currentLocale).workingProcess;
 const heads = ['max-width--400/456/235', 'max-width--320/320/248', 'max-width--368/368/240'];
 ---
 
-<div class="section padding-top-32 padding-bottom-md" data-kulbit-section>
+<div class="section padding-top-32 padding-bottom-md" id="working-process" data-kulbit-section>
   <div class="container">
     <div class="flex-v spacing-48/96/64">
       <div class="position-relative text-style-uppercase">
@@ -601,7 +601,7 @@ const heads = ['max-width--400/456/235', 'max-width--320/320/248', 'max-width--3
   // --colors--white-10, #fdfcfc — the same value); the active SVG = the visible one whose wrapper has an offsetParent
   // (an <svg> has no offsetParent of its own: in the source that check was always true).
   import { gsap } from 'gsap';
-  import { app, registerSectionBuilder, type SectionController } from '@/scripts/kulbit/app';
+  import { app, motion, reducedMotion, registerSectionBuilder, type SectionController } from '@/scripts/kulbit/app';
 
   const cardsWrapper = document.querySelector<HTMLElement>('[data-process-cards]');
   const root = cardsWrapper?.closest<HTMLElement>('[data-kulbit-section]') ?? null;
@@ -621,20 +621,25 @@ const heads = ['max-width--400/456/235', 'max-width--320/320/248', 'max-width--3
     const STACK_SS = VERTICAL ? 0.05 : 0.15;
     const DARK = 0.4;
     const Z_VALUES = [75, 50, 25];
-    const DUR_FALL = 0.9;
-    const DUR_SLIDE = 0.75;
+    // Every duration × motion (0 under prefers-reduced-motion: a step sets its state at once). The gaps between the
+    // reveal's phases (0.25 / 0.15 / 0.3 below) stay: under reduced motion the reveal is never played, only set to its end
+    // (enter, reset) — and a timeline of zero length could not be sought back to its start (prepare)
+    const DUR_FALL = 0.9 * motion;
+    const DUR_SLIDE = 0.75 * motion;
     const EASE = 'power1.inOut';
-    const DUR_BG = 0.7;
-    const DUR_ARROW = 0.4;
-    const DUR_LABEL = 0.5;
-    const WK_STAG = 0.1;
-    const WK_DUR = 0.4;
-    const DUR_BLUE = 0.7;
-    const DUR_RED = 0.45;
-    const DUR_AWHITE = 0.6;
-    const DUR_GRAD = 0.6;
-    const DUR_DOTCOL = 0.3;
-    const DUR_CARDSWRAP = 0.5;
+    const DUR_BG = 0.7 * motion;
+    const DUR_ARROW = 0.4 * motion;
+    const DUR_LABEL = 0.5 * motion;
+    const WK_STAG = 0.1 * motion;
+    const WK_DUR = 0.4 * motion;
+    const DUR_BLUE = 0.7 * motion;
+    const DUR_RED = 0.45 * motion;
+    const DUR_AWHITE = 0.6 * motion;
+    const DUR_GRAD = 0.6 * motion;
+    const DUR_DOTCOL = 0.3 * motion;
+    const DUR_CARDSWRAP = 0.5 * motion;
+    const DUR_DOT = 0.25 * motion; // a dot lights up
+    const DUR_TAIL = 0.2 * motion;
     const WHITE_END_GAP = 5; // px: the white line stops short of the arrow head's tip
     const REV_SPEED = 5; // the reveal reversed when the section slides away
     const REVEAL_SPEED = 1.7; // the reveal played when the section appears (the card steps keep ×1)
@@ -867,10 +872,10 @@ const heads = ['max-width--400/456/235', 'max-width--320/320/248', 'max-width--3
       dotRings.forEach((ring) => {
         const at = (parseFloat(ring.getAttribute('cx') ?? '0') / W) * DUR_BG;
         [ring, innerOf(ring)].forEach((el) => {
-          if (el) revealTL.to(el, { autoAlpha: 1, duration: 0.25, ease: 'power1.out' }, at);
+          if (el) revealTL.to(el, { autoAlpha: 1, duration: DUR_DOT, ease: 'power1.out' }, at);
         });
       });
-      if (tail) revealTL.to(tail, { autoAlpha: 1, duration: 0.2, ease: 'power1.out' }, DUR_BG);
+      if (tail) revealTL.to(tail, { autoAlpha: 1, duration: DUR_TAIL, ease: 'power1.out' }, DUR_BG);
       arrowNums.forEach((n, i) => {
         const arrow = arrowRects[n];
         if (arrow) {
@@ -1020,8 +1025,16 @@ const heads = ['max-width--400/456/235', 'max-width--320/320/248', 'max-width--3
         resetCardsToStart();
         setStepSVGInstant(0);
       },
-      // Covered: the reveal, faster; the gestures wait for its end
+      // Covered: the reveal, faster; the gestures wait for its end. The lock only when the reveal really plays: a reveal
+      // already at its end (a rebuild reset it there) would never complete and release it; under reduced motion the
+      // end state comes at once and the next gesture is accepted. The cards are set explicitly: prepare() reset them,
+      // and a zero-duration tween already at its end (reduced motion) does not render again
       enter() {
+        if (reducedMotion || revealTL.progress() === 1) {
+          revealTL.timeScale(1).progress(1).pause();
+          setStateInstant(state);
+          return;
+        }
         app.isAnimating = true;
         revealTL.timeScale(REVEAL_SPEED).play();
       },

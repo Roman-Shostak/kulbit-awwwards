@@ -89,7 +89,7 @@ Responsive values use `/` in desktop/tablet/mobile order and are escaped in CSS 
 | Visibility | `desktop-hide` (≥992), `tablet-hide` (768–991), `landscape-hide` (480–767), `mobile-hide` (≤479), `mobile-only`, `desktop-only` |
 | Mobile modifiers | `mob-width--100` (≤479: `width: 100%` — a CTA or submit button stretched on mobile); other `mob-*` modifiers live in the component until a second component needs them |
 | Motion (attributes, not classes) | `data-reveal`, `data-reveal="stagger"` (children, nth-child delays up to 8), `data-reveal-delay="1…5"`, `data-intro`; the module adds `is--visible`. Keyframe animation `reveal`, gated by `[data-motion]` on `<html>`; static under `prefers-reduced-motion` |
-| Step scroll (attributes) | `data-scenes` on `<main>` (`<BaseLayout steps>`); an inline script in `<head>` sets `data-steps` on `<html>` before the first paint → `overflow: hidden`, `.wrapper` = the fixed viewport (`overflow: clip`), `<main data-scenes>` = the 100vh stacking container under `.header-fixed` (the module `src/scripts/kulbit/` stacks the `[data-kulbit-section]`s) |
+| Step scroll (attributes) | `data-scenes` on `<main>` (`<BaseLayout steps>`); an inline script in `<head>` sets `data-steps` on `<html>` before the first paint → `overflow: clip` (no native scroll, the content stays visible to axe / Lighthouse), `.wrapper` = the fixed viewport (`overflow: clip`), `<main data-scenes>` = the stacking container, `height: 100%` of `.wrapper` (the visible viewport, not 100vh: the mobile browser bars), under `.header-fixed` (the module `src/scripts/kulbit/` stacks the `[data-kulbit-section]`s) |
 
 Typical section skeleton (`.container` alone; layout on the wrapper inside it):
 ```html

@@ -15,7 +15,9 @@
  * visibility utility (the hidden ones are display: none — out of the reading and Tab order; the same picture URL
  * loads once); «Let’s discuss» has its mobile copy at the end, as in Webflow.
  * The step scroll of tablet / mobile (the script below) moves [data-footer-content] when the footer is taller than
- * the screen.
+ * the screen. The Showreel picture is lazy (the step engine starts the images of the current and the next section);
+ * sizes = the picture as drawn: desktop 26vw (the card is 21vw, the cover crop draws the 16:9 frame 25.2vw wide),
+ * 92vw from 991px down (the card, the frame covers it by its width).
  * The contacts are empty in site.ts (TODO): the links render without href until the client gives them.
  */
 import { Picture } from 'astro:assets';
@@ -76,8 +78,9 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
                       formats={['avif', 'webp']}
                       fallbackFormat="jpg"
                       width={680}
+                      sizes="(max-width: 991px) 92vw, 26vw"
                       alt=""
-                      loading="eager"
+                      loading="lazy"
                       class="site-footer_poster fill-box"
                     />
                     {t.explore.showreel}
@@ -177,10 +180,11 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
     gap: var(--size-16);
   }
 
-  /* .container.is-footer (min-height 100 %): the content fills the footer — the screen (the stacked sections are
-     100vh) minus the .footer padding (utilities.css) — and grows past it; 4rem between top and bottom */
+  /* .container.is-footer (min-height 100 %): the content fills the footer — the visible screen (the stack follows it:
+     100dvh, the phone's browser bars excluded) minus the .footer padding (utilities.css) — and grows past it; 4rem
+     between top and bottom */
   .site-footer_layout {
-    min-height: calc(100vh - var(--footer-padding-top) - var(--footer-padding-bottom));
+    min-height: calc(100dvh - var(--footer-padding-top) - var(--footer-padding-bottom));
   }
 
   /* ---------- Top (.footer-top): the mark over the logo row, at the bottom of a fixed-height block ---------- */
@@ -347,7 +351,9 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
   // the footer is clipped to the visible height and one gesture moves its content by 0.85 of it (stepDuration, ease);
   // at the bottom the gesture is eaten (the footer stays), at the top the engine goes to the previous section. The
   // engine's prepare (sliding in) and reset (a jump, a restore) bring it back to the top; a resize (the iOS address
-  // bar, a rotation) measures again. Desktop: no controller. The source has no collapse.
+  // bar, a rotation) measures again. Keyboard focus outside the visible part (the engine's reveal) moves the content
+  // by the same steps until the element shows; the browser's own scroll of the clipped footer to a focus is undone.
+  // Desktop: no controller. The source has no collapse.
   // Differences from the source: the content is found by data-footer-content and moved (the source moved
   // .container.is-footer and set its height to auto first — here the content already grows past its min-height); the
   // footer is measured with overflow hidden (the source's .section has it in its CSS); the visible height is the
@@ -364,7 +370,7 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
     if (!footer || !content) return;
     const el = footer.el;
 
-    // The inline styles to give back on a breakpoint change (the engine set height 100vh)
+    // The inline styles to give back on a breakpoint change (the engine's stacking height)
     const savedHeight = el.style.height;
     const savedOverflow = el.style.overflow;
 
@@ -383,9 +389,12 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
     let maxShift = 0;
     let stepPx = 0;
     const recompute = () => {
-      el.style.height = `${visibleHeight()}px`;
-      maxShift = Math.max(0, el.scrollHeight - el.clientHeight);
-      stepPx = Math.round(visibleHeight() * STEP_RATIO);
+      const height = visibleHeight();
+      el.style.height = `${height}px`;
+      // The height just set, not clientHeight: under reduced motion reset.css transitions it for 0.01 ms (a resize
+      // would measure the old one)
+      maxShift = Math.max(0, el.scrollHeight - height);
+      stepPx = Math.round(height * STEP_RATIO);
       pos = Math.min(pos, maxShift);
       gsap.set(content, { y: -pos });
     };
@@ -399,7 +408,49 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
     window.visualViewport?.addEventListener('resize', recompute);
     window.addEventListener('resize', recompute);
 
+    // overflow hidden keeps it a scroll container: a focus below the visible part would scroll it under the steps' shift
+    const unscroll = () => {
+      if (el.scrollTop) el.scrollTop = 0;
+    };
+    el.addEventListener('scroll', unscroll);
+
+    // The content to `pos` on the step timing; the gestures wait meanwhile
+    const slide = () => {
+      app.isAnimating = true;
+      gsap.to(content, {
+        y: -pos,
+        duration: config.stepDuration,
+        ease: config.ease,
+        onComplete: () => {
+          app.isAnimating = false;
+        },
+      });
+    };
+
+    // The focused element into the visible part: the steps' positions (± stepPx, clamped) until it fits. The engine
+    // asks once nothing plays (a move or a step owns the shift and the lock)
+    const reveal = (target: HTMLElement) => {
+      unscroll();
+      if (maxShift <= 0 || app.isAnimating) return;
+      const top = el.getBoundingClientRect().top;
+      const rect = target.getBoundingClientRect();
+      // The shift the box is drawn with (computed, not GSAP's value): under reduced motion reset.css transitions every
+      // change for 0.01 ms, so the y that prepare / reset has just set is not in the box yet
+      const shift = new DOMMatrixReadOnly(getComputedStyle(content).transform).m42;
+      // Its place in the content (unshifted), from the footer's top
+      const from = rect.top - top - shift;
+      const to = rect.bottom - top - shift;
+      const view = el.clientHeight;
+      let next = pos;
+      while (to - next > view && next < maxShift) next = Math.min(next + stepPx, maxShift);
+      while (from - next < 0 && next > 0) next = Math.max(next - stepPx, 0);
+      if (next === pos) return;
+      pos = next;
+      slide();
+    };
+
     footer.controller = {
+      reveal,
       step(dir) {
         if (maxShift <= 0) return false; // it fits now (a rotation): a regular section
         if (dir > 0) {
@@ -409,22 +460,18 @@ const columns = ['explore desktop-only', 'about', 'explore mobile-only', 'contac
           if (pos <= 0) return false; // at the top: the previous section
           pos = Math.max(pos - stepPx, 0);
         }
-        app.isAnimating = true;
-        gsap.to(content, {
-          y: -pos,
-          duration: config.stepDuration,
-          ease: config.ease,
-          onComplete: () => {
-            app.isAnimating = false;
-          },
-        });
+        slide();
         return true;
       },
       prepare: toTop,
       reset: toTop,
+      // Once more after the resize settled: under reduced motion the layout transitions for 0.01 ms, so the listeners'
+      // measure (at the resize event) can still read the old sizes
+      resize: recompute,
       dispose() {
         window.visualViewport?.removeEventListener('resize', recompute);
         window.removeEventListener('resize', recompute);
+        el.removeEventListener('scroll', unscroll);
         gsap.killTweensOf(content);
         gsap.set(content, { clearProps: 'transform' });
         content.style.willChange = '';

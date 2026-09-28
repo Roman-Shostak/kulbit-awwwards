@@ -20,24 +20,28 @@ import IconUnmute from '@/assets/icons/speaker-unmute.svg';
 
 const t = useTranslations(Astro.currentLocale).hero;
 const s = t.statement;
-const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, quality: 80 });
+// The video poster needs only the URL: layout 'none', no srcset variants (nothing would load them)
+const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, quality: 80, layout: 'none' });
 ---
 
-<section class="section section--hero hero" data-kulbit-section>
+<section class="section section--hero hero" id="hero" data-kulbit-section>
   <div class="container">
     <div class="hero_content text-style-uppercase" data-kulbit-y-tablet="300" data-kulbit-fade-tablet="0">
       <div class="hero_heading text-weight-800" data-kulbit-y="300" data-kulbit-fade="0">
         <h1 class="hero_title text-size-h1">{t.title.lead} <span class="text-color-accent">{t.title.accent}</span></h1>
         <div class="hero_blur desktop-only" aria-hidden="true"></div>
       </div>
+      {/* One sentence in three blocks: the spans are flex items (blocks) of the column, the spaces between them keep the
+        words apart in the text (a flex container does not render them); it reads after the heading, before the CTA (the
+        text or the CTA is absolute on every breakpoint, so the DOM order moves nothing) */}
+      <p class="hero_text text-size-hero text-weight-700" data-kulbit-y="-300" data-kulbit-fade="0">
+        <span class="hero_blend"><span class="text-color-secondary">{s.blend}</span> {s.human}</span>{' '}
+        <span class="hero_ai text-color-accent">{s.ai}</span>{' '}
+        <span class="hero_deliver"><span class="text-color-secondary">{s.deliver}</span> {s.quality} <span class="text-color-secondary">{s.videos}</span></span>
+        <Square class="hero_square" />
+      </p>
       {/* TODO: where «Start Pilot» leads (the popup with the form?) — ported with that section */}
       <Button variant="arrow" class="hero_pilot" data-kulbit-y="300" data-kulbit-fade="0">{t.pilot}</Button>
-      <div class="hero_text text-size-hero text-weight-700" data-kulbit-y="-300" data-kulbit-fade="0">
-        <p class="hero_blend"><span class="text-color-secondary">{s.blend}</span> {s.human}</p>
-        <p class="hero_ai text-color-accent">{s.ai}</p>
-        <p class="hero_deliver"><span class="text-color-secondary">{s.deliver}</span> {s.quality} <span class="text-color-secondary">{s.videos}</span></p>
-        <Square class="hero_square" />
-      </div>
     </div>
   </div>
 

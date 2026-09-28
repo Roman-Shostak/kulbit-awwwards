@@ -7,10 +7,11 @@
  * `.button.is-hero` on hover) is not ported: the Button component styles its own hover / focus.
  */
 import { gsap } from 'gsap';
+import { motion } from './app';
 
 const NS = 'http://www.w3.org/2000/svg';
 const settings = {
-  duration: 0.3, // draw / collapse
+  duration: 0.3 * motion, // draw / collapse (at once under reduced motion)
   ease: 'none',
   sampleN: 64, // precision of the entry point search on the perimeter
   offset: 0, // stroke offset outwards from the border centre (px)

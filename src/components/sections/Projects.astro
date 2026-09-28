@@ -9,10 +9,12 @@
  * the frame, a gesture shrinks it to 0 and grows the next one from below (the gap between the cards shows only while
  * they swap); tablet / mobile — a window of 3 cards shares the free height, then one card less at the top and one
  * more at the bottom per gesture. A card that leaves the window goes back to its poster; after the last card the next
- * gesture moves to the next section. The line fills by the window position.
+ * gesture moves to the next section. The line fills by the window position. The closed cards (height 0) are inert:
+ * out of the Tab order and the accessibility tree.
  * The markup is the natural state: the first window in the frame, the line at its first part.
- * Files: public/video/project-*-1080.mp4 / -720.mp4 (≤ 991px); posters src/assets/projects/ (2310 × 1290). Images load
- * eagerly: lazy ones in the stacked (clipped) sections start loading only once they are on the screen.
+ * Files: public/video/project-*-1080.mp4 / -720.mp4 (≤ 991px); posters src/assets/projects/ (2310 × 1290). The images
+ * are lazy: the step engine starts the images of the current and the next section (src/scripts/kulbit/video.ts);
+ * sizes = the card, 91–92vw on every breakpoint.
  */
 import { Picture } from 'astro:assets';
 import ProgressLine from '@/components/ui/ProgressLine.astro';
@@ -24,14 +26,20 @@ import moreSoon from '@/assets/projects/projects-more-soon.avif';
 
 const t = useTranslations(Astro.currentLocale).projects;
 
-// Was Vimeo 1180815974 and 1190443376 on the Webflow build
+// Was Vimeo 1180815974 and 1190443376 on the Webflow build; the id (the player's, stable between builds) = the file name
 const videos = [
-  { src: '/video/project-rush-core-1080.mp4', srcSmall: '/video/project-rush-core-720.mp4', poster: posterRushCore },
-  { src: '/video/project-steel-fury-1080.mp4', srcSmall: '/video/project-steel-fury-720.mp4', poster: posterSteelFury },
-].map((video, i) => ({ ...video, alt: t.posters[i] }));
+  { name: 'rush-core', poster: posterRushCore },
+  { name: 'steel-fury', poster: posterSteelFury },
+].map(({ name, poster }, i) => ({
+  id: `project-${name}`,
+  src: `/video/project-${name}-1080.mp4`,
+  srcSmall: `/video/project-${name}-720.mp4`,
+  poster,
+  alt: t.posters[i],
+}));
 ---
 
-<section class="section padding-md projects" data-kulbit-section data-section-name="projects">
+<section id="projects" class="section padding-md projects" data-kulbit-section data-section-name="projects">
   <div class="container">
     <div class="projects_layout spacing-64/48/32 text-style-uppercase">
       <ProgressLine class="projects_progress" />
@@ -42,9 +50,18 @@ const videos = [
         </div>
         <ul class="projects_cards" data-kulbit-project-group>
           {videos.map((video) => <ProjectVideo element="li" class="projects_item" {...video} />)}
-          <li class="projects_item projects_soon border-radius-sm" data-kulbit-project-end>
+          <li class="projects_item projects_soon border-radius-sm">
             <div class="projects_soon-media">
-              <Picture src={moreSoon} formats={['avif', 'webp']} fallbackFormat="jpg" width={1750} alt={t.soonAlt} loading="eager" class="fill-box" />
+              <Picture
+                src={moreSoon}
+                formats={['avif', 'webp']}
+                fallbackFormat="jpg"
+                width={1750}
+                sizes="92vw"
+                alt={t.soonAlt}
+                loading="lazy"
+                class="fill-box"
+              />
             </div>
             <div class="projects_soon-text">
               <p class="text-size-more-soon text-weight-800">{t.soon.lead} <span class="text-color-brand">{t.soon.accent}</span></p>
@@ -57,7 +74,8 @@ const videos = [
 </section>
 
 <style>
-  /* .section: the screen high (tablet 100svh); the container fills it (a grid row stretches its item) */
+  /* .section: the screen high (the step engine sets the stack's height inline); the container fills it (a grid row
+     stretches its item) */
   .projects {
     display: grid;
     grid-template-rows: minmax(0, 1fr);
@@ -90,12 +108,15 @@ const videos = [
   }
 
   /* ---------- Cards (.projects-cards-wrapper > .projects-video-wrapper) ---------- */
+  /* clip, not hidden: no scroll container, so a focus inside can never scroll the column (the script moves it);
+     min-height 0 = what hidden gave the flex item (not its content's height) */
   .projects_cards {
     display: flex;
     flex: 1;
     flex-direction: column;
     gap: calc(3.38rem * var(--fluid-scale)); /* 54 */
-    overflow: hidden;
+    min-height: 0;
+    overflow: clip;
   }
   /* desktop: every card as high as the column — the column shows the first one */
   .projects_item {
@@ -120,9 +141,6 @@ const videos = [
   }
 
   @media (max-width: 991px) {
-    .projects {
-      height: 100svh;
-    }
     .spacing-64\/48\/32 {
       gap: var(--size-48);
     }
@@ -158,8 +176,11 @@ const videos = [
   // the gap stays between the cards but hides above the window. maxState = total − WIN: the last card at the bottom
   // of the window. A step shrinks the top card of the window (or the bottom one, going back) and grows the new one;
   // the leaving card goes back to its poster. The line: (state + 1) / (maxState + 1).
+  // The closed cards are inert (the Tab order and the accessibility tree = the window); the focus in a card that closes
+  // goes to the start button of the card that opens (the end card has none: to the section, the engine's focus anchor).
   // The engine calls prepare (slide-in start: the line empty), enter (covered: the line fills its first part),
-  // collapse (slides away: the line empties), reset(toEnd) (instant state; revealed from above = the last window).
+  // collapse (slides away: the line empties), reset(toEnd) (instant state; revealed from above = the last window),
+  // resize (the same breakpoint, a new size: the heights and the shift again, no animation).
   import { gsap } from 'gsap';
   import { app, config, registerSectionBuilder, visibleHeight, type SectionController } from '@/scripts/kulbit/app';
   import { progressLine } from '@/scripts/kulbit/progress-line';
@@ -204,10 +225,17 @@ const videos = [
         if (i !== active) resetProjectVideo(item);
       });
 
+    const isOpen = (i: number, state: number) => i >= state && i < state + WIN;
+    // A closed card leaves the Tab order at once (it shrinks with its focusables), an opening one enters it at once
+    const setInert = (state: number) =>
+      items.forEach((item, i) => {
+        item.inert = !isOpen(i, state);
+      });
+
     const setHeights = (state: number, animate: boolean) => {
       const slot = isDesktop ? 0 : slotHeight();
       items.forEach((item, i) => {
-        const open = i >= state && i < state + WIN;
+        const open = isOpen(i, state);
         const height = isDesktop ? (open ? '100%' : '0%') : open ? slot : 0;
         if (animate) gsap.to(item, { height, duration: STEP, ease: EASE });
         else gsap.set(item, { height });
@@ -221,6 +249,7 @@ const videos = [
     const applyState = (state: number) => {
       setHeights(state, false);
       moveColumn(state, false);
+      setInert(state);
     };
 
     let state = 0;
@@ -251,19 +280,33 @@ const videos = [
         setFill(state, false);
         resetOthers(state);
       },
-      // The breakpoint changes: heights, the column shift and flex from the steps live outside the matchMedia context
+      // The viewport changed within the breakpoint: the px heights (tablet / mobile slots) and the gap shift again
+      resize() {
+        gsap.killTweensOf(items);
+        applyState(state);
+      },
+      // The breakpoint changes: heights, the column shift, flex and inert from the steps live outside the matchMedia
+      // context
       dispose() {
         gsap.killTweensOf(items);
         gsap.set(items, { clearProps: 'height,transform,flex' });
+        items.forEach((item) => {
+          item.inert = false;
+        });
         line.dispose();
       },
       step(dir) {
         const next = Math.max(0, Math.min(maxState, state + dir));
         if (next === state) return false; // the edge of the window: the engine moves to the neighbouring section
         const leaving = dir > 0 ? items[state] : items[state + WIN - 1];
+        const entering = dir > 0 ? items[next + WIN - 1] : items[next];
+        const hadFocus = leaving.contains(document.activeElement);
         state = next;
         app.isAnimating = true;
+        setInert(state);
         resetProjectVideo(leaving);
+        // The focus was in the closing card: the opening one's start button (the end card has none: the section)
+        if (hadFocus) (entering.querySelector<HTMLElement>('[data-kulbit-play]') ?? section.el).focus({ preventScroll: true });
         setHeights(state, true); // the top card shrinks, the new one grows, the ones between stay
         moveColumn(state, true);
         setFill(state, true);

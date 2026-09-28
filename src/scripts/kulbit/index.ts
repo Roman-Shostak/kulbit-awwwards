@@ -5,11 +5,13 @@
  *
  *   app.ts            state + config (the source's window.KulbitApp), SectionController, registerSectionBuilder
  *   observer.ts       wheel / touch (Observer, inertia filter, direction by event type) + keyboard
- *   sections.ts       registration, stacking, reveal steps, desktop attribute timelines, goToSection, advance
+ *   sections.ts       registration, stacking, reveal steps, desktop attribute timelines, goToSection, advance, the
+ *                     button jump (autoAdvanceTo), the resize within a breakpoint
  *   hero.ts           tablet / mobile hero choreography (3 steps, hand-off to section 1)
  *   responsive.ts     gsap.matchMedia breakpoints + the landscape phone popup
- *   video.ts          native <video>: play / pause / mute by visibility, the sound toggle
- *   navigation.ts     [data-target-section] / [data-target-step] buttons
+ *   video.ts          native <video>: play / pause / mute by visibility, the sound toggle, the visitor's pause of the
+ *                     background videos, warming the lazy media of the stack
+ *   navigation.ts     [data-target-section] buttons + the keyboard focus that shows its screen
  *   hero-height.ts    the hero's height = visualViewport height
  *   button-border.ts  [data-kulbit-border] hover border
  *   scramble.ts       [data-kulbit-scramble] / [data-kulbit-typewriter] texts written on entering the screen (ADR-017)
@@ -18,13 +20,13 @@
  * LEFT TO PORT — each with its section, as a `registerSectionBuilder((mode) => …)` that sets `section.controller`
  * (source file → functions):
  *   popup form         07-popup-form.js — empty in the source (placeholder)
- *   landscape popup    only its markup: `[data-kulbit-landscape-popup] hidden` (the logic is in ./responsive)
  * Ported with their sections: our clients (buildOurClients → src/components/sections/OurClients.astro), projects
  * (buildProjects → src/components/sections/Projects.astro), our services (buildHSwipe →
  * src/components/sections/OurServices.astro), working process (buildWorkingProcess →
  * src/components/sections/WorkingProcess.astro), traditional production (buildTraditional →
  * src/components/sections/TraditionalProduction.astro), the footer (buildFooterScroll →
- * src/components/sections/SiteFooter.astro; 13-misc.js's copyright year is site.copyrightYear at build time).
+ * src/components/sections/SiteFooter.astro; 13-misc.js's copyright year is site.copyrightYear at build time), the
+ * landscape popup (its markup src/components/sections/LandscapePopup.astro, its logic ./responsive).
  * 05-header.js is empty in the source: the header moves only through its data-kulbit-* attributes (hero timeline).
  */
 import { gsap } from 'gsap';

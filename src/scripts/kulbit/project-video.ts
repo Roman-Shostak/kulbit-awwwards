@@ -12,11 +12,15 @@
  * `[data-kulbit-fullscreen]`.
  *
  *   start       the other players go back to their poster (only one video plays), the poster and the big button
- *               fade out, the controls in, play() with sound
+ *               fade out, the controls in, play() with sound; the focus, if it was in the player, goes to play / pause
+ *               (the start button hides under it). Back to the poster with the focus in the controls: the focus
+ *               returns to the start button (unless the card is closed — inert)
  *   seek        click or drag on the line, volume on the vertical slider (top = louder): pointer events with pointer
- *               capture, so a drag keeps working outside the element; the keyboard steps both (arrows, Home, End)
- *   volume      desktop: the speaker opens the slider popup (fade + an 8 px rise; a click outside closes it);
- *               ≤ 991px: the speaker mutes (iOS ignores the volume level)
+ *               capture, so a drag keeps working outside the element; the keyboard steps both (arrows, Home, End;
+ *               PageUp / PageDown a big step: 10 s, 20 %) and keeps those keys from the section steps
+ *   volume      desktop: the speaker opens the slider popup (a disclosure: aria-expanded; fade + an 8 px rise; a click
+ *               outside, Esc — the focus back on the speaker — or the focus leaving it closes it); ≤ 991px: the speaker
+ *               mutes (iOS ignores the volume level) — a toggle: aria-pressed = muted, named «Mute» (ui/ProjectVideo)
  *   fullscreen  desktop: the root with its own controls, the navigation off meanwhile; ≤ 991px: the <video> itself —
  *               the native player (iPhone: webkitEnterFullscreen). Both set app.videoFullscreen and re-apply the
  *               landscape state: a rotation in fullscreen neither shows the popup nor pauses the video. The screen
@@ -27,18 +31,28 @@
  * `resetProjectVideo(root)` — pause, time 0, the poster back: the projects section calls it for a collapsing card.
  */
 import { gsap } from 'gsap';
-import { app } from './app';
+import { app, motion } from './app';
 import { reapplyResponsive } from './responsive';
 import { registerVideo } from './video';
 
-const ICON_DUR = 0.15; // play / pause and volume / mute icons
-const POPUP_DUR = 0.2; // the volume popup
-const FADE_DUR = 0.3; // the poster, the big button and the controls
+const ICON_DUR = 0.15 * motion; // play / pause and volume / mute icons
+const POPUP_DUR = 0.2 * motion; // the volume popup
+const FADE_DUR = 0.3 * motion; // the poster, the big button and the controls
 const COMPACT_MAX = 991; // ≤: fullscreen of the <video>, the speaker = mute
 const SEEK_KEY_STEP = 5; // seconds per arrow key (keyboard: not in the source, which had divs)
+const SEEK_PAGE_STEP = 10; // seconds per PageUp / PageDown (the big step of an ARIA slider)
 const VOLUME_KEY_STEP = 0.1;
+const VOLUME_PAGE_STEP = 0.2;
 
-const isCompact = () => window.innerWidth <= COMPACT_MAX;
+// The breakpoint of the CSS (≤ 991px: the speaker's «Mute» name shows): its change re-labels the speaker
+const compactQuery = window.matchMedia(`(max-width: ${COMPACT_MAX}px)`);
+const isCompact = () => compactQuery.matches;
+
+/** An attribute set, or removed with null */
+const setAttr = (el: Element, name: string, value: string | null) => {
+  if (value === null) el.removeAttribute(name);
+  else el.setAttribute(name, value);
+};
 
 type FsDocument = Document & { webkitFullscreenElement?: Element | null; webkitExitFullscreen?: () => void };
 type FsElement = HTMLElement & { webkitRequestFullscreen?: () => void; webkitEnterFullscreen?: () => void };
@@ -187,26 +201,42 @@ const initProjectVideo = (root: HTMLElement) => {
     setVolumeIcon(value);
   };
 
+  // ---------- The speaker's semantics by the breakpoint: desktop — the popup's disclosure, ≤ 991px — a mute toggle ----------
+  const syncVolumeButton = () => {
+    if (!volumeButton) return;
+    const compact = isCompact();
+    setAttr(volumeButton, 'aria-pressed', compact ? String(video.muted) : null);
+    setAttr(volumeButton, 'aria-expanded', compact ? null : String(popupOpen));
+    setAttr(volumeButton, 'aria-controls', compact || !popup?.id ? null : popup.id);
+  };
+
   // ---------- The volume popup: fade + a light rise ----------
   const openPopup = () => {
     popupOpen = true;
-    volumeButton?.setAttribute('aria-expanded', 'true');
+    syncVolumeButton();
     if (!popup) return;
     gsap.killTweensOf(popup);
     gsap.fromTo(popup, { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: POPUP_DUR, ease: 'power2.out' });
   };
   const closePopup = (instant = false) => {
     popupOpen = false;
-    volumeButton?.setAttribute('aria-expanded', 'false');
+    syncVolumeButton();
     if (!popup) return;
     gsap.killTweensOf(popup);
     gsap.to(popup, { autoAlpha: 0, y: 8, duration: instant ? 0 : POPUP_DUR, ease: 'power2.in' });
   };
 
   // ---------- Start and back to the poster ----------
+  // The focus follows what stays visible: the controls hide with their focus (visibility) — it would fall to <body>
+  const hasFocus = () => root.contains(document.activeElement);
   const reset = () => {
     video.pause();
     video.currentTime = 0;
+    // The focus in the controls (or the popup): back to the start button, shown at once — not in a closed (inert) card
+    if (hasFocus() && document.activeElement !== bigPlay && !root.closest('[inert]')) {
+      gsap.set(bigPlay, { visibility: 'inherit' }); // focusable now: the fade only runs the opacity
+      bigPlay.focus({ preventScroll: true });
+    }
     gsap.to([poster, bigPlay], { autoAlpha: 1, duration: FADE_DUR });
     gsap.to(controls, { autoAlpha: 0, duration: FADE_DUR });
     setToggleIcon(false);
@@ -219,8 +249,13 @@ const initProjectVideo = (root: HTMLElement) => {
       if (other !== root) resetOther();
     });
   const startPlayback = () => {
+    const refocus = hasFocus(); // the start button (keyboard, or a click that focused it)
     resetOthers(); // at once, on the click (before the play event)
     gsap.to([poster, bigPlay], { autoAlpha: 0, duration: FADE_DUR });
+    if (refocus && toggle) {
+      gsap.set(controls, { visibility: 'inherit' }); // focusable now: the fade only runs the opacity
+      toggle.focus({ preventScroll: true }); // the controls transition nothing (ui/ProjectVideo): visible at once
+    }
     gsap.to(controls, { autoAlpha: 1, duration: FADE_DUR });
     play();
   };
@@ -265,13 +300,15 @@ const initProjectVideo = (root: HTMLElement) => {
   // A drag on a slider must not reach the step navigation (GSAP Observer listens to touchstart on window)
   const keepGesture = (element: HTMLElement) =>
     element.addEventListener('touchstart', (event) => event.stopPropagation(), { passive: true });
-  // Arrows / Home / End → the new value, or null for another key (then the page keeps it)
-  const keyValue = (event: KeyboardEvent, value: number, step: number, max: number) => {
+  // Arrows / PageUp / PageDown / Home / End → the new value, or null for another key (then the page keeps it)
+  const keyValue = (event: KeyboardEvent, value: number, step: number, bigStep: number, max: number) => {
     const next: Record<string, number> = {
       ArrowRight: value + step,
       ArrowUp: value + step,
       ArrowLeft: value - step,
       ArrowDown: value - step,
+      PageUp: value + bigStep,
+      PageDown: value - bigStep,
       Home: 0,
       End: max,
     };
@@ -303,9 +340,9 @@ const initProjectVideo = (root: HTMLElement) => {
       video.currentTime = seekFrac * duration;
     });
     seek.addEventListener('keydown', (event) => {
-      if (!duration) return;
-      const time = keyValue(event, video.currentTime, SEEK_KEY_STEP, duration);
-      if (time === null) return;
+      // The slider's keys stay its own even before the metadata (no duration yet: nothing to seek)
+      const time = keyValue(event, video.currentTime, SEEK_KEY_STEP, SEEK_PAGE_STEP, duration);
+      if (time === null || !duration) return;
       video.currentTime = time;
       renderProgress(time / duration);
     });
@@ -321,6 +358,24 @@ const initProjectVideo = (root: HTMLElement) => {
   });
   document.addEventListener('click', (event) => {
     if (popupOpen && volume && !volume.contains(event.target as Node)) closePopup();
+  });
+  if (volume) {
+    // Esc closes it, the focus back on the speaker
+    volume.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || !popupOpen) return;
+      event.preventDefault();
+      closePopup();
+      volumeButton?.focus({ preventScroll: true });
+    });
+    // The focus left it (Tab to fullscreen, …); focus to nowhere (a click beside the slider) is the click's business
+    volume.addEventListener('focusout', (event) => {
+      const next = event.relatedTarget;
+      if (popupOpen && next instanceof Node && !volume.contains(next)) closePopup();
+    });
+  }
+  compactQuery.addEventListener('change', () => {
+    if (isCompact() && popupOpen) closePopup(true); // the popup is desktop's: ≤ 991px the speaker only mutes
+    syncVolumeButton();
   });
 
   if (track) {
@@ -341,7 +396,7 @@ const initProjectVideo = (root: HTMLElement) => {
       volumeDrag = false;
     });
     track.addEventListener('keydown', (event) => {
-      const value = keyValue(event, video.muted ? 0 : video.volume, VOLUME_KEY_STEP, 1);
+      const value = keyValue(event, video.muted ? 0 : video.volume, VOLUME_KEY_STEP, VOLUME_PAGE_STEP, 1);
       if (value !== null) applyVolume(value);
     });
   }
@@ -363,7 +418,10 @@ const initProjectVideo = (root: HTMLElement) => {
   });
   video.addEventListener('pause', () => setToggleIcon(false));
   video.addEventListener('ended', () => setToggleIcon(false));
-  video.addEventListener('volumechange', () => setVolumeIcon(video.muted ? 0 : video.volume));
+  video.addEventListener('volumechange', () => {
+    setVolumeIcon(video.muted ? 0 : video.volume);
+    syncVolumeButton(); // aria-pressed ≤ 991px
+  });
   video.addEventListener('loadedmetadata', setDuration);
   video.addEventListener('durationchange', setDuration);
   video.addEventListener('timeupdate', () => {
@@ -375,6 +433,7 @@ const initProjectVideo = (root: HTMLElement) => {
 
   setDuration(); // the metadata may already be there
   renderVolume(video.muted ? 0 : video.volume);
+  syncVolumeButton();
   players.set(root, reset);
 
   // Covered by the next section / the landscape popup → pause; never autoplays. The file waits with preload="none"

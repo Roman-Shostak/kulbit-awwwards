@@ -3,24 +3,45 @@
  * the move between sections and `advance` — the one function every gesture, key and button goes through.
  * Source: kulbit-webflow `src/03-sections.js` (registerSections, registerSteps, resetHeroState, teardownHero,
  * buildDesktopAnimations, buildSectionTimeline, setupStacking, applyStackingPositions, resetSteps, playStep,
- * reverseStep, goToSection, passHero, restoreSection, advance, autoAdvanceTo, goToSectionStep). The button jump
- * (autoAdvanceTo) is ours: the source moved there like a scroll and opened a section above at its end.
+ * reverseStep, goToSection, passHero, restoreSection, advance, autoAdvanceTo). The button jump (autoAdvanceTo) is
+ * ours: the source moved there like a scroll and opened a section above at its end. The source's goToSectionStep
+ * (a button with data-target-step) is not ported: no markup used it.
+ * Every tween created here outside the gsap.matchMedia context is tracked (./app → track): a breakpoint change kills
+ * it. Every duration comes from config (0 under reduced motion: the moves happen at once).
  * The section-specific branches of the source (`oc` / `pv` / `hswipe` / `wp` / `ft` / `tp`) are one generic
  * `section.controller` here (see SectionController in ./app).
  */
 import { gsap } from 'gsap';
-import { app, config, num, persistSection, savedSection, type Direction, type KulbitSection } from './app';
-import { tabletHeroStep, teardownTabletHero } from './hero';
+import {
+  app,
+  config,
+  killTracked,
+  motion,
+  num,
+  persistSection,
+  playTimeline,
+  savedSection,
+  track,
+  type Direction,
+  type KulbitSection,
+} from './app';
+import { heroBuiltWidth, setTabletHeroStep, tabletHeroStep, teardownTabletHero } from './hero';
+import { rebuildScrambles } from './scramble';
 import { hideOtherVideos, showCurrentVideo, updateVideoVisibility } from './video';
 
 // Elements of the desktop attribute timeline
 const ANIM_SELECTOR = '[data-kulbit-y],[data-kulbit-scale],[data-kulbit-fade]';
 
-/** Every `[data-kulbit-section]` in DOM order; the index comes from the DOM (reorder-safe) */
+/**
+ * Every `[data-kulbit-section]` in DOM order; the index comes from the DOM (reorder-safe). Each one is a focus anchor
+ * (tabindex="-1": focusable by script, never a Tab stop): the keyboard focus moves to the current section when the
+ * screen changes (./app → persistSection)
+ */
 export const registerSections = () => {
   const elements = document.querySelectorAll<HTMLElement>('[data-kulbit-section]');
   app.sections = Array.from(elements, (el, index) => {
     el.setAttribute('data-section-index', String(index));
+    el.tabIndex = -1;
     return {
       el,
       index,
@@ -38,29 +59,60 @@ export const registerSections = () => {
 };
 
 // ---------- Stacking (ADR-010): sections lie on top of each other, the next one higher ----------
-// Applied at runtime: without the module the sections stay in the normal flow.
+// Applied at runtime: without the module the sections stay in the normal flow. The height is the stacking
+// container's (100% of the fixed .wrapper = the visible viewport), not 100vh: on mobile the browser bars make 100vh
+// taller than what is visible.
 export const setupStacking = () => {
   app.sections.forEach((section) => {
-    Object.assign(section.el.style, { position: 'absolute', top: '0', left: '0', width: '100%', height: '100vh' });
+    Object.assign(section.el.style, { position: 'absolute', top: '0', left: '0', width: '100%', height: '100%' });
     section.el.style.zIndex = String(section.index);
   });
   applyStackingPositions();
 };
 
-/** Discrete positions: sections 0..current stacked (yPercent 0), the rest below the screen (100) */
-export const applyStackingPositions = () => {
+/**
+ * Discrete positions: sections 0..current stacked (yPercent 0), the rest below the screen (100). `keep` = an index
+ * left where it is (section 1 while the tablet hero is current: its position belongs to the hero timeline).
+ */
+export const applyStackingPositions = (keep = -1) => {
   app.sections.forEach((section) => {
+    if (section.index === keep) return;
     gsap.set(section.el, { yPercent: section.index <= app.currentSectionIndex ? 0 : 100 });
   });
 };
 
-// Debounced: the positions are percentages, only the discrete state is re-applied
+// ---------- Resize within a breakpoint (crossing one rebuilds everything: ./responsive) ----------
+// Debounced; while a move or a step plays it waits for the end instead of being skipped. The texts are rebuilt first
+// (their fixed heights change), then the discrete stack positions and every controller's px state (`resize()`).
+// The tablet hero measures its geometry once (the 16:9 band, the sound button's targets): a WIDTH change while it is
+// current rebuilds the breakpoint and puts the hero back on its step; a height-only change (the mobile browser bars)
+// never rebuilds, and section 1 stays where the hero timeline put it.
 let resizeTimer = 0;
+const applyResize = () => {
+  if (app.isAnimating) {
+    resizeTimer = window.setTimeout(applyResize, 100);
+    return;
+  }
+  const onTabletHero = app.currentSectionIndex === 0 && !!app.sections[0]?.isTabletHero;
+  rebuildScrambles();
+  if (onTabletHero && window.innerWidth !== heroBuiltWidth()) {
+    const step = app.currentStep;
+    gsap.matchMediaRefresh();
+    setTabletHeroStep(step);
+    return;
+  }
+  applyStackingPositions(onTabletHero ? 1 : -1);
+  app.sections.forEach((section) => {
+    try {
+      section.controller?.resize?.();
+    } catch (error) {
+      console.error('[kulbit] a section failed to follow the resize', error);
+    }
+  });
+};
 export const handleResize = () => {
   clearTimeout(resizeTimer);
-  resizeTimer = window.setTimeout(() => {
-    if (!app.isAnimating) applyStackingPositions();
-  }, 150);
+  resizeTimer = window.setTimeout(applyResize, 150);
 };
 
 // ---------- Reveal steps: [data-kulbit-step] in DOM order, one gesture shows the next ----------
@@ -83,30 +135,34 @@ const playStep = (section: KulbitSection, i: number) => {
   const el = section.steps[i];
   if (!el) return;
   app.isAnimating = true;
-  gsap.to(el, {
-    autoAlpha: 1,
-    y: 0,
-    duration: config.stepDuration,
-    ease: config.ease,
-    onComplete: () => {
-      app.isAnimating = false;
-    },
-  });
+  track(
+    gsap.to(el, {
+      autoAlpha: 1,
+      y: 0,
+      duration: config.stepDuration,
+      ease: config.ease,
+      onComplete: () => {
+        app.isAnimating = false;
+      },
+    }),
+  );
 };
 
 const reverseStep = (section: KulbitSection, i: number) => {
   const el = section.steps[i];
   if (!el) return;
   app.isAnimating = true;
-  gsap.to(el, {
-    autoAlpha: 0,
-    y: 40,
-    duration: config.stepDuration,
-    ease: config.ease,
-    onComplete: () => {
-      app.isAnimating = false;
-    },
-  });
+  track(
+    gsap.to(el, {
+      autoAlpha: 0,
+      y: 40,
+      duration: config.stepDuration,
+      ease: config.ease,
+      onComplete: () => {
+        app.isAnimating = false;
+      },
+    }),
+  );
 };
 
 // ---------- Breakpoint lifecycle (called by the gsap.matchMedia branches in ./responsive) ----------
@@ -119,8 +175,13 @@ export const resetHeroState = () => {
   updateVideoVisibility();
 };
 
-/** Leaving a breakpoint: GSAP reverts the context's timelines and sets; our references and controllers go */
+/**
+ * Leaving a breakpoint: GSAP reverts the context's timelines and sets; the engine's in-flight tweens (outside the
+ * context) are killed and the jump backdrop hidden; our references and controllers go
+ */
 export const teardownHero = () => {
+  killTracked();
+  resetBackdrop();
   teardownTabletHero();
   app.sections.forEach((section) => {
     section.timeline = null;
@@ -180,7 +241,7 @@ const buildSectionTimeline = (elements: HTMLElement[]) => {
 
   const timeline = gsap.timeline({
     paused: true,
-    defaults: { duration: config.stepDuration, ease: config.ease },
+    defaults: { duration: config.timelineStep, ease: config.ease },
     onComplete: () => {
       app.isAnimating = false;
     },
@@ -262,21 +323,25 @@ export const goToSection = (index: number, instant: boolean, dir: Direction) => 
     // Sections between the current one and the target go straight into the stack (a smooth jump over several)
     for (let i = prev + 1; i < clamped; i++) gsap.set(app.sections[i].el, { yPercent: 0 });
     controller?.prepare?.();
-    gsap.to(target.el, {
-      yPercent: 0,
-      duration: config.scrollDuration,
-      ease: config.ease,
-      onComplete: () => {
-        finish();
-        controller?.enter?.();
-      },
-    });
+    track(
+      gsap.to(target.el, {
+        yPercent: 0,
+        duration: config.scrollDuration,
+        ease: config.ease,
+        onComplete: () => {
+          finish();
+          controller?.enter?.();
+        },
+      }),
+    );
   } else {
     for (let i = clamped + 1; i < prev; i++) gsap.set(app.sections[i].el, { yPercent: 100 });
     controller?.reset?.(true); // revealed from above: at its end
     const leaving = app.sections[prev];
     leaving.controller?.collapse?.();
-    gsap.to(leaving.el, { yPercent: 100, duration: config.scrollDuration, ease: config.ease, onComplete: finish });
+    track(
+      gsap.to(leaving.el, { yPercent: 100, duration: config.scrollDuration, ease: config.ease, onComplete: finish }),
+    );
   }
 };
 
@@ -302,18 +367,25 @@ export const advance = (dir: Direction) => {
     return;
   }
 
-  // Desktop attribute timeline: step 0 ↔ 1
-  if (section.isAnimated && section.timeline) {
+  // Desktop attribute timeline: step 0 ↔ 1 (its onComplete / onReverseComplete release the lock; under reduced
+  // motion it lands on the step at once)
+  const timeline = section.timeline;
+  if (section.isAnimated && timeline) {
+    const release = () => {
+      app.isAnimating = false;
+    };
     if (dir > 0 && app.currentStep < 1) {
       app.isAnimating = true;
       app.currentStep = 1;
-      section.timeline.play();
+      if (motion) timeline.play();
+      else playTimeline(timeline, timeline.duration(), undefined, release);
       return;
     }
     if (dir < 0 && app.currentStep > 0) {
       app.isAnimating = true;
       app.currentStep = 0;
-      section.timeline.reverse();
+      if (motion) timeline.reverse();
+      else playTimeline(timeline, 0, undefined, release);
       return;
     }
   }
@@ -340,6 +412,10 @@ export const advance = (dir: Direction) => {
 // section slides away and reveals the target, already at its start. anchorDuration in total whatever the distance
 // (down: half the backdrop, half the target).
 let backdrop: HTMLElement | null = null;
+/** Hidden below the screen (a breakpoint change killed a jump halfway) */
+const resetBackdrop = () => {
+  if (backdrop) gsap.set(backdrop, { yPercent: 100, autoAlpha: 0 });
+};
 const jumpBackdrop = () => {
   if (backdrop?.isConnected) return backdrop;
   backdrop = document.createElement('div');
@@ -350,7 +426,7 @@ const jumpBackdrop = () => {
     top: '0',
     left: '0',
     width: '100%',
-    height: '100vh',
+    height: '100%', // the stacking container's, like the sections
     backgroundColor: 'var(--theme-page-bg)',
     pointerEvents: 'none',
   });
@@ -380,33 +456,37 @@ const jumpDown = (target: KulbitSection, prev: number) => {
   gsap.set(cover, { zIndex: target.index, yPercent: 100, autoAlpha: 1 });
   // From the hero: its step (the header leaving) plays while the backdrop comes
   if (prev === 0 && hero?.isAnimated && hero.timeline) {
-    hero.timeline.tweenTo(hero.timeline.duration(), { duration: half });
+    playTimeline(hero.timeline, hero.timeline.duration(), half);
   } else if (prev === 0 && hero?.isTabletHero && hero.tabletTL) {
     const s1 = hero.tabletTL.labels.s1 ?? hero.tabletTL.duration();
-    if (hero.tabletTL.time() < s1) hero.tabletTL.tweenTo(s1, { duration: half });
+    if (hero.tabletTL.time() < s1) playTimeline(hero.tabletTL, s1, half);
   }
-  gsap.to(cover, {
-    yPercent: 0,
-    duration: half,
-    ease: config.ease,
-    onComplete: () => {
-      passHero(); // the hero at its end (tablet: its hand-off puts section 1 into the stack)
-      app.isAnimating = true; // the hero timeline's own onComplete released it
-      for (let i = prev + 1; i < target.index; i++) gsap.set(app.sections[i].el, { yPercent: 0 });
-      gsap.set(target.el, { yPercent: 100 }); // the tablet hand-off may have moved section 1
-      gsap.to(target.el, {
-        yPercent: 0,
-        duration: half,
-        ease: config.ease,
-        onComplete: () => {
-          gsap.set(cover, { yPercent: 100, autoAlpha: 0 });
-          app.isAnimating = false;
-          hideOtherVideos();
-          target.controller?.enter?.();
-        },
-      });
-    },
-  });
+  track(
+    gsap.to(cover, {
+      yPercent: 0,
+      duration: half,
+      ease: config.ease,
+      onComplete: () => {
+        passHero(); // the hero at its end (tablet: its hand-off puts section 1 into the stack)
+        app.isAnimating = true; // the hero timeline's own onComplete released it
+        for (let i = prev + 1; i < target.index; i++) gsap.set(app.sections[i].el, { yPercent: 0 });
+        gsap.set(target.el, { yPercent: 100 }); // the tablet hand-off may have moved section 1
+        track(
+          gsap.to(target.el, {
+            yPercent: 0,
+            duration: half,
+            ease: config.ease,
+            onComplete: () => {
+              resetBackdrop();
+              app.isAnimating = false;
+              hideOtherVideos();
+              target.controller?.enter?.();
+            },
+          }),
+        );
+      },
+    }),
+  );
 };
 
 const jumpUp = (target: KulbitSection, prev: number) => {
@@ -418,27 +498,36 @@ const jumpUp = (target: KulbitSection, prev: number) => {
   app.currentStep = 0;
   persistSection();
   showCurrentVideo();
+  const finish = () => {
+    app.isAnimating = false;
+    hideOtherVideos();
+  };
+  // Section 1 → the tablet hero: section 1 is the hero timeline's own target, so the whole choreography runs back
+  // from its end (section 1 slides away, the 16:9 band grows back to the full video, the header returns)
+  if (target.index === 0 && prev === 1 && hero?.isTabletHero && hero.tabletTL) {
+    const timeline = hero.tabletTL;
+    leaving.controller?.collapse?.();
+    timeline.progress(1).pause();
+    playTimeline(timeline, 0, duration, () => {
+      finish();
+      app.currentStep = 0;
+      leaving.controller?.prepare?.(); // below the screen now: hidden again for its next appearance under the band
+    });
+    return;
+  }
   for (let i = target.index + 1; i < prev; i++) gsap.set(app.sections[i].el, { yPercent: 100 });
   if (target.controller) target.controller.reset?.(false);
   else if (target.index === 0 && hero?.isAnimated && hero.timeline) {
     // The hero's step back while the section slides away (the header returns)
-    hero.timeline.tweenTo(0, { duration });
+    playTimeline(hero.timeline, 0, duration);
   } else if (target.index === 0 && hero?.isTabletHero && hero.tabletTL) {
     // The hand-off undone at once (under the leaving section), the first step back with the slide
     const s1 = hero.tabletTL.labels.s1 ?? 0;
     hero.tabletTL.progress(0).time(s1).pause();
-    hero.tabletTL.tweenTo(0, { duration });
+    playTimeline(hero.tabletTL, 0, duration);
   } else setSectionStart(target);
   leaving.controller?.collapse?.();
-  gsap.to(leaving.el, {
-    yPercent: 100,
-    duration,
-    ease: config.ease,
-    onComplete: () => {
-      app.isAnimating = false;
-      hideOtherVideos();
-    },
-  });
+  track(gsap.to(leaving.el, { yPercent: 100, duration, ease: config.ease, onComplete: finish }));
 };
 
 export const autoAdvanceTo = (targetIndex: number) => {
@@ -447,39 +536,4 @@ export const autoAdvanceTo = (targetIndex: number) => {
   if (target === prev || app.isAnimating) return;
   if (target > prev) jumpDown(app.sections[target], prev);
   else jumpUp(app.sections[target], prev);
-};
-
-/** A section + a given step (buttons with data-target-step): stacking positions animated, the steps set */
-export const goToSectionStep = (index: number, targetStep: number) => {
-  if (!app.sections.length) return;
-  const clamped = Math.max(0, Math.min(index, app.sections.length - 1));
-  const section = app.sections[clamped];
-  const maxStep = section.isAnimated ? 1 : section.isStepped ? section.steps.length : 0;
-  const step = Math.max(0, Math.min(targetStep || 0, maxStep));
-
-  app.currentSectionIndex = clamped;
-  app.currentStep = step;
-
-  app.isAnimating = true;
-  let pending = 0;
-  app.sections.forEach((s) => {
-    pending++;
-    gsap.to(s.el, {
-      yPercent: s.index <= clamped ? 0 : 100,
-      duration: config.scrollDuration,
-      ease: config.ease,
-      onComplete: () => {
-        if (--pending === 0) app.isAnimating = false;
-      },
-    });
-  });
-
-  if (section.isAnimated && section.timeline) {
-    section.timeline.progress(step >= 1 ? 1 : 0).pause();
-  } else if (section.isStepped) {
-    section.steps.forEach((el, i) => {
-      if (i < step) gsap.to(el, { autoAlpha: 1, y: 0, duration: config.autoPlayStepDuration, ease: config.ease });
-      else gsap.set(el, { autoAlpha: 0, y: 40 });
-    });
-  }
 };

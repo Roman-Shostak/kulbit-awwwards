@@ -12,8 +12,11 @@
  * Only the card in view plays its video, and only while the section is the current one; the files load ahead (the
  * first card's when the section before becomes the current one, the next card's while one plays).
  * The markup is the natural state: the first card in the frame, the line at its first part.
- * Files: public/video/service-*-1080.mp4 (the originals) / -720.mp4 (the Webflow transcodes, ≤ 991px); posters
- * src/assets/our-services/ (the first frames, 1280 × 720).
+ * Files: public/video/service-*-1080.mp4 (the originals: 1920 × 1062) / -720.mp4 (the Webflow transcodes, 1280 × 708);
+ * posters src/assets/our-services/ (the first frames, 1280 × 708) — in data-poster: the step engine sets `poster` when
+ * the section is the current or the next one (not at the page start). The 1080 file only where the box needs it: a
+ * desktop at 2x, or wider than 2078px (the 754 × 654 box covered by the 16:9 frame = 1182px wide at 1920, under the 720
+ * file's 1280 up to 2078px); the 720 file everywhere else.
  */
 import { getImage } from 'astro:assets';
 import { useTranslations } from '@/i18n';
@@ -38,13 +41,14 @@ const media = [
 const cards = await Promise.all(
   t.cards.map(async (card, i) => {
     const { video, poster, width } = media[i];
-    const image = await getImage({ src: poster, format: 'webp', width: 1280, quality: 80 });
+    // layout none: only .src is used (a poster attribute), no srcset files
+    const image = await getImage({ src: poster, format: 'webp', width: 1280, quality: 80, layout: 'none' });
     return { ...card, width, poster: image.src, src: `/video/service-${video}-1080.mp4`, srcSmall: `/video/service-${video}-720.mp4` };
   }),
 );
 ---
 
-<section class="section padding-md our-services" data-kulbit-section>
+<section id="services" class="section padding-md our-services" data-kulbit-section>
   <div class="container">
     <div class="flex-v spacing-2xl">
       <ProgressLine start="sixth" />
@@ -117,9 +121,9 @@ const cards = await Promise.all(
                 </div>
               </div>
               <div class="our-services_media">
-                <video class="fill-box" muted loop playsinline preload="none" poster={card.poster} aria-hidden="true">
-                  <source src={card.srcSmall} type="video/mp4" media="(max-width: 991px)" />
-                  <source src={card.src} type="video/mp4" />
+                <video class="fill-box" muted loop playsinline preload="none" data-poster={card.poster} aria-hidden="true">
+                  <source src={card.src} type="video/mp4" media="(min-width: 992px) and (min-resolution: 2dppx), (min-width: 2079px)" />
+                  <source src={card.srcSmall} type="video/mp4" />
                 </video>
               </div>
             </li>
@@ -401,14 +405,16 @@ const cards = await Promise.all(
   // otherwise measure the rise from the already lifted row). The line: (state + 1) / (maxState + 1).
   // The engine calls prepare (slide-in start: the cards hidden, the line empty), enter (covered: the cards rise, the
   // line fills its first part), collapse (slides away: the line empties), reset(toEnd) (instant state; revealed from
-  // above = the last card). Differences from the source: the section is found through [data-kulbit-hswipe-group], not
-  // the class; no margin-top workaround (the Webflow CSS has no margin-top: auto on the row any more); reset shows the
-  // row before the mobile lift is measured and set (the source set y: 0 after it and dropped the lift).
+  // above = the last card), resize (the same breakpoint, a new size: the row's shift again and, from state 1, the
+  // statement erased and collapsed again — the engine has just rebuilt the scramble texts).
+  // Differences from the source: the section is found through [data-kulbit-hswipe-group], not the class; no margin-top
+  // workaround (the Webflow CSS has no margin-top: auto on the row any more); reset shows the row before the mobile
+  // lift is measured and set (the source set y: 0 after it and dropped the lift).
   import { gsap } from 'gsap';
   import { app, config, registerSectionBuilder, type SectionController } from '@/scripts/kulbit/app';
   import { progressLine } from '@/scripts/kulbit/progress-line';
   import { reducedMotion, scrambles } from '@/scripts/kulbit/scramble';
-  import { registerVideo } from '@/scripts/kulbit/video';
+  import { backgroundVideosPaused, registerVideo } from '@/scripts/kulbit/video';
 
   const group = document.querySelector<HTMLElement>('[data-kulbit-hswipe-group]');
   const root = group?.closest<HTMLElement>('[data-kulbit-section]') ?? null;
@@ -422,7 +428,8 @@ const cards = await Promise.all(
   let active = 0;
   const isCurrent = () => app.sections[app.currentSectionIndex]?.el === root && !app.landscapeBlocked;
   const playActive = () => {
-    if (reducedMotion() || !isCurrent()) return;
+    // Reduced motion, a covered section or the visitor's pause (the menu): the poster stays
+    if (reducedMotion() || !isCurrent() || backgroundVideosPaused()) return;
     videos[active]?.play().catch(() => {}); // autoplay refused (power saving): the poster stays
   };
   const pauseOthers = (keep: number) =>
@@ -446,6 +453,7 @@ const cards = await Promise.all(
   };
   if (root) {
     registerVideo({
+      background: true, // autoplaying: the visitor's pause (the menu) stops it too
       get sectionIndex() {
         return app.sections.findIndex((section) => section.el === root);
       },
@@ -479,29 +487,34 @@ const cards = await Promise.all(
     const cardWidth = () => cards[0].getBoundingClientRect().width;
     const shiftFor = (s: number) => -swapIndexOf(s) * (cardWidth() + gap());
 
-    // Step 1 erases the statement by scramble (mobile: the label too). Desktop / tablet: its height collapses and the
-    // row follows it up. Mobile: the line and the whole head fade out and the row goes up to the section's padding.
+    // Step 1 erases the statement by scramble (mobile: the label too) and holds it erased (scramble's own entering the
+    // screen must not write it back). Desktop / tablet: its height collapses and the row follows it up. Mobile: the
+    // line and the whole head fade out and the row goes up to the section's padding.
     const erased = [...(head?.querySelectorAll<HTMLElement>('[data-kulbit-scramble]') ?? [])].filter(
       (el) => isMobile || el === title,
     );
     const tops = [bar, head].filter((el): el is HTMLElement => !!el);
     let titleHeight = 0; // desktop / tablet: the statement's height before it collapses
     let collapsed = false;
+    // mobile: from the row (not lifted) up to the section's padding. The row's own y comes off the measure as the
+    // computed transform: under reduced motion reset.css transitions every change for 0.01 ms, so a y just set is
+    // not in the box yet (a resize or a reset from below would measure the lifted row)
+    const liftOf = () => {
+      const padTop = parseFloat(getComputedStyle(section.el).paddingTop) || 0;
+      const y = new DOMMatrixReadOnly(getComputedStyle(group).transform).m42;
+      return group.getBoundingClientRect().top - y - (section.el.getBoundingClientRect().top + padTop);
+    };
     const setTitle = (collapse: boolean, animate: boolean) => {
       // The controllers are rebuilt on resize: read them at the moment
       erased.forEach((el) => {
         const scramble = scrambles.get(el);
+        scramble?.hold(collapse);
         if (collapse) scramble?.out();
         else scramble?.in();
       });
       if (isMobile) {
-        let lift = 0;
-        if (collapse) {
-          const padTop = parseFloat(getComputedStyle(section.el).paddingTop) || 0;
-          lift = group.getBoundingClientRect().top - (section.el.getBoundingClientRect().top + padTop);
-        }
         const vars = { autoAlpha: collapse ? 0 : 1 };
-        const y = collapse ? -lift : 0;
+        const y = collapse ? -liftOf() : 0;
         if (animate) {
           gsap.to(tops, { ...vars, duration: STEP, ease: EASE });
           gsap.to(group, { y, duration: STEP, ease: EASE });
@@ -563,6 +576,29 @@ const cards = await Promise.all(
         line.enter(1 / (maxState + 1));
       },
       collapse: () => line.collapse(),
+      resize() {
+        moveX(state, false); // the card width and the gap are px
+        if (state < 1) return;
+        // Erased and collapsed again: the rebuild wrote the texts back at their new heights (the hold keeps scramble's
+        // entering the screen from writing them)
+        erased.forEach((el) => {
+          const scramble = scrambles.get(el);
+          scramble?.hold(true);
+          scramble?.setOut();
+        });
+        if (isMobile) {
+          gsap.set(group, { y: 0 }); // the lift is measured from the row where it would stand
+          gsap.set(group, { y: -liftOf() });
+        } else if (title) {
+          // The height to come back to: scramble's new fixed height; without scramble (reduced motion) the natural one
+          if (parseFloat(title.style.height) !== 0) titleHeight = title.offsetHeight;
+          else if (!scrambles.has(title)) {
+            title.style.height = '';
+            titleHeight = title.offsetHeight;
+          }
+          gsap.set(title, { height: 0 });
+        }
+      },
       reset(toEnd) {
         state = toEnd ? maxState : 0;
         gsap.killTweensOf(group);

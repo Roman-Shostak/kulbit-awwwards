@@ -1,10 +1,13 @@
 ---
 /**
  * SectionNav — the quick jump between the screens of the home page: an arrow tab on the right edge of the screen,
- * always there, slides the menu panel in from the right (and back); the panel lists the eight screens with the
- * current one marked (a square + aria-current, kept live by the engine's `kulbit:section` event); an item jumps to
- * its screen at its start (data-target-section → the engine's autoAdvanceTo: down over a black backdrop,
- * src/scripts/kulbit/sections.ts) and closes the panel.
+ * always there, slides the menu panel in from the right (and back); the panel lists the nine screens with the
+ * current one marked (a square + aria-current="location", kept live by the engine's `kulbit:section` event); an item
+ * is a link to its screen's anchor (href="#<id>": the plain jump without JS) that the engine takes over — it jumps to
+ * the screen at its start (data-target-section → autoAdvanceTo: down over a black backdrop, src/scripts/kulbit/
+ * sections.ts; the engine's click handler prevents the native jump) and closes the panel. Under the list the toggle
+ * that pauses the autoplaying background videos (WCAG 2.2.2; aria-pressed, the square marks it on; src/scripts/kulbit/
+ * video.ts keeps the choice).
  * Rendered in the header slot (<SectionNav slot="header" />): .header-fixed lies over the stacked sections and has no
  * transform, so the fixed panel covers the whole screen height, the header button included.
  * Not in the Webflow build or in Figma: a provisional look in the site's style (the --theme-frame frames, the Decima Mono
@@ -19,6 +22,18 @@ import Square from '@/components/ui/Square.astro';
 import { useTranslations } from '@/i18n';
 
 const t = useTranslations(Astro.currentLocale).sectionNav;
+// The ids of the screens, in the order of the page = the order of t.items (Hero, Our Clients … Footer)
+const targets = [
+  'hero',
+  'clients',
+  'projects',
+  'services',
+  'working-process-intro',
+  'working-process',
+  'traditional-production-intro',
+  'traditional-production',
+  'footer',
+];
 ---
 
 <nav class="section-nav" aria-label={t.label} data-section-nav>
@@ -32,18 +47,31 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
     <IconTriangle class="section-nav_arrow" aria-hidden="true" />
   </button>
   <div class="section-nav_panel" id="section-nav-panel" inert aria-hidden="true" data-section-nav-panel>
-    <ul class="text-size-section-label text-weight-700 text-style-uppercase">
-      {
-        t.items.map((item, i) => (
-          <li>
-            <button type="button" class="section-nav_item align-center spacing-xs" aria-current={i === 0 ? 'true' : undefined} data-target-section={i}>
-              <Square size="12" class="section-nav_mark" />
-              {item}
-            </button>
-          </li>
-        ))
-      }
-    </ul>
+    <div class="text-size-section-label text-weight-700 text-style-uppercase">
+      <ul>
+        {
+          t.items.map((item, i) => (
+            <li>
+              <a
+                href={`#${targets[i]}`}
+                class="section-nav_item align-center spacing-xs"
+                aria-current={i === 0 ? 'location' : undefined}
+                data-target-section={i}>
+                <Square size="12" class="section-nav_mark" />
+                {item}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      {/* TODO: not in the design — the toggle looks like the items until the designer's mockup */}
+      <div class="section-nav_extra">
+        <button type="button" class="section-nav_item align-center spacing-xs" aria-pressed="false" data-video-pause>
+          <Square size="12" class="section-nav_mark" />
+          {t.pauseVideo}
+        </button>
+      </div>
+    </div>
   </div>
 </nav>
 
@@ -119,13 +147,20 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
   .section-nav_item:focus-visible {
     color: var(--theme-text-accent);
   }
-  /* The square of the current screen (the others keep its place) */
+  /* The pause toggle under the list: a divider in the colour of the panel's frame */
+  .section-nav_extra {
+    margin-top: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
+    border-top: var(--border-width-md) solid var(--theme-frame);
+  }
+  /* The square of the current screen / of the pressed toggle (the others keep its place) */
   .section-nav_mark {
     flex: none;
     opacity: 0;
     transition: opacity var(--transition-duration) var(--transition-easing);
   }
-  .section-nav_item[aria-current='true'] .section-nav_mark {
+  .section-nav_item[aria-current='location'] .section-nav_mark,
+  .section-nav_item[aria-pressed='true'] .section-nav_mark {
     opacity: 1;
   }
 
@@ -151,19 +186,21 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
 </style>
 
 <script>
-  // Open / close the panel (the jump itself is the engine's delegated [data-target-section] click) and the mark of
-  // the current screen
+  // Open / close the panel (the jump itself is the engine's delegated [data-target-section] click), the mark of the
+  // current screen and the pause of the background videos
   import { app, SECTION_EVENT } from '@/scripts/kulbit/app';
+  import { backgroundVideosPaused, setBackgroundVideosPaused } from '@/scripts/kulbit/video';
 
   const nav = document.querySelector<HTMLElement>('[data-section-nav]');
   const toggle = nav?.querySelector<HTMLButtonElement>('[data-section-nav-toggle]');
   const panel = nav?.querySelector<HTMLElement>('[data-section-nav-panel]');
+  const pause = nav?.querySelector<HTMLButtonElement>('[data-video-pause]');
 
   if (nav && toggle && panel) {
     const items = [...panel.querySelectorAll<HTMLElement>('[data-target-section]')];
     const markCurrent = (index: number) =>
       items.forEach((item) => {
-        if (item.getAttribute('data-target-section') === String(index)) item.setAttribute('aria-current', 'true');
+        if (item.getAttribute('data-target-section') === String(index)) item.setAttribute('aria-current', 'location');
         else item.removeAttribute('aria-current');
       });
     document.addEventListener(SECTION_EVENT, (event) => markCurrent((event as CustomEvent<{ index: number }>).detail.index));
@@ -176,8 +213,10 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
       if (open) panel.removeAttribute('aria-hidden');
       else panel.setAttribute('aria-hidden', 'true');
     };
+    const showPaused = () => pause?.setAttribute('aria-pressed', String(backgroundVideosPaused()));
     const open = () => {
       markCurrent(app.currentSectionIndex);
+      showPaused();
       setOpen(true);
     };
     const close = (focusToggle = false) => {
@@ -188,6 +227,10 @@ const t = useTranslations(Astro.currentLocale).sectionNav;
     };
 
     toggle.addEventListener('click', () => (isOpen() ? close() : open()));
+    pause?.addEventListener('click', () => {
+      setBackgroundVideosPaused(pause.getAttribute('aria-pressed') !== 'true');
+      showPaused();
+    });
     // An item: the engine jumps, the panel closes
     panel.addEventListener('click', (event) => {
       if (event.target instanceof Element && event.target.closest('[data-target-section]')) close(true);

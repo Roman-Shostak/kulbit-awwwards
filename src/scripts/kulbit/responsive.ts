@@ -8,10 +8,15 @@
  *              frame itself, iPad mini — got no hero step at all; the landscape phone is the popup's case, below)
  *   ≤ 479      the same choreography (mobile portrait = tablet)
  * Every branch starts clean on the hero, builds the hero, runs the section builders, then restores the saved
- * section. Leaving a branch GSAP reverts everything created inside it; teardownHero drops our references.
+ * section. Each build step is isolated: a failing builder is reported and the rest still build, the saved section is
+ * restored and teardownHero is returned. Leaving a branch GSAP reverts everything created inside it; teardownHero
+ * kills the engine's in-flight tweens and drops our references.
  *
  * Landscape phone: `(orientation: landscape) and (max-height: 500px) and (pointer: coarse)` shows
- * `[data-kulbit-landscape-popup]` (rendered with `hidden`), turns the navigation off and pauses every video.
+ * `[data-kulbit-landscape-popup]` (src/components/sections/LandscapePopup.astro in the header slot, rendered
+ * `hidden`, a modal: role="dialog" aria-modal="true" tabindex="-1"), turns the navigation off and pauses every
+ * video; while it is shown everything behind it is inert (every sibling on its way up to <body>: the header's other
+ * children, main, the footer, the skip link) and the focus is on it.
  */
 import { gsap } from 'gsap';
 import { app, config, sectionBuilders, type Breakpoint } from './app';
@@ -19,12 +24,19 @@ import { buildTabletHero } from './hero';
 import { buildDesktopAnimations, resetHeroState, restoreSection, teardownHero } from './sections';
 import { updateVideoVisibility } from './video';
 
+const attempt = (what: string, run: () => void) => {
+  try {
+    run();
+  } catch (error) {
+    console.error(`[kulbit] ${what} failed; the rest still builds`, error);
+  }
+};
+
 const branch = (mode: Breakpoint) => () => {
-  resetHeroState();
-  if (mode === 'desktop') buildDesktopAnimations();
-  else buildTabletHero();
-  sectionBuilders.forEach((build) => build(mode));
-  restoreSection();
+  attempt('resetting the hero', resetHeroState);
+  attempt('building the hero', mode === 'desktop' ? buildDesktopAnimations : buildTabletHero);
+  sectionBuilders.forEach((build) => attempt('a section builder', () => build(mode)));
+  attempt('restoring the section', restoreSection);
   return teardownHero;
 };
 
@@ -45,15 +57,45 @@ export const setupLandscape = () => {
   const query = window.matchMedia(
     `(orientation: landscape) and (max-height: ${config.landscapeMaxHeight}px) and (pointer: coarse)`,
   );
+  // Behind the popup: every sibling on its way up to <body> — the header's other children (the logo, the menu), main,
+  // the footer, the skip link
+  const behind = () => {
+    const list: HTMLElement[] = [];
+    for (let el: HTMLElement | null = popup; el && el !== document.body; el = el.parentElement) {
+      const parent: HTMLElement | null = el.parentElement;
+      if (!parent) break;
+      for (const sibling of Array.from(parent.children)) {
+        if (sibling !== el && sibling instanceof HTMLElement) list.push(sibling);
+      }
+    }
+    return list;
+  };
+  let inerted: HTMLElement[] = []; // only what we made inert (the menu panel keeps its own)
+  const show = (shown: boolean) => {
+    if (shown === !popup.hidden) return;
+    popup.hidden = !shown;
+    if (shown) {
+      inerted = behind().filter((el) => !el.inert);
+      inerted.forEach((el) => {
+        el.inert = true;
+      });
+      popup.focus({ preventScroll: true });
+    } else {
+      inerted.forEach((el) => {
+        el.inert = false;
+      });
+      inerted = [];
+    }
+  };
   const apply = () => {
     // A video in fullscreen: a rotation must neither show the popup nor pause it
     if (app.videoFullscreen) {
       app.landscapeBlocked = false;
-      popup.hidden = true;
+      show(false);
       return;
     }
     app.landscapeBlocked = query.matches;
-    popup.hidden = !query.matches;
+    show(query.matches);
     if (query.matches) app.observer?.disable();
     else app.observer?.enable();
     updateVideoVisibility();

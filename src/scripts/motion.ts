@@ -25,8 +25,14 @@
  * are unlayered and would override the utility animation — reveal a wrapper <div> instead.
  */
 import Lenis from 'lenis';
-import 'lenis/dist/lenis.css';
+// Inlined as a string and added only when this module runs: a plain CSS import would ship Lenis' rules with every
+// page whose layout mentions the module, even a page that never loads it
+import lenisStyles from 'lenis/dist/lenis.css?inline';
 import './header';
+
+const lenisStyle = document.createElement('style');
+lenisStyle.textContent = lenisStyles;
+document.head.append(lenisStyle);
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 // Bottom part of the viewport (10 %) in which an element does not count as visible yet (observer rootMargin)

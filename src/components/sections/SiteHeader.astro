@@ -3,6 +3,8 @@
  * SiteHeader — logo + «Projects» (the Webflow build: .header > .container > .flex-h align-center justify-space-between).
  * Rendered by BaseLayout inside `.header-fixed > .header` (slot="header"). The root carries the header's step
  * attributes (src/scripts/kulbit): the hero's first step moves it up by 600 % and fades it; the way back returns it.
+ * «Projects» is a link to the Projects screen's anchor (the plain jump without JS); the engine takes the click over
+ * (data-target-section: its smooth jump, the native one prevented).
  */
 import Button from '@/components/ui/Button.astro';
 import Logo from '@/components/ui/Logo.astro';
@@ -14,6 +16,6 @@ const t = useTranslations(Astro.currentLocale).siteHeader;
 <div class="container" data-kulbit-header data-kulbit-y="-600" data-kulbit-fade="0" data-kulbit-y-tablet="-600" data-kulbit-fade-tablet="0">
   <div class="align-center justify-space-between spacing-md">
     <Logo />
-    <Button variant="outline" data-kulbit-border="" data-target-section="projects">{t.projects}</Button>
+    <Button variant="outline" href="#projects" data-kulbit-border="" data-target-section="projects">{t.projects}</Button>
   </div>
 </div>

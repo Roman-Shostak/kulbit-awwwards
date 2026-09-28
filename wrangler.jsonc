@@ -26,11 +26,12 @@
   },
   // Plain settings read by the Worker as `env.*`. Secrets — TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
   // TELEGRAM_WEBHOOK_SECRET — are set with `wrangler secret put`, never here.
-  // NOTIFY: `telegram`, `email` or `telegram,email`. E-mail (Cloudflare Email Service) needs the Workers Paid plan:
+  // NOTIFY: `telegram`, `email` or `telegram,email`; empty = the submissions are only stored in D1 (Kulbit: the
+  // user's choice — an Awwwards site, nobody is notified). E-mail (Cloudflare Email Service) needs the Workers Paid plan:
   // add `send_email: [{ "name": "EMAIL" }]` + vars EMAIL_FROM / EMAIL_TO, or a Resend channel in worker/index.ts.
   "vars": {
     "ENVIRONMENT": "production",
-    "NOTIFY": "telegram",
+    "NOTIFY": "",
     "SITE_NAME": "kulbit.site",
   },
   // Form submissions storage (D1 in the client's account, `wrangler d1 create <name>-forms`); schema in migrations/
@@ -58,7 +59,7 @@
       },
       "vars": {
         "ENVIRONMENT": "stage",
-        "NOTIFY": "telegram",
+        "NOTIFY": "",
         "SITE_NAME": "kulbit.site",
       },
       // own database for test submissions (`wrangler d1 create <name>-forms-stage`)

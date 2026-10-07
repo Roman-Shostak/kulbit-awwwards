@@ -8,8 +8,10 @@
  * the heading and the CTA leave down (yPercent 300), the text up (−300), the header up (−600); tablet/mobile — the
  * whole content leaves down and the sound button moves to the middle of the screen. The video plays only while the
  * hero is the current section. The sound button is drawn towards the cursor (below). After the preloader the hero plays
- * its intro (src/scripts/kulbit/hero-intro.ts, the data-hero-intro hooks): the video fades in, the heading types
- * itself, the CTA's arrow slides in, the statement scrambles in, the square rises.
+ * its intro (src/scripts/kulbit/hero-intro.ts, the data-hero-intro hooks; the designer's video after-preloader.mp4): a
+ * square runs into the L of an outlined KULBIT that draws and erases itself at the bottom (.hero_intro, shown only
+ * while the intro plays), the hero square glides in, the logo, the statement and the CTA appear, the heading rises
+ * line by line.
  * Files: public/video/hero-1080.mp4 (desktop) / hero-720.mp4 (≤ 991px), poster = the first frame. First the AV1
  * copies (hero-1080-av1 / hero-720-av1: SVT-AV1 10-bit CRF 40 from the client's master «showreel (for site) hq v1»,
  * VMAF 93.6 / 93.5 against it, half the size of the H.264 files); a browser without AV1 takes the H.264 file.
@@ -20,6 +22,7 @@ import Square from '@/components/ui/Square.astro';
 import { av1Type } from '@/data/video';
 import { useTranslations } from '@/i18n';
 import heroPoster from '@/assets/hero/hero-poster.jpg';
+import IconWordmark from '@/assets/icons/hero-wordmark.svg';
 import IconMute from '@/assets/icons/speaker-mute.svg';
 import IconUnmute from '@/assets/icons/speaker-unmute.svg';
 
@@ -81,6 +84,11 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
     </span>
     <span class="sr-only">{t.sound}</span>
   </button>
+
+  <div class="hero_intro" aria-hidden="true" data-hero-intro="overlay">
+    <IconWordmark class="hero_wordmark" data-hero-intro="wordmark" />
+    <Square class="hero_runner" data-hero-intro="runner" />
+  </div>
 </section>
 
 <style>
@@ -224,6 +232,34 @@ const poster = await getImage({ src: heroPoster, format: 'webp', width: 1920, qu
   .hero_sound-icon[data-sound-icon='on'] {
     opacity: 0;
     visibility: hidden;
+  }
+
+  /* ---------- Intro (src/scripts/kulbit/hero-intro.ts) ---------- */
+  /* only while the intro plays; the script places the runner and draws the wordmark */
+  .hero_intro {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: none;
+    pointer-events: none;
+  }
+  .hero_intro.is--active {
+    display: block;
+  }
+  /* KULBIT in PP Monument Wide Regular, outlined: the container's width, on the bottom edge */
+  .hero_wordmark {
+    position: absolute;
+    bottom: 0;
+    left: var(--container-padding);
+    width: calc(100% - 2 * var(--container-padding));
+    height: auto;
+    overflow: visible;
+    color: var(--theme-icon-secondary);
+  }
+  .hero_runner {
+    position: absolute;
+    top: 0;
+    left: 0;
   }
 
   @media (max-width: 991px) {

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="78 0 4117 737" fill="none" stroke="currentColor">
+<path data-hero-letter="0" data-hero-stroke="0" d="M78 720H200V532L372 372L624 720H770L456 292L765 0H616L200 392V0H78Z"/>
+<path data-hero-letter="1" data-hero-stroke="1" d="M1248 737C1502 737 1595 596 1595 380V0H1472V376C1472 515 1431 631 1248 631C1064 631 1023 516 1023 376V0H900V380C900 596 993 737 1248 737Z"/>
+<path data-hero-letter="2" data-hero-stroke="2" d="M1749 720H2308V614H1872V0H1749Z"/>
+<path data-hero-letter="3" data-hero-stroke="3" d="M2441 720H2909C3047 720 3120 645 3120 525C3120 417 3052 366 2972 346C3039 321 3085 264 3085 180C3085 74 3022 0 2874 0H2441Z"/>
+<path data-hero-letter="3" data-hero-stroke="4" d="M2563 624V405H2872C2938 405 2993 430 2993 513C2993 590 2950 624 2872 624Z"/>
+<path data-hero-letter="3" data-hero-stroke="5" d="M2563 310V95H2840C2921 95 2964 129 2964 203C2964 284 2909 310 2840 310Z"/>
+<path data-hero-letter="4" data-hero-stroke="6" d="M3259 720H3382V0H3259Z"/>
+<path data-hero-letter="5" data-hero-stroke="7" d="M3515 106H3794V720H3916V106H4195V0H3515Z"/>
+</svg>
